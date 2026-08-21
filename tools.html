@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SUNIL MULTI HUB — Smart Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="tools.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a href="index.html" class="brand"><span class="brand-mark">SM</span><span><strong>SUNIL MULTI HUB</strong><small>Smart Tools</small></span></a>
+      <a class="btn secondary" href="index.html">← Home</a>
+    </div>
+  </header>
+
+  <main class="tools-page">
+    <section class="tool-hero">
+      <div class="container">
+        <span class="eyebrow">WORKING BROWSER TOOLS</span>
+        <h1>दस्तावेज़ और फोटो टूल्स</h1>
+        <p>Files आपके browser में process होती हैं। Demo Phase 1 में server upload की जरूरत नहीं है।</p>
+      </div>
+    </section>
+
+    <div class="container tool-layout">
+      <aside class="tool-nav">
+        <button data-target="jpg-pdf">JPG → PDF</button>
+        <button data-target="merge-pdf">Merge PDF</button>
+        <button data-target="resize">Photo Resize</button>
+        <button data-target="passport">Passport Photo</button>
+        <button data-target="id-card">ID Card Print</button>
+      </aside>
+
+      <section class="tool-content">
+        <article class="tool-panel" id="jpg-pdf">
+          <h2>JPG / PNG → PDF</h2>
+          <p>एक या कई images चुनें और एक PDF download करें।</p>
+          <input id="jpgPdfInput" type="file" accept="image/*" multiple>
+          <div id="jpgPdfList" class="file-list"></div>
+          <button class="btn primary" id="jpgPdfBtn">Create PDF</button>
+        </article>
+
+        <article class="tool-panel" id="merge-pdf">
+          <h2>Merge PDF</h2>
+          <p>कई PDF files को एक file में जोड़ें।</p>
+          <input id="mergePdfInput" type="file" accept="application/pdf" multiple>
+          <div id="mergePdfList" class="file-list"></div>
+          <button class="btn primary" id="mergePdfBtn">Merge & Download</button>
+        </article>
+
+        <article class="tool-panel" id="resize">
+          <h2>Photo Resize</h2>
+          <p>Image को custom width/height में resize करें।</p>
+          <input id="resizeInput" type="file" accept="image/*">
+          <div class="form-grid">
+            <label>Width (px)<input id="resizeW" type="number" value="600" min="1"></label>
+            <label>Height (px)<input id="resizeH" type="number" value="800" min="1"></label>
+            <label>Format
+              <select id="resizeFormat"><option value="image/jpeg">JPG</option><option value="image/png">PNG</option></select>
+            </label>
+            <label>Quality<input id="resizeQuality" type="number" value="0.9" min="0.1" max="1" step="0.1"></label>
+          </div>
+          <canvas id="resizeCanvas" class="preview-canvas"></canvas>
+          <button class="btn primary" id="resizeBtn">Resize & Download</button>
+        </article>
+
+        <article class="tool-panel" id="passport">
+          <h2>Passport Photo Maker</h2>
+          <p>Photo upload करें, 35×45 mm ratio crop preview बनाएं और A4 sheet download करें।</p>
+          <input id="passportInput" type="file" accept="image/*">
+          <div class="form-grid">
+            <label>Background
+              <select id="passportBg"><option value="#ffffff">White</option><option value="#dfeeff">Light Blue</option><option value="#eeeeee">Light Grey</option></select>
+            </label>
+            <label>Copies<input id="passportCopies" type="number" value="12" min="1" max="24"></label>
+          </div>
+          <canvas id="passportPreview" class="passport-preview" width="350" height="450"></canvas>
+          <button class="btn primary" id="passportBtn">Download A4 Sheet</button>
+          <small class="note">Note: automatic face detection/background removal Phase 2 में जोड़ा जाएगा।</small>
+        </article>
+
+        <article class="tool-panel" id="id-card">
+          <h2>ID Card Print Layout</h2>
+          <p>Front और back image डालें और A4 print sheet बनाएं।</p>
+          <div class="form-grid">
+            <label>Front<input id="idFront" type="file" accept="image/*"></label>
+            <label>Back<input id="idBack" type="file" accept="image/*"></label>
+            <label>Card width (mm)<input id="idW" type="number" value="85.6" step="0.1"></label>
+            <label>Card height (mm)<input id="idH" type="number" value="54" step="0.1"></label>
+          </div>
+          <div class="id-preview" id="idPreview"></div>
+          <button class="btn primary" id="idBtn">Download Print PDF</button>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <script src="tools.js"></script>
+</body>
+</html>

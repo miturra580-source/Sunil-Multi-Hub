@@ -1,0 +1,29 @@
+
+.tools-page{min-height:100vh;background:#f6f8fc;padding-bottom:80px}
+.tool-hero{padding:56px 0 28px;background:linear-gradient(180deg,#fff,#f6f8fc)}
+.tool-hero h1{font-size:clamp(34px,5vw,56px);margin:0 0 12px;letter-spacing:-.04em}
+.tool-hero p{color:#667085;font-size:16px}
+.tool-layout{display:grid;grid-template-columns:220px 1fr;gap:24px;align-items:start}
+.tool-nav{position:sticky;top:96px;background:#fff;border:1px solid #e5e9f0;border-radius:18px;padding:10px}
+.tool-nav button{width:100%;text-align:left;border:0;background:transparent;padding:12px 14px;border-radius:12px;font:inherit;font-weight:700;color:#475467;cursor:pointer}
+.tool-nav button.active,.tool-nav button:hover{background:#eef3ff;color:#0b4fd8}
+.tool-content{display:grid;gap:18px}
+.tool-panel{scroll-margin-top:100px;background:#fff;border:1px solid #e5e9f0;border-radius:22px;padding:24px;box-shadow:0 12px 28px rgba(25,52,88,.05)}
+.tool-panel h2{margin:0 0 8px;font-size:26px}
+.tool-panel p{margin:0 0 18px;color:#667085}
+.tool-panel input[type=file]{display:block;width:100%;padding:14px;border:1px dashed #bfcbe0;background:#fafcff;border-radius:14px;margin-bottom:16px}
+.file-list{font-size:13px;color:#667085;margin:8px 0 16px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0}
+.form-grid label{font-size:12px;font-weight:700;color:#475467}
+.form-grid input,.form-grid select{width:100%;margin-top:6px;padding:11px;border:1px solid #dce3ee;border-radius:11px;font:inherit;background:#fff}
+.preview-canvas,.passport-preview{max-width:100%;height:auto;border:1px solid #e5e9f0;border-radius:14px;background:#fff;display:block;margin:12px 0 16px}
+.passport-preview{width:220px}
+.note{display:block;margin-top:10px;color:#667085}
+.id-preview{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
+.id-preview img{width:220px;max-width:100%;border:1px solid #e5e9f0;border-radius:12px}
+@media(max-width:760px){
+ .tool-layout{grid-template-columns:1fr}
+ .tool-nav{position:static;display:flex;overflow:auto;gap:6px}
+ .tool-nav button{min-width:max-content}
+ .form-grid{grid-template-columns:1fr}
+}

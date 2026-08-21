@@ -9,77 +9,68 @@ const emptyState = document.getElementById('emptyState');
 
 function applyLang(){
   document.documentElement.lang = lang;
-  document.querySelectorAll('[data-hi][data-en]').forEach(el=>{
-    el.textContent = el.dataset[lang];
-  });
+  document.querySelectorAll('[data-hi][data-en]').forEach(el=>{ el.textContent = el.dataset[lang]; });
   document.querySelectorAll('[data-placeholder-hi][data-placeholder-en]').forEach(el=>{
     el.placeholder = lang === 'hi' ? el.dataset.placeholderHi : el.dataset.placeholderEn;
   });
-  langToggle.textContent = lang === 'hi' ? 'EN' : 'हिं';
+  if(langToggle) langToggle.textContent = lang === 'hi' ? 'EN' : 'हिं';
 }
 applyLang();
 
-langToggle.addEventListener('click',()=>{
+if(langToggle) langToggle.addEventListener('click',()=>{
   lang = lang === 'hi' ? 'en' : 'hi';
   localStorage.setItem('smh-lang',lang);
   applyLang();
 });
-menuBtn.addEventListener('click',()=>mainNav.classList.toggle('show'));
-mainNav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>mainNav.classList.remove('show')));
+if(menuBtn) menuBtn.addEventListener('click',()=>mainNav.classList.toggle('show'));
+if(mainNav) mainNav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>mainNav.classList.remove('show')));
 
-search.addEventListener('input',()=>{
+if(search) search.addEventListener('input',()=>{
   const q = search.value.trim().toLowerCase();
   let count = 0;
   cards.forEach(card=>{
-    const text = (card.dataset.search+' '+card.innerText).toLowerCase();
+    const text = ((card.dataset.search||'')+' '+card.innerText).toLowerCase();
     const show = !q || text.includes(q);
     card.style.display = show ? 'grid' : 'none';
     if(show) count++;
   });
-  emptyState.style.display = count ? 'none' : 'block';
+  if(emptyState) emptyState.style.display = count ? 'none' : 'block';
 });
 
-function scrollToCard(id){
-  document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'center'});
-}
+function scrollToCard(id){ document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'center'}); }
 function openService(name){
   document.getElementById('modalTitle').textContent = name;
   openModal('serviceModal');
 }
 function openTool(name){
-  document.getElementById('toolTitle').textContent = name;
-  document.getElementById('fileInfo').textContent = '';
-  document.getElementById('toolFile').value = '';
-  openModal('toolModal');
+  const map = {
+    'Passport Photo Maker':'passport',
+    'JPG to PDF':'jpg-pdf',
+    'Merge PDF':'merge-pdf',
+    'Photo Resize':'resize',
+    'ID Card Print':'id-card',
+    'Resume Maker':'resize'
+  };
+  const tool = map[name] || 'jpg-pdf';
+  window.location.href = `tools.html#${tool}`;
 }
 function openContact(){
   document.getElementById('modalTitle').textContent = 'WhatsApp / Enquiry';
   openModal('serviceModal');
 }
 function openModal(id){
-  const m=document.getElementById(id);m.classList.add('show');m.setAttribute('aria-hidden','false');
+  const m=document.getElementById(id); if(!m) return;
+  m.classList.add('show');m.setAttribute('aria-hidden','false');
 }
 function closeModal(id){
-  const m=document.getElementById(id);m.classList.remove('show');m.setAttribute('aria-hidden','true');
+  const m=document.getElementById(id); if(!m) return;
+  m.classList.remove('show');m.setAttribute('aria-hidden','true');
 }
 document.querySelectorAll('.modal-backdrop').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-backdrop.show').forEach(m=>closeModal(m.id))});
-
-const dropZone = document.getElementById('dropZone');
-const toolFile = document.getElementById('toolFile');
-dropZone.addEventListener('click',()=>toolFile.click());
-dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.style.borderColor='#0b4fd8'});
-dropZone.addEventListener('dragleave',()=>dropZone.style.borderColor='');
-dropZone.addEventListener('drop',e=>{
-  e.preventDefault();dropZone.style.borderColor='';
-  const file=e.dataTransfer.files[0]; if(file) showFile(file);
-});
-toolFile.addEventListener('change',()=>{if(toolFile.files[0])showFile(toolFile.files[0])});
-function showFile(file){
-  document.getElementById('fileInfo').textContent = `Selected: ${file.name} • ${(file.size/1024/1024).toFixed(2)} MB`;
-}
 let toastTimer;
 function openToast(msg){
-  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
-  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
+  const t=document.getElementById('toast'); if(!t) return;
+  t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
 }
