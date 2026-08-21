@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SUNIL MULTI HUB — Login</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="phase2.css">
+</head>
+<body class="auth-body">
+  <main class="auth-shell">
+    <a href="index.html" class="brand auth-brand"><span class="brand-mark">SM</span><span><strong>SUNIL MULTI HUB</strong><small>Secure Login</small></span></a>
+    <section class="auth-card">
+      <div class="tabs">
+        <button class="tab active" data-tab="login">Login</button>
+        <button class="tab" data-tab="register">Register</button>
+      </div>
+
+      <form id="loginForm" class="auth-form active">
+        <h1>लॉगिन</h1>
+        <p>अपने account से dashboard खोलें।</p>
+        <label>Email<input type="email" id="loginEmail" required></label>
+        <label>Password<input type="password" id="loginPassword" required minlength="6"></label>
+        <button class="btn primary full" type="submit">Login</button>
+        <small class="demo-note">Starter mode: अभी local demo auth है. Production में Supabase/Firebase API connect होगी.</small>
+      </form>
+
+      <form id="registerForm" class="auth-form">
+        <h1>नया अकाउंट</h1>
+        <p>Basic customer account बनाएं।</p>
+        <label>नाम<input type="text" id="regName" required></label>
+        <label>Email<input type="email" id="regEmail" required></label>
+        <label>मोबाइल<input type="tel" id="regPhone" required></label>
+        <label>Password<input type="password" id="regPassword" required minlength="6"></label>
+        <button class="btn primary full" type="submit">Register</button>
+      </form>
+    </section>
+  </main>
+  <div class="toast" id="toast"></div>
+  <script src="auth.js"></script>
+</body>
+</html>

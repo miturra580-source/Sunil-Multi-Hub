@@ -35,8 +35,8 @@
         <a href="#tools" data-hi="ऑनलाइन टूल्स" data-en="Online Tools">ऑनलाइन टूल्स</a>
         <a href="#pricing" data-hi="प्लान" data-en="Plans">प्लान</a>
         <a href="#contact" data-hi="संपर्क" data-en="Contact">संपर्क</a>
-        <a class="login-link" href="#" onclick="openToast('Login / Admin module will be connected in Phase 2');return false;" data-hi="लॉगिन" data-en="Login">लॉगिन</a>
-      </nav>
+        <a class="login-link" href="auth.html" data-hi="लॉगिन" data-en="Login" data-hi="लॉगिन" data-en="Login">लॉगिन</a>
+      <a href="admin.html" data-hi="एडमिन" data-en="Admin">एडमिन</a></nav>
     </div>
   </header>
 
@@ -308,24 +308,7 @@
       <button class="btn primary full" onclick="openToast('Demo request saved locally'); closeModal('serviceModal')">Submit Demo Request</button>
     </div>
   </div>
-
-  <div class="modal-backdrop" id="toolModal" aria-hidden="true">
-    <div class="modal">
-      <button class="modal-close" onclick="closeModal('toolModal')">×</button>
-      <span class="eyebrow">SMART TOOL</span>
-      <h3 id="toolTitle">Tool</h3>
-      <div class="drop-zone" id="dropZone">
-        <span>⬆</span>
-        <strong data-hi="फाइल यहाँ drop करें" data-en="Drop file here">फाइल यहाँ drop करें</strong>
-        <small data-hi="या browse करने के लिए क्लिक करें" data-en="or click to browse">या browse करने के लिए क्लिक करें</small>
-        <input type="file" id="toolFile" hidden />
-      </div>
-      <div id="fileInfo" class="file-info"></div>
-      <button class="btn primary full" onclick="openToast('Processing engine will be connected in Phase 2')">Process Demo</button>
-    </div>
-  </div>
-
-  <div class="toast" id="toast"></div>
+<div class="toast" id="toast"></div>
 
   <script src="app.js"></script>
 </body>

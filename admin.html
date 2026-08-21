@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SUNIL MULTI HUB — Admin</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="phase2.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a href="index.html" class="brand"><span class="brand-mark">SM</span><span><strong>SUNIL MULTI HUB</strong><small>Admin Panel</small></span></a>
+      <button id="logoutBtn" class="btn secondary">Logout</button>
+    </div>
+  </header>
+
+  <main class="admin-page">
+    <div class="container">
+      <section class="admin-head">
+        <div><span class="eyebrow">PHASE 2 STARTER</span><h1>Admin Dashboard</h1><p id="adminUser"></p></div>
+        <a class="btn primary" href="tools.html">Open Tools</a>
+      </section>
+
+      <div class="stat-grid">
+        <article><span>Orders</span><strong id="statOrders">0</strong></article>
+        <article><span>Services</span><strong id="statServices">7</strong></article>
+        <article><span>Users</span><strong id="statUsers">1</strong></article>
+        <article><span>Revenue</span><strong>₹0</strong></article>
+      </div>
+
+      <section class="admin-card">
+        <div class="admin-card-head"><div><h2>Services</h2><p>Admin service list manage कर सकता है।</p></div><button class="btn primary" id="addServiceBtn">+ Add Service</button></div>
+        <div id="serviceTable" class="service-table"></div>
+      </section>
+
+      <section class="admin-card">
+        <h2>API / Database Status</h2>
+        <div class="api-status">
+          <span class="status pending">Not Connected</span>
+          <p>अगले चरण में Supabase/Firebase credentials जोड़कर login, users, orders और service data real database में save होगा।</p>
+        </div>
+      </section>
+    </div>
+  </main>
+  <div class="toast" id="toast"></div>
+  <script src="admin.js"></script>
+</body>
+</html>
