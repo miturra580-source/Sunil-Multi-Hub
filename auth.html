@@ -9,7 +9,11 @@
 </head>
 <body class="auth-body">
   <main class="auth-shell">
-    <a href="index.html" class="brand auth-brand"><span class="brand-mark">SM</span><span><strong>SUNIL MULTI HUB</strong><small>Secure Login</small></span></a>
+    <a href="index.html" class="brand auth-brand">
+      <span class="brand-mark">SM</span>
+      <span><strong>SUNIL MULTI HUB</strong><small>Secure Login</small></span>
+    </a>
+
     <section class="auth-card">
       <div class="tabs">
         <button class="tab active" data-tab="login">Login</button>
@@ -22,21 +26,30 @@
         <label>Email<input type="email" id="loginEmail" required></label>
         <label>Password<input type="password" id="loginPassword" required minlength="6"></label>
         <button class="btn primary full" type="submit">Login</button>
-        <small class="demo-note">Starter mode: अभी local demo auth है. Production में Supabase/Firebase API connect होगी.</small>
+        <button class="btn secondary full" id="googleLoginBtn" type="button">Continue with Google</button>
+        <button class="link-btn" id="forgotBtn" type="button">Forgot password?</button>
       </form>
 
       <form id="registerForm" class="auth-form">
         <h1>नया अकाउंट</h1>
-        <p>Basic customer account बनाएं।</p>
+        <p>Customer account बनाएं।</p>
         <label>नाम<input type="text" id="regName" required></label>
         <label>Email<input type="email" id="regEmail" required></label>
         <label>मोबाइल<input type="tel" id="regPhone" required></label>
         <label>Password<input type="password" id="regPassword" required minlength="6"></label>
         <button class="btn primary full" type="submit">Register</button>
       </form>
+
+      <div class="api-box">
+        <span id="apiDot"></span>
+        <strong id="apiText">Checking Supabase…</strong>
+      </div>
     </section>
   </main>
+
   <div class="toast" id="toast"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
   <script src="auth.js"></script>
 </body>
 </html>

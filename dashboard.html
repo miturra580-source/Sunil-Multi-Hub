@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SUNIL MULTI HUB — My Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="phase2.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="container nav">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">SM</span>
+      <span><strong>SUNIL MULTI HUB</strong><small>Customer Dashboard</small></span>
+    </a>
+    <button id="logoutBtn" class="btn secondary">Logout</button>
+  </div>
+</header>
+
+<main class="admin-page">
+<div class="container">
+  <section class="admin-head">
+    <div><span class="eyebrow">CUSTOMER</span><h1>My Dashboard</h1><p id="who"></p></div>
+    <a class="btn primary" href="tools.html">Open Tools</a>
+  </section>
+
+  <div class="stat-grid">
+    <article><span>My Orders</span><strong id="orderCount">0</strong></article>
+    <article><span>Pending</span><strong id="pendingCount">0</strong></article>
+    <article><span>Completed</span><strong id="doneCount">0</strong></article>
+    <article><span>Services</span><strong id="serviceCount">0</strong></article>
+  </div>
+
+  <section class="admin-card">
+    <h2>New Service Request</h2>
+    <form id="orderForm" class="order-form">
+      <label>Service<select id="serviceSelect" required></select></label>
+      <label>Note<textarea id="orderNote" rows="3" placeholder="काम की जानकारी"></textarea></label>
+      <button class="btn primary" type="submit">Submit Request</button>
+    </form>
+  </section>
+
+  <section class="admin-card">
+    <h2>My Orders</h2>
+    <div id="ordersList"></div>
+  </section>
+</div>
+</main>
+
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>
