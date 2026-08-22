@@ -1,6 +1,7 @@
 /* =========================================================
    SUNIL MULTI HUB
-   CUSTOMER PORTAL + SERVICE VARIANTS + DYNAMIC FORMS
+   CUSTOMER PORTAL
+   Dynamic Services + PAN Variants + Conditional Forms
 ========================================================= */
 
 const $ = id => document.getElementById(id);
@@ -14,9 +15,9 @@ let services = [];
 let activeService = null;
 let activeVariant = null;
 
+let serviceVariants = [];
 let applicationFields = [];
 let applicationDocuments = [];
-let serviceVariants = [];
 
 let aadhaarVerification = {
   status: 'not_checked',
@@ -24,6 +25,13 @@ let aadhaarVerification = {
   verifiedAt: null,
   last4: null,
   result: {}
+};
+
+let epanOtp = {
+  requestId: null,
+  sent: false,
+  verified: false,
+  aadhaarLast4: null
 };
 
 
@@ -60,12 +68,15 @@ function esc(value = '') {
 
 
 function money(value) {
-  return '₹' + Number(value || 0).toLocaleString('en-IN');
+  return '₹' + Number(value || 0)
+    .toLocaleString('en-IN');
 }
 
 
 function normalizeCategory(value) {
-  const v = String(value || '').trim().toLowerCase();
+  const v = String(value || '')
+    .trim()
+    .toLowerCase();
 
   if (v === 'popular') return 'Popular';
   if (v === 'government') return 'Government';
@@ -78,7 +89,7 @@ function normalizeCategory(value) {
 function safeFileName(name = 'file') {
   return String(name)
     .replace(/[^a-zA-Z0-9._-]/g, '_')
-    .slice(-100);
+    .slice(-120);
 }
 
 
@@ -98,7 +109,7 @@ function fieldInputStyle() {
     border:1px solid #d8e0eb;
     border-radius:12px;
     font:inherit;
-    background:#fff
+    background:#fff;
   `;
 }
 
@@ -107,10 +118,14 @@ function makeClient() {
   const cfg = window.SMH_CONFIG || {};
 
   const url = cfg.supabaseUrl;
-  const key = cfg.supabaseAnonKey || cfg.supabaseKey;
+  const key =
+    cfg.supabaseAnonKey ||
+    cfg.supabaseKey;
 
   if (!url || !key) {
-    throw new Error('Supabase config missing');
+    throw new Error(
+      'Supabase config missing'
+    );
   }
 
   return window.supabase.createClient(
@@ -165,36 +180,43 @@ async function boot() {
 
   } catch (error) {
     console.error(error);
-    msg(error.message || 'Portal loading failed');
+
+    msg(
+      error.message ||
+      'Portal loading failed'
+    );
   }
 }
 
 
 function setupBasicActions() {
   if ($('logoutBtn')) {
-    $('logoutBtn').onclick = async () => {
-      await sb.auth.signOut();
-      location.href = 'auth.html';
-    };
+    $('logoutBtn').onclick =
+      async () => {
+
+        await sb.auth.signOut();
+
+        location.href =
+          'auth.html';
+      };
   }
 
-  /*
-    पुराने generic order form को अब dynamic form replace करेगा.
-  */
   if ($('orderForm')) {
-    $('orderForm').onsubmit = event => {
-      event.preventDefault();
+    $('orderForm').onsubmit =
+      event => {
 
-      msg(
-        'Service card खोलकर Apply Now दबाएँ।'
-      );
-    };
+        event.preventDefault();
+
+        msg(
+          'Service card खोलकर Apply Now दबाएँ।'
+        );
+      };
   }
 }
 
 
 /* =========================================================
-   LOAD SERVICES
+   SERVICES
 ========================================================= */
 
 async function loadServices() {
@@ -253,7 +275,9 @@ async function loadServices() {
     );
 
     if (match) {
-      openServiceDetails(match.id);
+      openServiceDetails(
+        match.id
+      );
     }
   }
 }
@@ -265,23 +289,29 @@ async function loadServices() {
 
 function getGridByHeading(text) {
   const sections =
-    [...document.querySelectorAll(
-      '.portal-section'
-    )];
+    [
+      ...document.querySelectorAll(
+        '.portal-section'
+      )
+    ];
 
   const section =
     sections.find(sec => {
+
       const heading =
         sec.querySelector('h2');
 
       return (
         heading &&
-        heading.textContent.includes(text)
+        heading.textContent
+          .includes(text)
       );
     });
 
   return section
-    ?.querySelector('.portal-service-grid');
+    ?.querySelector(
+      '.portal-service-grid'
+    );
 }
 
 
@@ -330,7 +360,9 @@ function serviceCard(service) {
 
 function renderServiceSections() {
   const popularGrid =
-    getGridByHeading('लोकप्रिय सेवाएँ');
+    getGridByHeading(
+      'लोकप्रिय सेवाएँ'
+    );
 
   const governmentGrid =
     getGridByHeading(
@@ -343,16 +375,19 @@ function renderServiceSections() {
     );
 
   const otherGrid =
-    getGridByHeading('अन्य सेवाएँ');
-
-
-  const byCategory = category =>
-    services.filter(
-      service =>
-        normalizeCategory(
-          service.category
-        ) === category
+    getGridByHeading(
+      'अन्य सेवाएँ'
     );
+
+
+  const byCategory =
+    category =>
+      services.filter(
+        service =>
+          normalizeCategory(
+            service.category
+          ) === category
+      );
 
 
   if (popularGrid) {
@@ -388,8 +423,13 @@ function renderServiceSections() {
           📸
         </span>
 
-        <strong>Passport Photo</strong>
-        <small>Photo Maker</small>
+        <strong>
+          Passport Photo
+        </strong>
+
+        <small>
+          Photo Maker
+        </small>
 
       </a>
 
@@ -401,8 +441,13 @@ function renderServiceSections() {
           📄
         </span>
 
-        <strong>JPG → PDF</strong>
-        <small>Online Tool</small>
+        <strong>
+          JPG → PDF
+        </strong>
+
+        <small>
+          Online Tool
+        </small>
 
       </a>
 
@@ -414,8 +459,13 @@ function renderServiceSections() {
           🧩
         </span>
 
-        <strong>Merge PDF</strong>
-        <small>PDF Tool</small>
+        <strong>
+          Merge PDF
+        </strong>
+
+        <small>
+          PDF Tool
+        </small>
 
       </a>
       `;
@@ -437,8 +487,13 @@ function renderServiceSections() {
           🧰
         </span>
 
-        <strong>All Online Tools</strong>
-        <small>Open Toolkit</small>
+        <strong>
+          All Online Tools
+        </strong>
+
+        <small>
+          Open Toolkit
+        </small>
 
       </a>
       `;
@@ -451,7 +506,9 @@ function renderServiceSections() {
 ========================================================= */
 
 function createServiceDetailsModal() {
-  if ($('serviceDetailsModal')) return;
+  if ($('serviceDetailsModal')) {
+    return;
+  }
 
   const wrapper =
     document.createElement('div');
@@ -539,7 +596,6 @@ function createServiceDetailsModal() {
 
         </div>
 
-
         <button
           type="button"
           id="serviceModalClose"
@@ -556,7 +612,6 @@ function createServiceDetailsModal() {
 
       </div>
 
-
       <p
         id="serviceModalDescription"
         style="
@@ -565,7 +620,6 @@ function createServiceDetailsModal() {
           margin:18px 0
         ">
       </p>
-
 
       <div
         id="serviceModalPriceBox"
@@ -593,7 +647,6 @@ function createServiceDetailsModal() {
 
       </div>
 
-
       <div style="
         border:1px solid #e4e9f1;
         border-radius:16px;
@@ -614,7 +667,6 @@ function createServiceDetailsModal() {
         </div>
 
       </div>
-
 
       <div style="
         border:1px solid #e4e9f1;
@@ -637,7 +689,6 @@ function createServiceDetailsModal() {
 
       </div>
 
-
       <button
         type="button"
         id="serviceApplyBtn"
@@ -652,32 +703,33 @@ function createServiceDetailsModal() {
     </div>
   `;
 
-  document.body.appendChild(
-    wrapper
-  );
+  document.body
+    .appendChild(wrapper);
 
+  $('serviceModalClose')
+    .onclick =
+      closeServiceDetails;
 
-  $('serviceModalClose').onclick =
-    closeServiceDetails;
+  $('serviceDetailsBackdrop')
+    .onclick =
+      closeServiceDetails;
 
-
-  $('serviceDetailsBackdrop').onclick =
-    closeServiceDetails;
-
-
-  $('serviceApplyBtn').onclick =
-    handleServiceApply;
+  $('serviceApplyBtn')
+    .onclick =
+      handleServiceApply;
 }
 
 
 function documentList(text) {
   const value =
-    String(text || '').trim();
+    String(text || '')
+      .trim();
 
   if (!value) {
     return `
-      Application के अनुसार documents
-      अगले step में दिखाई जाएँगे।
+      Application के अनुसार
+      documents अगले step में
+      दिखाई जाएँगे।
     `;
   }
 
@@ -710,37 +762,41 @@ function openServiceDetails(id) {
     );
 
   if (!service) {
-    msg('Service उपलब्ध नहीं है');
+    msg(
+      'Service उपलब्ध नहीं है'
+    );
+
     return;
   }
 
   activeService = service;
   activeVariant = null;
 
+  $('serviceModalIcon')
+    .textContent =
+      service.icon ||
+      '🧩';
 
-  $('serviceModalIcon').textContent =
-    service.icon || '🧩';
+  $('serviceModalCategory')
+    .textContent =
+      normalizeCategory(
+        service.category
+      );
 
+  $('serviceModalName')
+    .textContent =
+      service.name;
 
-  $('serviceModalCategory').textContent =
-    normalizeCategory(
-      service.category
-    );
-
-
-  $('serviceModalName').textContent =
-    service.name;
-
-
-  $('serviceModalDescription').textContent =
-    service.description || '';
-
+  $('serviceModalDescription')
+    .textContent =
+      service.description || '';
 
   if (
     Number(service.price || 0) > 0
   ) {
     $('serviceModalPriceBox')
-      .style.display = 'block';
+      .style.display =
+        'block';
 
     $('serviceModalPrice')
       .textContent =
@@ -748,9 +804,9 @@ function openServiceDetails(id) {
 
   } else {
     $('serviceModalPriceBox')
-      .style.display = 'none';
+      .style.display =
+        'none';
   }
-
 
   $('serviceModalDocuments')
     .innerHTML =
@@ -758,23 +814,20 @@ function openServiceDetails(id) {
         service.required_documents
       );
 
-
   $('serviceModalInstructions')
     .textContent =
       service.instructions ||
       'आवेदन से पहले सभी जानकारी और दस्तावेज़ जाँच लें।';
 
-
   $('serviceDetailsBackdrop')
-    .style.display = 'block';
-
+    .style.display =
+      'block';
 
   requestAnimationFrame(() => {
     $('serviceDetailsBox')
       .style.transform =
         'translateX(-50%) translateY(0)';
   });
-
 
   document.body.style.overflow =
     'hidden';
@@ -790,7 +843,6 @@ function closeServiceDetails() {
     .style.transform =
       'translateX(-50%) translateY(110%)';
 
-
   setTimeout(() => {
 
     if ($('serviceDetailsBackdrop')) {
@@ -800,7 +852,6 @@ function closeServiceDetails() {
     }
 
   }, 220);
-
 
   document.body.style.overflow =
     '';
@@ -815,11 +866,13 @@ window.selectServiceById =
 
 
 /* =========================================================
-   SERVICE APPLY
+   APPLY / VARIANTS
 ========================================================= */
 
 async function handleServiceApply() {
-  if (!activeService) return;
+  if (!activeService) {
+    return;
+  }
 
   closeServiceDetails();
 
@@ -842,6 +895,14 @@ async function handleServiceApply() {
         requires_aadhaar_verification,
         requires_otp,
         official_portal_url,
+        workflow_type,
+        submit_button_text,
+        requires_existing_pan,
+        allows_document_upload,
+        requires_eligibility_check,
+        otp_flow,
+        api_action,
+        fallback_mode,
         active,
         sort_order
       `)
@@ -849,7 +910,10 @@ async function handleServiceApply() {
         'service_id',
         activeService.id
       )
-      .eq('active', true)
+      .eq(
+        'active',
+        true
+      )
       .order(
         'sort_order',
         {
@@ -857,29 +921,33 @@ async function handleServiceApply() {
         }
       );
 
-    if (error) throw error;
-
+    if (error) {
+      throw error;
+    }
 
     serviceVariants =
       data || [];
 
-
-    if (serviceVariants.length) {
-
-      setTimeout(() => {
-        openVariantSelector();
-      }, 220);
+    if (
+      serviceVariants.length
+    ) {
+      setTimeout(
+        openVariantSelector,
+        220
+      );
 
       return;
     }
 
-
-    setTimeout(() => {
-      openApplicationForm(
-        activeService.id,
-        null
-      );
-    }, 220);
+    setTimeout(
+      () => {
+        openApplicationForm(
+          activeService.id,
+          null
+        );
+      },
+      220
+    );
 
   } catch (error) {
     console.error(error);
@@ -889,7 +957,7 @@ async function handleServiceApply() {
 
 
 /* =========================================================
-   VARIANT SELECTOR MODAL
+   VARIANT SELECTOR
 ========================================================= */
 
 function createVariantModal() {
@@ -897,14 +965,11 @@ function createVariantModal() {
     return;
   }
 
-
   const wrapper =
     document.createElement('div');
 
-
   wrapper.id =
     'serviceVariantModal';
-
 
   wrapper.innerHTML = `
 
@@ -918,7 +983,6 @@ function createVariantModal() {
         z-index:10000
       ">
     </div>
-
 
     <div
       id="variantBox"
@@ -970,7 +1034,6 @@ function createVariantModal() {
 
         </div>
 
-
         <button
           type="button"
           id="variantClose"
@@ -987,7 +1050,6 @@ function createVariantModal() {
 
       </div>
 
-
       <div
         id="variantCards"
         style="
@@ -1002,18 +1064,16 @@ function createVariantModal() {
     </div>
   `;
 
+  document.body
+    .appendChild(wrapper);
 
-  document.body.appendChild(
-    wrapper
-  );
+  $('variantClose')
+    .onclick =
+      closeVariantSelector;
 
-
-  $('variantClose').onclick =
-    closeVariantSelector;
-
-
-  $('variantBackdrop').onclick =
-    closeVariantSelector;
+  $('variantBackdrop')
+    .onclick =
+      closeVariantSelector;
 }
 
 
@@ -1022,7 +1082,10 @@ function variantIcon(key) {
     return '🆕';
   }
 
-  if (key === 'pan_correction') {
+  if (
+    key ===
+    'pan_correction'
+  ) {
     return '✏️';
   }
 
@@ -1039,118 +1102,105 @@ function variantIcon(key) {
 
 
 function openVariantSelector() {
-  if (!activeService) return;
-
+  if (!activeService) {
+    return;
+  }
 
   $('variantServiceName')
     .textContent =
       activeService.name;
 
+  $('variantCards')
+    .innerHTML =
+      serviceVariants
+        .map(variant => {
 
-  $('variantCards').innerHTML =
-    serviceVariants
-      .map(variant => {
+          const fee =
+            Number(
+              variant.assistance_fee ||
+              0
+            );
 
-        const fee =
-          Number(
-            variant.assistance_fee ||
-            0
-          );
+          return `
+            <button
+              type="button"
+              data-variant-id="${esc(variant.id)}"
+              class="variant-select-btn"
+              style="
+                text-align:left;
+                border:1px solid #dfe5ef;
+                border-radius:18px;
+                padding:17px;
+                background:#fff;
+                cursor:pointer
+              "
+            >
 
-        const officialFee =
-          Number(
-            variant.official_fee ||
-            0
-          );
+              <span style="
+                display:block;
+                font-size:30px;
+                margin-bottom:10px
+              ">
+                ${variantIcon(
+                  variant.variant_key
+                )}
+              </span>
 
+              <strong style="
+                display:block;
+                font-size:16px
+              ">
+                ${esc(variant.name)}
+              </strong>
 
-        return `
+              <small style="
+                display:block;
+                color:#667085;
+                margin-top:6px;
+                line-height:1.5
+              ">
+                ${esc(
+                  variant.description ||
+                  ''
+                )}
+              </small>
 
-          <button
-            type="button"
-            data-variant-id="${esc(variant.id)}"
-            class="variant-select-btn"
-            style="
-              text-align:left;
-              border:1px solid #dfe5ef;
-              border-radius:18px;
-              padding:17px;
-              background:#fff;
-              cursor:pointer
-            "
-          >
+              ${
+                fee > 0
+                  ? `
+                    <span style="
+                      display:block;
+                      margin-top:10px;
+                      color:#2855cc;
+                      font-weight:800
+                    ">
+                      Assistance Fee:
+                      ${money(fee)}
+                    </span>
+                  `
+                  : ''
+              }
 
-            <span style="
-              display:block;
-              font-size:30px;
-              margin-bottom:10px
-            ">
-              ${variantIcon(
-                variant.variant_key
-              )}
-            </span>
+              ${
+                variant.variant_key ===
+                'epan'
+                  ? `
+                    <small style="
+                      display:block;
+                      margin-top:4px;
+                      color:#067647;
+                      font-weight:700
+                    ">
+                      Official e-PAN service: Free
+                    </small>
+                  `
+                  : ''
+              }
 
-
-            <strong style="
-              display:block;
-              font-size:16px
-            ">
-              ${esc(variant.name)}
-            </strong>
-
-
-            <small style="
-              display:block;
-              color:#667085;
-              margin-top:6px;
-              line-height:1.5
-            ">
-              ${esc(
-                variant.description ||
-                ''
-              )}
-            </small>
-
-
-            ${
-              fee > 0
-                ? `
-                  <span style="
-                    display:block;
-                    margin-top:10px;
-                    color:#2855cc;
-                    font-weight:800
-                  ">
-                    Assistance Fee:
-                    ${money(fee)}
-                  </span>
-                `
-                : ''
-            }
-
-
-            ${
-              officialFee === 0 &&
-              variant.variant_key === 'epan'
-                ? `
-                  <small style="
-                    display:block;
-                    margin-top:4px;
-                    color:#067647;
-                    font-weight:700
-                  ">
-                    Official e-PAN service: Free
-                  </small>
-                `
-                : ''
-            }
-
-          </button>
-        `;
-
-      })
-      .join('');
-
+            </button>
+          `;
+        })
+        .join('');
 
   document
     .querySelectorAll(
@@ -1162,25 +1212,22 @@ function openVariantSelector() {
         () => {
 
           selectVariant(
-            button.dataset.variantId
+            button.dataset
+              .variantId
           );
-
         };
     });
 
-
   $('variantBackdrop')
-    .style.display = 'block';
-
+    .style.display =
+      'block';
 
   requestAnimationFrame(() => {
 
     $('variantBox')
       .style.transform =
         'translateX(-50%) translateY(0)';
-
   });
-
 
   document.body.style.overflow =
     'hidden';
@@ -1188,13 +1235,13 @@ function openVariantSelector() {
 
 
 function closeVariantSelector() {
-  if (!$('variantBox')) return;
-
+  if (!$('variantBox')) {
+    return;
+  }
 
   $('variantBox')
     .style.transform =
       'translateX(-50%) translateY(110%)';
-
 
   setTimeout(() => {
 
@@ -1203,7 +1250,6 @@ function closeVariantSelector() {
         'none';
 
   }, 220);
-
 
   document.body.style.overflow =
     '';
@@ -1218,7 +1264,6 @@ function selectVariant(id) {
         String(id)
     );
 
-
   if (!variant) {
     msg(
       'Service option नहीं मिला'
@@ -1227,13 +1272,10 @@ function selectVariant(id) {
     return;
   }
 
-
   activeVariant =
     variant;
 
-
   closeVariantSelector();
-
 
   setTimeout(() => {
 
@@ -1255,14 +1297,11 @@ function createApplicationModal() {
     return;
   }
 
-
   const wrapper =
     document.createElement('div');
 
-
   wrapper.id =
     'dynamicApplicationModal';
-
 
   wrapper.innerHTML = `
 
@@ -1276,7 +1315,6 @@ function createApplicationModal() {
         z-index:10010
       ">
     </div>
-
 
     <div
       id="applicationBox"
@@ -1313,13 +1351,11 @@ function createApplicationModal() {
             APPLICATION
           </small>
 
-
           <h2
             id="applicationServiceName"
             style="margin:4px 0">
             Service Application
           </h2>
-
 
           <p
             id="applicationVariantName"
@@ -1330,17 +1366,15 @@ function createApplicationModal() {
             ">
           </p>
 
-
           <p
             id="applicationServicePrice"
             style="
-              margin:4px 0 0;
+              margin:5px 0 0;
               color:#667085
             ">
           </p>
 
         </div>
-
 
         <button
           type="button"
@@ -1358,15 +1392,20 @@ function createApplicationModal() {
 
       </div>
 
-
       <form id="dynamicApplicationForm">
-
 
         <div
           id="beneficiaryFields"
           style="margin-top:20px">
         </div>
 
+        <div
+          id="eligibilitySection"
+          style="
+            display:none;
+            margin-top:18px
+          ">
+        </div>
 
         <div
           id="aadhaarVerificationSection"
@@ -1376,12 +1415,26 @@ function createApplicationModal() {
           ">
         </div>
 
+        <div
+          id="epanOtpSection"
+          style="
+            display:none;
+            margin-top:20px
+          ">
+        </div>
 
         <div
           id="supportingDocumentsSection"
           style="margin-top:22px">
         </div>
 
+        <div
+          id="trackingInfoSection"
+          style="
+            display:none;
+            margin-top:16px
+          ">
+        </div>
 
         <div
           id="applicationError"
@@ -1395,7 +1448,6 @@ function createApplicationModal() {
           ">
         </div>
 
-
         <button
           type="submit"
           id="submitDynamicApplication"
@@ -1408,34 +1460,30 @@ function createApplicationModal() {
           Submit Application
         </button>
 
-
       </form>
 
     </div>
   `;
 
+  document.body
+    .appendChild(wrapper);
 
-  document.body.appendChild(
-    wrapper
-  );
+  $('applicationClose')
+    .onclick =
+      closeApplicationForm;
 
-
-  $('applicationClose').onclick =
-    closeApplicationForm;
-
-
-  $('applicationBackdrop').onclick =
-    closeApplicationForm;
-
+  $('applicationBackdrop')
+    .onclick =
+      closeApplicationForm;
 
   $('dynamicApplicationForm')
     .onsubmit =
-      submitDynamicApplication;
+      handleApplicationAction;
 }
 
 
 /* =========================================================
-   LOAD DYNAMIC FORM
+   LOAD FORM
 ========================================================= */
 
 async function openApplicationForm(
@@ -1449,15 +1497,12 @@ async function openApplicationForm(
         String(serviceId)
     );
 
-
   if (!service) {
     return;
   }
 
-
   activeService =
     service;
-
 
   if (variantId) {
     activeVariant =
@@ -1469,23 +1514,15 @@ async function openApplicationForm(
       activeVariant;
 
   } else {
-    activeVariant = null;
+    activeVariant =
+      null;
   }
 
-
-  aadhaarVerification = {
-    status: 'not_checked',
-    provider: null,
-    verifiedAt: null,
-    last4: null,
-    result: {}
-  };
-
+  resetVerificationStates();
 
   $('applicationServiceName')
     .textContent =
       service.name;
-
 
   $('applicationVariantName')
     .textContent =
@@ -1493,57 +1530,30 @@ async function openApplicationForm(
         ? activeVariant.name
         : '';
 
-
-  const price =
-    activeVariant
-      ? Number(
-          activeVariant.assistance_fee ||
-          0
-        )
-      : Number(
-          service.price ||
-          0
-        );
-
-
-  $('applicationServicePrice')
-    .textContent =
-      price > 0
-        ? `Assistance Fee: ${money(price)}`
-        : '';
-
-
-  if (
-    activeVariant?.variant_key ===
-    'epan'
-  ) {
-
-    $('applicationServicePrice')
-      .innerHTML = `
-        <strong style="color:#067647">
-          Official e-PAN Service: Free
-        </strong>
-        <br>
-        SUNIL MULTI HUB Assistance Fee:
-        ${money(price)}
-      `;
-  }
-
+  renderVariantPrice();
 
   $('beneficiaryFields')
     .innerHTML =
       '<p>Form loading...</p>';
 
-
   $('supportingDocumentsSection')
-    .innerHTML = '';
+    .innerHTML =
+      '';
 
+  $('applicationError')
+    .style.display =
+      'none';
 
   try {
     let fieldsQuery =
       sb
         .from('service_fields')
-        .select('*')
+        .select(`
+          *,
+          conditional_rules,
+          validation_rules,
+          ui_config
+        `)
         .eq(
           'service_id',
           service.id
@@ -1552,12 +1562,16 @@ async function openApplicationForm(
           'active',
           true
         );
-
 
     let documentsQuery =
       sb
         .from('service_documents')
-        .select('*')
+        .select(`
+          *,
+          max_size_kb,
+          conditional_rules,
+          ui_config
+        `)
         .eq(
           'service_id',
           service.id
@@ -1567,15 +1581,12 @@ async function openApplicationForm(
           true
         );
 
-
     if (variantId) {
-
       fieldsQuery =
         fieldsQuery.eq(
           'service_variant_id',
           variantId
         );
-
 
       documentsQuery =
         documentsQuery.eq(
@@ -1584,13 +1595,11 @@ async function openApplicationForm(
         );
 
     } else {
-
       fieldsQuery =
         fieldsQuery.is(
           'service_variant_id',
           null
         );
-
 
       documentsQuery =
         documentsQuery.is(
@@ -1598,7 +1607,6 @@ async function openApplicationForm(
           null
         );
     }
-
 
     const [
       fieldsResult,
@@ -1613,48 +1621,46 @@ async function openApplicationForm(
         documentsQuery.order(
           'sort_order'
         )
-
       ]);
-
 
     if (fieldsResult.error) {
       throw fieldsResult.error;
     }
 
-
     if (docsResult.error) {
       throw docsResult.error;
     }
 
-
     applicationFields =
       fieldsResult.data || [];
-
 
     applicationDocuments =
       docsResult.data || [];
 
-
     renderBeneficiaryFields();
 
-    renderSupportingDocuments();
+    renderEligibility();
 
     renderAadhaarVerification();
 
+    renderEPanOtpSection();
+
+    renderSupportingDocuments();
+
+    configureSubmitButton();
+
+    applyConditionalRules();
 
     $('applicationBackdrop')
       .style.display =
         'block';
-
 
     requestAnimationFrame(() => {
 
       $('applicationBox')
         .style.transform =
           'translateX(-50%) translateY(0)';
-
     });
-
 
     document.body.style.overflow =
       'hidden';
@@ -1666,14 +1672,57 @@ async function openApplicationForm(
 }
 
 
-function closeApplicationForm() {
-  if (!$('applicationBox')) return;
+function renderVariantPrice() {
+  const priceElement =
+    $('applicationServicePrice');
 
+  if (!priceElement) {
+    return;
+  }
+
+  const fee =
+    activeVariant
+      ? Number(
+          activeVariant
+            .assistance_fee ||
+          0
+        )
+      : Number(
+          activeService?.price ||
+          0
+        );
+
+  if (
+    activeVariant?.variant_key ===
+    'epan'
+  ) {
+    priceElement.innerHTML = `
+      <strong style="color:#067647">
+        Official e-PAN Service: Free
+      </strong>
+      <br>
+      SUNIL MULTI HUB Assistance Fee:
+      ${money(fee)}
+    `;
+
+    return;
+  }
+
+  priceElement.textContent =
+    fee > 0
+      ? `Assistance Fee: ${money(fee)}`
+      : '';
+}
+
+
+function closeApplicationForm() {
+  if (!$('applicationBox')) {
+    return;
+  }
 
   $('applicationBox')
     .style.transform =
       'translateX(-50%) translateY(110%)';
-
 
   setTimeout(() => {
 
@@ -1683,19 +1732,17 @@ function closeApplicationForm() {
 
   }, 220);
 
-
   document.body.style.overflow =
     '';
 }
 
 
 /* =========================================================
-   FIELD RENDERER
+   FIELD RENDERING
 ========================================================= */
 
 function renderBeneficiaryFields() {
   if (!applicationFields.length) {
-
     $('beneficiaryFields')
       .innerHTML = `
         <div style="
@@ -1704,17 +1751,15 @@ function renderBeneficiaryFields() {
           border-radius:14px
         ">
           इस service का form अभी
-          Admin द्वारा configure नहीं किया गया है।
+          configure नहीं किया गया है।
         </div>
       `;
 
     return;
   }
 
-
   $('beneficiaryFields')
     .innerHTML = `
-
       <h3>
         👤 Beneficiary Details
       </h3>
@@ -1724,41 +1769,27 @@ function renderBeneficiaryFields() {
           .map(renderField)
           .join('')
       }
-
     `;
 
-
-  [
-    'full_name',
-    'aadhaar_number',
-    'date_of_birth',
-    'gender'
-  ].forEach(key => {
-
-    const element =
-      document.querySelector(
-        `[name="${key}"]`
-      );
-
-
-    if (element) {
-
-      element.addEventListener(
-        'input',
-        resetAadhaarVerification
-      );
-
-      element.addEventListener(
-        'change',
-        resetAadhaarVerification
-      );
-
-    }
-  });
+  bindDynamicFieldEvents();
 }
 
 
 function renderField(field) {
+  /*
+    PAN Correction multi selection
+  */
+  if (
+    field.field_key ===
+    'correction_type' &&
+    activeVariant?.variant_key ===
+    'pan_correction'
+  ) {
+    return renderCorrectionOptions(
+      field
+    );
+  }
+
   const requiredMark =
     field.required
       ? `
@@ -1768,54 +1799,42 @@ function renderField(field) {
       `
       : '';
 
-
   const requiredAttribute =
     field.required
       ? 'required'
       : '';
 
-
-  const common = `
-    id="field_${esc(field.field_key)}"
-    name="${esc(field.field_key)}"
-    ${requiredAttribute}
-  `;
-
-
   let input = '';
-
 
   if (
     field.field_type ===
     'textarea'
   ) {
-
     input = `
       <textarea
-        ${common}
+        name="${esc(field.field_key)}"
         rows="3"
         placeholder="${esc(field.placeholder || '')}"
+        ${requiredAttribute}
         style="${fieldInputStyle()}"
       ></textarea>
     `;
 
-
   } else if (
-    field.field_type === 'select' ||
-    field.field_type === 'radio'
+    field.field_type ===
+    'select' ||
+    field.field_type ===
+    'radio'
   ) {
-
     const options =
-      Array.isArray(
-        field.options
-      )
+      Array.isArray(field.options)
         ? field.options
         : [];
 
-
     input = `
       <select
-        ${common}
+        name="${esc(field.field_key)}"
+        ${requiredAttribute}
         style="${fieldInputStyle()}"
       >
 
@@ -1834,18 +1853,16 @@ function renderField(field) {
       </select>
     `;
 
-
   } else if (
     field.field_type ===
     'checkbox'
   ) {
-
     input = `
       <label style="
         display:flex;
         gap:9px;
         align-items:flex-start;
-        margin-top:7px
+        margin-top:8px
       ">
 
         <input
@@ -1863,17 +1880,13 @@ function renderField(field) {
       </label>
     `;
 
-
   } else {
-
     input = `
       <input
-        ${common}
-        type="${esc(
-          field.field_type ||
-          'text'
-        )}"
+        name="${esc(field.field_key)}"
+        type="${esc(field.field_type || 'text')}"
         placeholder="${esc(field.placeholder || '')}"
+        ${requiredAttribute}
         ${
           field.min_length
             ? `minlength="${field.min_length}"`
@@ -1889,11 +1902,10 @@ function renderField(field) {
     `;
   }
 
-
   return `
-    <label
+    <div
+      data-field-wrap="${esc(field.field_key)}"
       style="
-        display:block;
         margin:14px 0;
         font-size:13px;
         font-weight:700
@@ -1904,15 +1916,15 @@ function renderField(field) {
         field.field_type !==
         'checkbox'
           ? `
-            ${esc(field.label)}
-            ${requiredMark}
+            <label>
+              ${esc(field.label)}
+              ${requiredMark}
+            </label>
           `
           : ''
       }
 
-
       ${input}
-
 
       ${
         field.help_text
@@ -1929,221 +1941,406 @@ function renderField(field) {
           : ''
       }
 
-    </label>
+    </div>
   `;
 }
 
 
-/* =========================================================
-   DOCUMENTS
-========================================================= */
+function renderCorrectionOptions(field) {
+  const options = [
+    'Name',
+    'Father Name',
+    'Date of Birth',
+    'Gender',
+    'Address',
+    'Photo',
+    'Signature',
+    'Other'
+  ];
 
-function renderSupportingDocuments() {
-  if (!applicationDocuments.length) {
+  return `
+    <div
+      data-field-wrap="correction_type"
+      style="
+        margin:18px 0;
+        padding:15px;
+        border:1px solid #e4e9f1;
+        border-radius:15px
+      "
+    >
 
-    $('supportingDocumentsSection')
-      .innerHTML = '';
+      <strong>
+        What do you want to correct?
+        <span style="color:#d92d20">*</span>
+      </strong>
 
-    return;
-  }
-
-
-  $('supportingDocumentsSection')
-    .innerHTML = `
-
-      <h3>
-        📎 Supporting Documents
-      </h3>
-
-      <p style="
+      <small style="
+        display:block;
         color:#667085;
-        font-size:13px
+        margin:5px 0 12px
       ">
-        * वाले documents upload करना अनिवार्य है।
-      </p>
+        एक या एक से अधिक options चुनें।
+      </small>
 
-      ${
-        applicationDocuments
-          .map(doc => {
+      <div style="
+        display:grid;
+        grid-template-columns:
+          repeat(auto-fit,minmax(150px,1fr));
+        gap:9px
+      ">
 
-            const required =
-              !!doc.required;
+        ${
+          options.map(option => `
+            <label style="
+              display:flex;
+              align-items:center;
+              gap:8px;
+              padding:10px;
+              background:#f7f9fc;
+              border-radius:10px
+            ">
 
+              <input
+                type="checkbox"
+                class="correction-option"
+                value="${esc(option)}"
+              >
 
-            const accept =
-              Array.isArray(
-                doc.allowed_types
-              )
-                ? doc.allowed_types
-                    .join(',')
-                : 'application/pdf,image/jpeg,image/png';
+              <span>
+                ${esc(option)}
+              </span>
 
+            </label>
+          `).join('')
+        }
 
-            return `
+      </div>
 
-              <label style="
-                display:block;
-                border:1px solid #e4e9f1;
-                border-radius:14px;
-                padding:14px;
-                margin:12px 0
-              ">
-
-                <strong>
-
-                  ${esc(doc.name)}
-
-                  ${
-                    required
-                      ? `
-                        <span style="color:#d92d20">
-                          *
-                        </span>
-                      `
-                      : `
-                        <small style="color:#667085">
-                          (Optional)
-                        </small>
-                      `
-                  }
-
-                </strong>
+    </div>
+  `;
+}
 
 
-                ${
-                  doc.instructions
-                    ? `
-                      <small style="
-                        display:block;
-                        color:#667085;
-                        margin:5px 0 10px
-                      ">
-                        ${esc(doc.instructions)}
-                      </small>
-                    `
-                    : ''
-                }
+function bindDynamicFieldEvents() {
+  document
+    .querySelectorAll(
+      '#beneficiaryFields input, #beneficiaryFields select, #beneficiaryFields textarea'
+    )
+    .forEach(element => {
 
+      element.addEventListener(
+        'change',
+        () => {
+          applyConditionalRules();
+          resetAadhaarVerification();
+        }
+      );
 
-                <input
-                  type="file"
-                  data-document-id="${esc(doc.id)}"
-                  data-required="${required}"
-                  accept="${esc(accept)}"
-                  style="
-                    display:block;
-                    width:100%;
-                    margin-top:9px
-                  "
-                >
-
-
-                <small style="
-                  display:block;
-                  color:#667085;
-                  margin-top:6px
-                ">
-                  Maximum
-                  ${Number(doc.max_size_mb || 1)}
-                  MB
-                </small>
-
-              </label>
-            `;
-
-          })
-          .join('')
-      }
-
-    `;
+      element.addEventListener(
+        'input',
+        () => {
+          applyConditionalRules();
+          resetAadhaarVerification();
+        }
+      );
+    });
 }
 
 
 /* =========================================================
-   AADHAAR VERIFICATION
+   CONDITIONAL RULES
 ========================================================= */
 
-function renderAadhaarVerification() {
-  const required =
-    !!activeVariant
-      ? !!activeVariant
-          .requires_aadhaar_verification
-      : (
-          isPANService(activeService) &&
-          applicationFields.some(
-            field =>
-              field.field_key ===
-              'aadhaar_number'
-          )
+function selectedCorrections() {
+  return [
+    ...document.querySelectorAll(
+      '.correction-option:checked'
+    )
+  ].map(
+    element =>
+      element.value
+  );
+}
+
+
+function conditionIsMet(rule) {
+  if (!rule) {
+    return true;
+  }
+
+  const showWhen =
+    rule.show_when ||
+    rule.required_when;
+
+  if (!showWhen) {
+    return true;
+  }
+
+  return Object.entries(
+    showWhen
+  ).every(
+    ([key, expected]) => {
+
+      if (
+        key ===
+        'correction_type'
+      ) {
+        return selectedCorrections()
+          .includes(
+            String(expected)
+          );
+      }
+
+      const element =
+        document.querySelector(
+          `[name="${key}"]`
         );
 
+      if (!element) {
+        return false;
+      }
 
-  if (!required) {
+      const actual =
+        element.type ===
+        'checkbox'
+          ? element.checked
+          : element.value;
 
-    $('aadhaarVerificationSection')
-      .style.display =
-        'none';
+      return String(actual) ===
+        String(expected);
+    }
+  );
+}
+
+
+function applyConditionalRules() {
+  applicationFields.forEach(
+    field => {
+
+      if (
+        field.field_key ===
+        'correction_type'
+      ) {
+        return;
+      }
+
+      const wrapper =
+        document.querySelector(
+          `[data-field-wrap="${field.field_key}"]`
+        );
+
+      if (!wrapper) {
+        return;
+      }
+
+      const rules =
+        field.conditional_rules ||
+        {};
+
+      const hasCondition =
+        !!rules.show_when;
+
+      const show =
+        hasCondition
+          ? conditionIsMet(rules)
+          : true;
+
+      wrapper.style.display =
+        show
+          ? ''
+          : 'none';
+
+      const input =
+        wrapper.querySelector(
+          'input,select,textarea'
+        );
+
+      if (input) {
+        if (
+          hasCondition &&
+          show
+        ) {
+          input.required = true;
+
+        } else {
+          input.required =
+            !!field.required;
+        }
+
+        if (!show) {
+          if (
+            input.type ===
+            'checkbox'
+          ) {
+            input.checked = false;
+
+          } else {
+            input.value = '';
+          }
+        }
+      }
+    }
+  );
+
+  renderSupportingDocuments();
+}
+
+
+/* =========================================================
+   ELIGIBILITY
+========================================================= */
+
+function renderEligibility() {
+  const box =
+    $('eligibilitySection');
+
+  if (
+    !activeVariant
+      ?.requires_eligibility_check
+  ) {
+    box.style.display =
+      'none';
 
     return;
   }
 
-
-  $('aadhaarVerificationSection')
-    .style.display =
+  if (
+    activeVariant.variant_key ===
+    'epan'
+  ) {
+    box.style.display =
       'block';
 
-
-  $('aadhaarVerificationSection')
-    .innerHTML = `
-
+    box.innerHTML = `
       <div style="
-        padding:16px;
+        padding:15px;
         border:1px solid #dce5ff;
-        border-radius:16px;
-        background:#f6f8ff
+        border-radius:15px;
+        background:#f7f9ff
       ">
 
         <h3 style="margin-top:0">
-          🔐 Aadhaar Verification
+          ✅ e-PAN Eligibility
         </h3>
 
-        <p style="
-          color:#667085;
-          font-size:13px;
-          line-height:1.5
-        ">
-          आगे बढ़ने से पहले Aadhaar demographic
-          details verify करना आवश्यक है।
-        </p>
+        <label style="display:block;margin:9px 0">
+          <input
+            type="checkbox"
+            id="epanNoExistingPan"
+          >
+          मेरे पास पहले से PAN allotted नहीं है।
+        </label>
 
+        <label style="display:block;margin:9px 0">
+          <input
+            type="checkbox"
+            id="epanAdult"
+          >
+          मैं minor नहीं हूँ।
+        </label>
 
-        <div
-          id="aadhaarVerificationStatus"
-          style="
-            padding:10px 12px;
-            background:#fff;
-            border-radius:10px;
-            margin-bottom:12px
-          ">
-          Status: Not Verified
-        </div>
-
-
-        <button
-          type="button"
-          class="btn secondary"
-          id="verifyAadhaarBtn"
-          style="width:100%"
-        >
-          Verify Aadhaar Details
-        </button>
+        <label style="display:block;margin:9px 0">
+          <input
+            type="checkbox"
+            id="epanMobileLinked"
+          >
+          मेरे Aadhaar से mobile number linked है।
+        </label>
 
       </div>
     `;
 
+    return;
+  }
 
-  $('verifyAadhaarBtn').onclick =
-    verifyAadhaarDetails;
+  box.style.display =
+    'none';
+}
+
+
+/* =========================================================
+   AADHAAR DEMOGRAPHIC VERIFICATION
+========================================================= */
+
+function renderAadhaarVerification() {
+  const box =
+    $('aadhaarVerificationSection');
+
+  /*
+    e-PAN uses OTP/eKYC flow,
+    not this manual demographic flow.
+  */
+  if (
+    activeVariant?.variant_key ===
+    'epan'
+  ) {
+    box.style.display =
+      'none';
+
+    return;
+  }
+
+  if (
+    !activeVariant
+      ?.requires_aadhaar_verification
+  ) {
+    box.style.display =
+      'none';
+
+    return;
+  }
+
+  box.style.display =
+    'block';
+
+  box.innerHTML = `
+    <div style="
+      padding:16px;
+      border:1px solid #dce5ff;
+      border-radius:16px;
+      background:#f6f8ff
+    ">
+
+      <h3 style="margin-top:0">
+        🔐 Aadhaar Verification
+      </h3>
+
+      <p style="
+        color:#667085;
+        font-size:13px;
+        line-height:1.5
+      ">
+        Name, DOB और Gender
+        authorized Aadhaar verification
+        provider से match होने चाहिए।
+      </p>
+
+      <div
+        id="aadhaarVerificationStatus"
+        style="
+          padding:10px 12px;
+          background:#fff;
+          border-radius:10px;
+          margin-bottom:12px
+        ">
+        Status: Not Verified
+      </div>
+
+      <button
+        type="button"
+        class="btn secondary"
+        id="verifyAadhaarBtn"
+        style="width:100%"
+      >
+        Verify Aadhaar Details
+      </button>
+
+    </div>
+  `;
+
+  $('verifyAadhaarBtn')
+    .onclick =
+      verifyAadhaarDetails;
 }
 
 
@@ -2155,7 +2352,6 @@ function resetAadhaarVerification() {
     return;
   }
 
-
   aadhaarVerification = {
     status: 'not_checked',
     provider: null,
@@ -2164,51 +2360,37 @@ function resetAadhaarVerification() {
     result: {}
   };
 
-
-  if ($('aadhaarVerificationStatus')) {
-
+  if (
+    $('aadhaarVerificationStatus')
+  ) {
     $('aadhaarVerificationStatus')
       .textContent =
         'Status: Details changed — Verify again';
-
   }
 }
 
 
 async function verifyAadhaarDetails() {
   const name =
-    document
-      .querySelector(
-        '[name="full_name"]'
-      )
-      ?.value
-      .trim();
-
+    document.querySelector(
+      '[name="full_name"]'
+    )?.value.trim();
 
   const aadhaar =
-    document
-      .querySelector(
-        '[name="aadhaar_number"]'
-      )
-      ?.value
+    document.querySelector(
+      '[name="aadhaar_number"]'
+    )?.value
       .replace(/\D/g, '');
 
-
   const dob =
-    document
-      .querySelector(
-        '[name="date_of_birth"]'
-      )
-      ?.value;
-
+    document.querySelector(
+      '[name="date_of_birth"]'
+    )?.value;
 
   const gender =
-    document
-      .querySelector(
-        '[name="gender"]'
-      )
-      ?.value;
-
+    document.querySelector(
+      '[name="gender"]'
+    )?.value;
 
   if (
     !name ||
@@ -2216,7 +2398,6 @@ async function verifyAadhaarDetails() {
     !dob ||
     !gender
   ) {
-
     msg(
       'Name, Aadhaar, DOB और Gender पहले भरें।'
     );
@@ -2224,11 +2405,9 @@ async function verifyAadhaarDetails() {
     return;
   }
 
-
   if (
     !/^\d{12}$/.test(aadhaar)
   ) {
-
     msg(
       'Aadhaar number 12 digit होना चाहिए।'
     );
@@ -2236,30 +2415,20 @@ async function verifyAadhaarDetails() {
     return;
   }
 
-
   const button =
     $('verifyAadhaarBtn');
-
 
   button.disabled =
     true;
 
-
   button.textContent =
     'Verifying...';
-
 
   $('aadhaarVerificationStatus')
     .textContent =
       'Status: Verification in progress...';
 
-
-  aadhaarVerification.status =
-    'pending';
-
-
   try {
-
     const {
       data,
       error
@@ -2270,14 +2439,10 @@ async function verifyAadhaarDetails() {
           body: {
             aadhaar_number:
               aadhaar,
-
             name,
-
             date_of_birth:
               dob,
-
             gender,
-
             service_variant:
               activeVariant
                 ?.variant_key ||
@@ -2286,101 +2451,78 @@ async function verifyAadhaarDetails() {
         }
       );
 
-
     if (error) {
       throw error;
     }
 
-
     if (!data?.matched) {
-
       aadhaarVerification = {
-        status: 'mismatch',
+        status:
+          'mismatch',
         provider:
           data?.provider ||
           null,
-
         verifiedAt:
           null,
-
         last4:
           aadhaar.slice(-4),
-
         result:
           data || {}
       };
 
-
       $('aadhaarVerificationStatus')
-        .innerHTML =
-          `
-            <strong style="color:#b42318">
-              ❌ Demographic details mismatch
-            </strong>
-          `;
-
+        .innerHTML = `
+          <strong style="color:#b42318">
+            ❌ Aadhaar demographic mismatch
+          </strong>
+        `;
 
       return;
     }
 
-
     aadhaarVerification = {
-      status: 'matched',
-
+      status:
+        'matched',
       provider:
         data.provider ||
         'authorized_api',
-
       verifiedAt:
         new Date()
           .toISOString(),
-
       last4:
         aadhaar.slice(-4),
-
       result:
         data.match_result ||
         {}
     };
 
-
     $('aadhaarVerificationStatus')
-      .innerHTML =
-        `
-          <strong style="color:#067647">
-            ✅ Aadhaar demographic details matched
-          </strong>
-        `;
-
+      .innerHTML = `
+        <strong style="color:#067647">
+          ✅ Aadhaar details matched
+        </strong>
+      `;
 
   } catch (error) {
-
     console.error(error);
-
 
     aadhaarVerification.status =
       'unavailable';
 
-
     $('aadhaarVerificationStatus')
-      .innerHTML =
-        `
-          <strong style="color:#b54708">
-            ⚠️ Authorized verification API अभी connected नहीं है
-          </strong>
-        `;
-
+      .innerHTML = `
+        <strong style="color:#b54708">
+          ⚠️ Authorized Aadhaar API अभी connected नहीं है
+        </strong>
+      `;
 
     msg(
       'Aadhaar API integration अभी बाकी है'
     );
 
-
   } finally {
-
     button.disabled =
       false;
-
 
     button.textContent =
       'Verify Aadhaar Details';
@@ -2389,58 +2531,693 @@ async function verifyAadhaarDetails() {
 
 
 /* =========================================================
-   FORM VALUES + VALIDATION
+   e-PAN OTP FLOW
+========================================================= */
+
+function renderEPanOtpSection() {
+  const box =
+    $('epanOtpSection');
+
+  if (
+    activeVariant?.variant_key !==
+    'epan'
+  ) {
+    box.style.display =
+      'none';
+
+    return;
+  }
+
+  box.style.display =
+    'block';
+
+  box.innerHTML = `
+    <div style="
+      padding:16px;
+      border:1px solid #dce5ff;
+      border-radius:16px;
+      background:#f6f8ff
+    ">
+
+      <h3 style="margin-top:0">
+        📲 Aadhaar OTP Verification
+      </h3>
+
+      <p style="
+        color:#667085;
+        font-size:13px;
+        line-height:1.5
+      ">
+        OTP Aadhaar-linked mobile
+        number पर आएगा।
+      </p>
+
+      <button
+        type="button"
+        class="btn secondary"
+        id="sendEpanOtpBtn"
+        style="width:100%"
+      >
+        Send OTP
+      </button>
+
+      <div
+        id="epanOtpVerifyArea"
+        style="display:none;margin-top:12px"
+      >
+
+        <input
+          id="epanOtpInput"
+          type="text"
+          inputmode="numeric"
+          maxlength="6"
+          placeholder="Enter OTP"
+          style="${fieldInputStyle()}"
+        >
+
+        <button
+          type="button"
+          class="btn primary"
+          id="verifyEpanOtpBtn"
+          style="
+            width:100%;
+            margin-top:10px
+          "
+        >
+          Verify OTP
+        </button>
+
+      </div>
+
+      <div
+        id="epanOtpStatus"
+        style="
+          margin-top:12px;
+          padding:10px;
+          background:#fff;
+          border-radius:10px
+        "
+      >
+        Status: OTP not verified
+      </div>
+
+      ${
+        activeVariant
+          ?.official_portal_url
+          ? `
+            <button
+              type="button"
+              class="btn secondary"
+              id="openOfficialEpanPortal"
+              style="
+                width:100%;
+                margin-top:12px
+              "
+            >
+              Open Official e-PAN Portal
+            </button>
+          `
+          : ''
+      }
+
+    </div>
+  `;
+
+  $('sendEpanOtpBtn')
+    .onclick =
+      sendEpanOtp;
+
+  if (
+    $('openOfficialEpanPortal')
+  ) {
+    $('openOfficialEpanPortal')
+      .onclick =
+        () => {
+
+          window.open(
+            activeVariant
+              .official_portal_url,
+            '_blank',
+            'noopener'
+          );
+        };
+  }
+}
+
+
+async function sendEpanOtp() {
+  const aadhaar =
+    document.querySelector(
+      '[name="aadhaar_number"]'
+    )?.value
+      .replace(/\D/g, '');
+
+  const consent =
+    document.querySelector(
+      '[name="consent"]'
+    )?.checked;
+
+  if (
+    !/^\d{12}$/.test(
+      aadhaar || ''
+    )
+  ) {
+    msg(
+      'Valid 12-digit Aadhaar Number भरें।'
+    );
+
+    return;
+  }
+
+  if (!consent) {
+    msg(
+      'Aadhaar OTP consent आवश्यक है।'
+    );
+
+    return;
+  }
+
+  if (!validateEPanEligibility()) {
+    return;
+  }
+
+  const button =
+    $('sendEpanOtpBtn');
+
+  button.disabled =
+    true;
+
+  button.textContent =
+    'Sending OTP...';
+
+  try {
+    /*
+      Authorized PAN/Aadhaar provider
+      backend Edge Function.
+    */
+    const {
+      data,
+      error
+    } =
+      await sb.functions.invoke(
+        'epan-send-otp',
+        {
+          body: {
+            aadhaar_number:
+              aadhaar
+          }
+        }
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.request_id) {
+      throw new Error(
+        'OTP request failed'
+      );
+    }
+
+    epanOtp = {
+      requestId:
+        data.request_id,
+      sent:
+        true,
+      verified:
+        false,
+      aadhaarLast4:
+        aadhaar.slice(-4)
+    };
+
+    $('epanOtpVerifyArea')
+      .style.display =
+        'block';
+
+    $('epanOtpStatus')
+      .textContent =
+        'OTP sent to Aadhaar-linked mobile';
+
+  } catch (error) {
+    console.error(error);
+
+    $('epanOtpStatus')
+      .innerHTML = `
+        <strong style="color:#b54708">
+          Authorized e-PAN API अभी connected नहीं है।
+        </strong>
+      `;
+
+    msg(
+      'अभी official portal fallback इस्तेमाल करें।'
+    );
+
+  } finally {
+    button.disabled =
+      false;
+
+    button.textContent =
+      'Send OTP';
+  }
+}
+
+
+async function verifyEpanOtp() {
+  const otp =
+    $('epanOtpInput')
+      ?.value
+      .replace(/\D/g, '');
+
+  if (
+    !epanOtp.requestId
+  ) {
+    msg(
+      'पहले OTP भेजें।'
+    );
+
+    return;
+  }
+
+  if (
+    !/^\d{4,8}$/.test(
+      otp || ''
+    )
+  ) {
+    msg(
+      'Valid OTP भरें।'
+    );
+
+    return;
+  }
+
+  const button =
+    $('verifyEpanOtpBtn');
+
+  button.disabled =
+    true;
+
+  button.textContent =
+    'Verifying...';
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await sb.functions.invoke(
+        'epan-verify-otp',
+        {
+          body: {
+            request_id:
+              epanOtp.requestId,
+            otp
+          }
+        }
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.verified) {
+      throw new Error(
+        'OTP verification failed'
+      );
+    }
+
+    epanOtp.verified =
+      true;
+
+    $('epanOtpStatus')
+      .innerHTML = `
+        <strong style="color:#067647">
+          ✅ OTP Verified
+        </strong>
+      `;
+
+    /*
+      API provider may return verified
+      Aadhaar/eKYC data here.
+      We don't expose/store raw Aadhaar.
+    */
+
+  } catch (error) {
+    console.error(error);
+
+    $('epanOtpStatus')
+      .innerHTML = `
+        <strong style="color:#b42318">
+          ❌ OTP verification failed
+        </strong>
+      `;
+
+  } finally {
+    button.disabled =
+      false;
+
+    button.textContent =
+      'Verify OTP';
+  }
+}
+
+
+function validateEPanEligibility() {
+  if (
+    !activeVariant ||
+    activeVariant.variant_key !==
+    'epan'
+  ) {
+    return true;
+  }
+
+  if (
+    !$('epanNoExistingPan')
+      ?.checked
+  ) {
+    showApplicationError(
+      'e-PAN के लिए confirm करें कि आपके पास पहले से PAN allotted नहीं है।'
+    );
+
+    return false;
+  }
+
+  if (
+    !$('epanAdult')
+      ?.checked
+  ) {
+    showApplicationError(
+      'e-PAN eligibility confirmation आवश्यक है।'
+    );
+
+    return false;
+  }
+
+  if (
+    !$('epanMobileLinked')
+      ?.checked
+  ) {
+    showApplicationError(
+      'Aadhaar-linked mobile confirmation आवश्यक है।'
+    );
+
+    return false;
+  }
+
+  return true;
+}
+
+
+/* =========================================================
+   SUPPORTING DOCUMENTS
+========================================================= */
+
+function documentConditionRequired(
+  doc
+) {
+  if (doc.required) {
+    return true;
+  }
+
+  const rule =
+    doc.conditional_rules
+      ?.required_when;
+
+  if (!rule) {
+    return false;
+  }
+
+  return conditionIsMet({
+    required_when:
+      rule
+  });
+}
+
+
+function documentConditionVisible(
+  doc
+) {
+  const requiredWhen =
+    doc.conditional_rules
+      ?.required_when;
+
+  if (!requiredWhen) {
+    return true;
+  }
+
+  /*
+    Conditional photo/signature
+    only shown when relevant.
+  */
+  return conditionIsMet({
+    required_when:
+      requiredWhen
+  });
+}
+
+
+function renderSupportingDocuments() {
+  const section =
+    $('supportingDocumentsSection');
+
+  if (
+    activeVariant &&
+    activeVariant
+      .allows_document_upload ===
+      false
+  ) {
+    section.innerHTML =
+      '';
+
+    return;
+  }
+
+  const visibleDocs =
+    applicationDocuments.filter(
+      documentConditionVisible
+    );
+
+  if (!visibleDocs.length) {
+    section.innerHTML =
+      '';
+
+    return;
+  }
+
+  section.innerHTML = `
+
+    <h3>
+      📎 Supporting Documents
+    </h3>
+
+    <p style="
+      color:#667085;
+      font-size:13px
+    ">
+      * वाले documents upload करना अनिवार्य है।
+    </p>
+
+    ${
+      visibleDocs.map(doc => {
+
+        const required =
+          documentConditionRequired(
+            doc
+          );
+
+        const maxKb =
+          Number(
+            doc.max_size_kb ||
+            (
+              Number(
+                doc.max_size_mb ||
+                1
+              ) *
+              1024
+            )
+          );
+
+        const accept =
+          Array.isArray(
+            doc.allowed_types
+          )
+            ? doc.allowed_types
+                .join(',')
+            : 'application/pdf,image/jpeg,image/png';
+
+        return `
+          <label
+            data-document-wrap="${esc(doc.id)}"
+            style="
+              display:block;
+              border:1px solid #e4e9f1;
+              border-radius:14px;
+              padding:14px;
+              margin:12px 0
+            "
+          >
+
+            <strong>
+              ${esc(doc.name)}
+
+              ${
+                required
+                  ? `
+                    <span style="color:#d92d20">
+                      *
+                    </span>
+                  `
+                  : `
+                    <small style="color:#667085">
+                      (Optional)
+                    </small>
+                  `
+              }
+            </strong>
+
+            ${
+              doc.instructions
+                ? `
+                  <small style="
+                    display:block;
+                    color:#667085;
+                    margin:5px 0 10px;
+                    line-height:1.5
+                  ">
+                    ${esc(doc.instructions)}
+                  </small>
+                `
+                : ''
+            }
+
+            <input
+              type="file"
+              data-document-id="${esc(doc.id)}"
+              data-required="${required}"
+              accept="${esc(accept)}"
+              style="
+                display:block;
+                width:100%;
+                margin-top:9px
+              "
+            >
+
+            <small style="
+              display:block;
+              color:#667085;
+              margin-top:6px
+            ">
+              Maximum ${maxKb} KB
+            </small>
+
+          </label>
+        `;
+      }).join('')
+    }
+  `;
+}
+
+
+/* =========================================================
+   SUBMIT BUTTON
+========================================================= */
+
+function configureSubmitButton() {
+  const button =
+    $('submitDynamicApplication');
+
+  if (!button) {
+    return;
+  }
+
+  button.textContent =
+    activeVariant
+      ?.submit_button_text ||
+    'Submit Application';
+
+  if (
+    activeVariant?.workflow_type ===
+    'tracking'
+  ) {
+    button.textContent =
+      'Track Status';
+  }
+}
+
+
+/* =========================================================
+   FORM VALUES
 ========================================================= */
 
 function getFormValues() {
   const result = {};
 
-
   applicationFields
     .forEach(field => {
+
+      if (
+        field.field_key ===
+        'correction_type'
+      ) {
+        result.correction_type =
+          selectedCorrections();
+
+        return;
+      }
+
+      const wrapper =
+        document.querySelector(
+          `[data-field-wrap="${field.field_key}"]`
+        );
+
+      if (
+        wrapper &&
+        wrapper.style.display ===
+        'none'
+      ) {
+        return;
+      }
 
       const element =
         document.querySelector(
           `[name="${field.field_key}"]`
         );
 
-
-      if (!element) return;
-
+      if (!element) {
+        return;
+      }
 
       if (
         field.field_type ===
         'checkbox'
       ) {
-
         result[field.field_key] =
           element.checked;
 
       } else {
-
         result[field.field_key] =
           element.value.trim();
-
       }
     });
-
 
   return result;
 }
 
 
-function showApplicationError(text) {
+/* =========================================================
+   VALIDATION
+========================================================= */
+
+function showApplicationError(
+  text
+) {
   const box =
     $('applicationError');
-
 
   box.textContent =
     text;
 
-
   box.style.display =
     'block';
-
 
   box.scrollIntoView({
     behavior: 'smooth',
@@ -2449,27 +3226,76 @@ function showApplicationError(text) {
 }
 
 
-function validateApplication(values) {
+function validateFieldRules(
+  values
+) {
+  for (
+    const field of
+    applicationFields
+  ) {
+    const value =
+      values[field.field_key];
+
+    const rules =
+      field.validation_rules ||
+      {};
+
+    if (
+      rules.pattern &&
+      value
+    ) {
+      const regex =
+        new RegExp(
+          rules.pattern
+        );
+
+      if (!regex.test(value)) {
+        showApplicationError(
+          rules.message ||
+          `${field.label} invalid है।`
+        );
+
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+
+function validateApplication(
+  values
+) {
   const form =
     $('dynamicApplicationForm');
 
-
   if (!form.checkValidity()) {
-
     form.reportValidity();
+    return false;
+  }
+
+  if (
+    activeVariant
+      ?.variant_key ===
+      'pan_correction' &&
+    selectedCorrections()
+      .length === 0
+  ) {
+    showApplicationError(
+      'कम से कम एक correction type चुनें।'
+    );
 
     return false;
   }
 
-
   if (
     values.mobile &&
     !/^\d{10}$/.test(
-      values.mobile
+      String(values.mobile)
         .replace(/\D/g, '')
     )
   ) {
-
     showApplicationError(
       'Mobile number 10 digit होना चाहिए।'
     );
@@ -2477,22 +3303,19 @@ function validateApplication(values) {
     return false;
   }
 
-
   if (
     values.pincode &&
     !/^\d{6}$/.test(
-      values.pincode
+      String(values.pincode)
         .replace(/\D/g, '')
     )
   ) {
-
     showApplicationError(
       'PIN Code 6 digit होना चाहिए।'
     );
 
     return false;
   }
-
 
   if (
     values.existing_pan &&
@@ -2501,7 +3324,6 @@ function validateApplication(values) {
         values.existing_pan
       )
   ) {
-
     showApplicationError(
       'PAN format सही नहीं है। Example: ABCDE1234F'
     );
@@ -2509,84 +3331,293 @@ function validateApplication(values) {
     return false;
   }
 
-
-  const requiresVerification =
-    !!activeVariant
-      ?.requires_aadhaar_verification;
-
+  if (
+    !validateFieldRules(values)
+  ) {
+    return false;
+  }
 
   if (
-    requiresVerification &&
+    activeVariant
+      ?.requires_aadhaar_verification &&
+    activeVariant.variant_key !==
+      'epan' &&
     aadhaarVerification.status !==
-    'matched'
+      'matched'
   ) {
-
     showApplicationError(
-      'Application submit करने से पहले Aadhaar verification आवश्यक है।'
+      'Aadhaar verification आवश्यक है।'
     );
 
     return false;
   }
 
+  if (
+    activeVariant
+      ?.variant_key ===
+    'epan'
+  ) {
+    if (
+      !validateEPanEligibility()
+    ) {
+      return false;
+    }
+
+    if (!epanOtp.verified) {
+      showApplicationError(
+        'e-PAN process के लिए Aadhaar OTP verification आवश्यक है।'
+      );
+
+      return false;
+    }
+  }
 
   for (
     const doc of
     applicationDocuments
   ) {
-
-    if (!doc.required) {
+    if (
+      !documentConditionVisible(
+        doc
+      )
+    ) {
       continue;
     }
 
+    if (
+      !documentConditionRequired(
+        doc
+      )
+    ) {
+      continue;
+    }
 
     const input =
       document.querySelector(
         `[data-document-id="${doc.id}"]`
       );
 
-
-    if (!input?.files?.length) {
-
+    if (
+      !input?.files?.length
+    ) {
       showApplicationError(
         `${doc.name} upload करना mandatory है।`
       );
-
 
       input?.scrollIntoView({
         behavior: 'smooth',
         block: 'center'
       });
 
-
       return false;
     }
   }
-
 
   return true;
 }
 
 
 /* =========================================================
-   SUBMIT APPLICATION
+   MAIN FORM ACTION
 ========================================================= */
 
-async function submitDynamicApplication(
+async function handleApplicationAction(
   event
 ) {
   event.preventDefault();
-
 
   $('applicationError')
     .style.display =
       'none';
 
+  if (
+    activeVariant?.workflow_type ===
+    'tracking'
+  ) {
+    await trackPAN();
 
+    return;
+  }
+
+  await submitDynamicApplication();
+}
+
+
+/* =========================================================
+   TRACK PAN
+========================================================= */
+
+async function trackPAN() {
+  const values =
+    getFormValues();
+
+  const form =
+    $('dynamicApplicationForm');
+
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+
+  /*
+    No scraping/captcha bypass.
+    If authorized API is later available,
+    call it here.
+  */
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await sb.functions.invoke(
+        'track-pan-status',
+        {
+          body: {
+            tracking_method:
+              values.tracking_method,
+
+            tracking_number:
+              values.tracking_number,
+
+            date_of_birth:
+              values.date_of_birth
+          }
+        }
+      );
+
+    if (
+      !error &&
+      data?.status
+    ) {
+      showTrackingResult(
+        data
+      );
+
+      return;
+    }
+
+    throw error ||
+      new Error(
+        'Tracking API unavailable'
+      );
+
+  } catch (error) {
+    console.log(
+      'Track API unavailable:',
+      error
+    );
+
+    showTrackingFallback(
+      values
+    );
+  }
+}
+
+
+function showTrackingResult(data) {
+  const section =
+    $('trackingInfoSection');
+
+  section.style.display =
+    'block';
+
+  section.innerHTML = `
+    <div style="
+      padding:15px;
+      border-radius:15px;
+      background:#f0fdf4;
+      border:1px solid #bbf7d0
+    ">
+
+      <h3 style="margin-top:0">
+        🔎 PAN Status
+      </h3>
+
+      <strong>
+        ${esc(data.status)}
+      </strong>
+
+      ${
+        data.message
+          ? `
+            <p>
+              ${esc(data.message)}
+            </p>
+          `
+          : ''
+      }
+
+    </div>
+  `;
+}
+
+
+function showTrackingFallback() {
+  const section =
+    $('trackingInfoSection');
+
+  section.style.display =
+    'block';
+
+  section.innerHTML = `
+    <div style="
+      padding:15px;
+      border-radius:15px;
+      background:#fff7e8;
+      border:1px solid #fbd38d
+    ">
+
+      <h3 style="margin-top:0">
+        Official Tracking Required
+      </h3>
+
+      <p style="
+        color:#667085;
+        line-height:1.5
+      ">
+        Authorized tracking API अभी
+        connected नहीं है।
+        UTIITSL का official tracking
+        page खोलें।
+      </p>
+
+      <button
+        type="button"
+        class="btn primary"
+        id="openOfficialTracking"
+        style="width:100%"
+      >
+        Open Official PAN Tracking
+      </button>
+
+    </div>
+  `;
+
+  $('openOfficialTracking')
+    .onclick =
+      () => {
+
+        window.open(
+          activeVariant
+            ?.official_portal_url ||
+          'https://www.trackpan.utiitsl.com/PANONLINE/forms/TrackPan/trackApp#forward',
+          '_blank',
+          'noopener'
+        );
+      };
+}
+
+
+/* =========================================================
+   SUBMIT NORMAL APPLICATION
+========================================================= */
+
+async function submitDynamicApplication() {
   if (
     !user ||
     !activeService
   ) {
-
     msg(
       'Please login again'
     );
@@ -2594,54 +3625,53 @@ async function submitDynamicApplication(
     return;
   }
 
-
   const values =
     getFormValues();
 
-
   if (
-    !validateApplication(values)
+    !validateApplication(
+      values
+    )
   ) {
     return;
   }
 
-
   const submitBtn =
     $('submitDynamicApplication');
-
 
   submitBtn.disabled =
     true;
 
-
   submitBtn.textContent =
     'Submitting...';
-
 
   const safeFormData = {
     ...values
   };
 
-
+  /*
+    Never save raw Aadhaar number
+    in normal form_data.
+  */
   if (
     safeFormData.aadhaar_number
   ) {
-
     delete safeFormData
       .aadhaar_number;
 
+    const last4 =
+      activeVariant
+        ?.variant_key ===
+        'epan'
+        ? epanOtp.aadhaarLast4
+        : aadhaarVerification.last4;
 
     safeFormData.aadhaar_masked =
-      `XXXX-XXXX-${
-        aadhaarVerification.last4 ||
-        'XXXX'
-      }`;
+      `XXXX-XXXX-${last4 || 'XXXX'}`;
   }
-
 
   const applicationId =
     crypto.randomUUID();
-
 
   try {
     const amount =
@@ -2656,7 +3686,6 @@ async function submitDynamicApplication(
             0
           );
 
-
     const mode =
       activeVariant
         ?.processing_mode ||
@@ -2664,6 +3693,23 @@ async function submitDynamicApplication(
         .processing_mode ||
       'admin';
 
+    const aadhaarStatus =
+      activeVariant
+        ?.variant_key ===
+        'epan'
+        ? (
+            epanOtp.verified
+              ? 'matched'
+              : 'not_checked'
+          )
+        : aadhaarVerification.status;
+
+    const last4 =
+      activeVariant
+        ?.variant_key ===
+        'epan'
+        ? epanOtp.aadhaarLast4
+        : aadhaarVerification.last4;
 
     const {
       error: appError
@@ -2671,7 +3717,6 @@ async function submitDynamicApplication(
       await sb
         .from('applications')
         .insert({
-
           id:
             applicationId,
 
@@ -2701,160 +3746,51 @@ async function submitDynamicApplication(
           amount,
 
           aadhaar_verification_status:
-            aadhaarVerification.status,
+            aadhaarStatus,
 
           aadhaar_verification_provider:
-            aadhaarVerification.provider,
+            activeVariant
+              ?.variant_key ===
+              'epan'
+              ? 'otp_api'
+              : aadhaarVerification
+                  .provider,
 
           aadhaar_verified_at:
-            aadhaarVerification.verifiedAt,
+            aadhaarStatus ===
+            'matched'
+              ? new Date()
+                  .toISOString()
+              : null,
 
           aadhaar_last4:
-            aadhaarVerification.last4,
+            last4,
 
           demographic_match_result:
-            aadhaarVerification.result ||
-            {}
+            activeVariant
+              ?.variant_key ===
+              'epan'
+              ? {}
+              : (
+                  aadhaarVerification
+                    .result ||
+                  {}
+                )
         });
-
 
     if (appError) {
       throw appError;
     }
 
-
-    for (
-      const doc of
-      applicationDocuments
+    if (
+      activeVariant
+        ?.allows_document_upload !==
+      false
     ) {
-
-      const input =
-        document.querySelector(
-          `[data-document-id="${doc.id}"]`
-        );
-
-
-      const file =
-        input?.files?.[0];
-
-
-      if (!file) {
-        continue;
-      }
-
-
-      const maxBytes =
-        Number(
-          doc.max_size_mb ||
-          1
-        ) *
-        1024 *
-        1024;
-
-
-      if (
-        file.size >
-        maxBytes
-      ) {
-
-        throw new Error(
-          `${doc.name} file size maximum ${doc.max_size_mb || 1} MB होनी चाहिए।`
-        );
-      }
-
-
-      const allowed =
-        Array.isArray(
-          doc.allowed_types
-        )
-          ? doc.allowed_types
-          : [
-              'application/pdf',
-              'image/jpeg',
-              'image/png'
-            ];
-
-
-      if (
-        allowed.length &&
-        !allowed.includes(
-          file.type
-        )
-      ) {
-
-        throw new Error(
-          `${doc.name} का file type allowed नहीं है।`
-        );
-      }
-
-
-      const path =
-        `${user.id}/${applicationId}/${doc.id}/${Date.now()}-${safeFileName(file.name)}`;
-
-
-      const {
-        error: uploadError
-      } =
-        await sb.storage
-          .from(
-            'application-documents'
-          )
-          .upload(
-            path,
-            file,
-            {
-              upsert: false,
-              contentType:
-                file.type
-            }
-          );
-
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-
-      const {
-        error: metadataError
-      } =
-        await sb
-          .from(
-            'application_documents'
-          )
-          .insert({
-
-            application_id:
-              applicationId,
-
-            service_document_id:
-              doc.id,
-
-            document_name:
-              doc.name,
-
-            storage_path:
-              path,
-
-            original_file_name:
-              file.name,
-
-            mime_type:
-              file.type,
-
-            file_size:
-              file.size,
-
-            uploaded_by:
-              user.id
-          });
-
-
-      if (metadataError) {
-        throw metadataError;
-      }
+      await uploadApplicationDocuments(
+        applicationId
+      );
     }
-
 
     const {
       error: finalError
@@ -2869,42 +3805,220 @@ async function submitDynamicApplication(
           applicationId
         );
 
-
     if (finalError) {
       throw finalError;
     }
-
 
     msg(
       'Application submitted successfully'
     );
 
-
     closeApplicationForm();
-
 
     await loadCustomerActivity();
 
-
   } catch (error) {
-
     console.error(error);
-
 
     showApplicationError(
       error.message ||
       'Application submit नहीं हो सकी।'
     );
 
-
   } finally {
-
     submitBtn.disabled =
       false;
 
+    configureSubmitButton();
+  }
+}
 
-    submitBtn.textContent =
-      'Submit Application';
+
+/* =========================================================
+   DOCUMENT UPLOAD
+========================================================= */
+
+async function uploadApplicationDocuments(
+  applicationId
+) {
+  for (
+    const doc of
+    applicationDocuments
+  ) {
+    if (
+      !documentConditionVisible(
+        doc
+      )
+    ) {
+      continue;
+    }
+
+    const input =
+      document.querySelector(
+        `[data-document-id="${doc.id}"]`
+      );
+
+    const file =
+      input?.files?.[0];
+
+    if (!file) {
+      continue;
+    }
+
+    const maxKb =
+      Number(
+        doc.max_size_kb ||
+        (
+          Number(
+            doc.max_size_mb ||
+            1
+          ) *
+          1024
+        )
+      );
+
+    const maxBytes =
+      maxKb * 1024;
+
+    if (
+      file.size >
+      maxBytes
+    ) {
+      throw new Error(
+        `${doc.name} maximum ${maxKb} KB होना चाहिए।`
+      );
+    }
+
+    const allowed =
+      Array.isArray(
+        doc.allowed_types
+      )
+        ? doc.allowed_types
+        : [
+            'application/pdf',
+            'image/jpeg',
+            'image/png'
+          ];
+
+    if (
+      allowed.length &&
+      !allowed.includes(
+        file.type
+      )
+    ) {
+      throw new Error(
+        `${doc.name} का file type allowed नहीं है।`
+      );
+    }
+
+    const path =
+      `${user.id}/${applicationId}/${doc.id}/${Date.now()}-${safeFileName(file.name)}`;
+
+    const {
+      error: uploadError
+    } =
+      await sb.storage
+        .from(
+          'application-documents'
+        )
+        .upload(
+          path,
+          file,
+          {
+            upsert: false,
+            contentType:
+              file.type
+          }
+        );
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const {
+      error: metadataError
+    } =
+      await sb
+        .from(
+          'application_documents'
+        )
+        .insert({
+          application_id:
+            applicationId,
+
+          service_document_id:
+            doc.id,
+
+          document_name:
+            doc.name,
+
+          storage_path:
+            path,
+
+          original_file_name:
+            file.name,
+
+          mime_type:
+            file.type,
+
+          file_size:
+            file.size,
+
+          uploaded_by:
+            user.id
+        });
+
+    if (metadataError) {
+      throw metadataError;
+    }
+  }
+}
+
+
+/* =========================================================
+   RESET STATE
+========================================================= */
+
+function resetVerificationStates() {
+  aadhaarVerification = {
+    status: 'not_checked',
+    provider: null,
+    verifiedAt: null,
+    last4: null,
+    result: {}
+  };
+
+  epanOtp = {
+    requestId: null,
+    sent: false,
+    verified: false,
+    aadhaarLast4: null
+  };
+
+  if ($('eligibilitySection')) {
+    $('eligibilitySection')
+      .style.display =
+        'none';
+  }
+
+  if (
+    $('aadhaarVerificationSection')
+  ) {
+    $('aadhaarVerificationSection')
+      .style.display =
+        'none';
+  }
+
+  if ($('epanOtpSection')) {
+    $('epanOtpSection')
+      .style.display =
+        'none';
+  }
+
+  if ($('trackingInfoSection')) {
+    $('trackingInfoSection')
+      .style.display =
+        'none';
   }
 }
 
@@ -2914,8 +4028,9 @@ async function submitDynamicApplication(
 ========================================================= */
 
 async function loadCustomerActivity() {
-  if (!user) return;
-
+  if (!user) {
+    return;
+  }
 
   const [
     applicationsResult,
@@ -2935,7 +4050,10 @@ async function loadCustomerActivity() {
           external_reference_no,
           service_variant_id,
           services(name),
-          service_variants(name,variant_key),
+          service_variants(
+            name,
+            variant_key
+          ),
           application_outputs(
             id,
             output_type,
@@ -2960,7 +4078,6 @@ async function loadCustomerActivity() {
           }
         ),
 
-
       sb
         .from('orders')
         .select(`
@@ -2981,44 +4098,35 @@ async function loadCustomerActivity() {
             ascending: false
           }
         )
-
     ]);
-
 
   if (
     applicationsResult.error
   ) {
-
     console.error(
       applicationsResult.error
     );
   }
 
-
   if (
     legacyResult.error
   ) {
-
     console.error(
       legacyResult.error
     );
   }
 
-
   const applications =
     applicationsResult.data ||
     [];
-
 
   const legacy =
     legacyResult.data ||
     [];
 
-
   const total =
     applications.length +
     legacy.length;
-
 
   const pending =
     applications.filter(
@@ -3042,7 +4150,6 @@ async function loadCustomerActivity() {
         )
     ).length;
 
-
   const completed =
     applications.filter(
       application =>
@@ -3056,13 +4163,11 @@ async function loadCustomerActivity() {
         'completed'
     ).length;
 
-
   if ($('orderCount')) {
     $('orderCount')
       .textContent =
         total;
   }
-
 
   if ($('pendingCount')) {
     $('pendingCount')
@@ -3070,13 +4175,11 @@ async function loadCustomerActivity() {
         pending;
   }
 
-
   if ($('doneCount')) {
     $('doneCount')
       .textContent =
         completed;
   }
-
 
   renderCustomerApplications(
     applications,
@@ -3086,7 +4189,7 @@ async function loadCustomerActivity() {
 
 
 /* =========================================================
-   CUSTOMER APPLICATION LIST
+   CUSTOMER LIST
 ========================================================= */
 
 function renderCustomerApplications(
@@ -3096,34 +4199,30 @@ function renderCustomerApplications(
   const list =
     $('ordersList');
 
-
-  if (!list) return;
-
+  if (!list) {
+    return;
+  }
 
   if (
     !applications.length &&
     !legacy.length
   ) {
-
     list.innerHTML =
       '<p>अभी कोई आवेदन नहीं है।</p>';
 
     return;
   }
 
-
-  const newHtml =
-    applications
-      .map(application => {
+  const applicationHtml =
+    applications.map(
+      application => {
 
         const outputs =
           application
             .application_outputs ||
           [];
 
-
         return `
-
           <div class="service-row">
 
             <div>
@@ -3136,7 +4235,6 @@ function renderCustomerApplications(
                   'Application'
                 )}
               </strong>
-
 
               ${
                 application
@@ -3154,7 +4252,6 @@ function renderCustomerApplications(
                   : ''
               }
 
-
               <small>
                 Application ID:
                 ${esc(
@@ -3163,7 +4260,6 @@ function renderCustomerApplications(
                   application.id
                 )}
               </small>
-
 
               ${
                 application
@@ -3179,7 +4275,6 @@ function renderCustomerApplications(
                   `
                   : ''
               }
-
 
               ${
                 Number(
@@ -3197,7 +4292,6 @@ function renderCustomerApplications(
                   : ''
               }
 
-
               ${
                 application
                   .external_reference_no
@@ -3213,11 +4307,9 @@ function renderCustomerApplications(
                   : ''
               }
 
-
               ${
-                outputs
-                  .map(output => `
-
+                outputs.map(
+                  output => `
                     <button
                       type="button"
                       class="btn secondary"
@@ -3230,13 +4322,11 @@ function renderCustomerApplications(
                         'Download Receipt'
                       )}
                     </button>
-
-                  `)
-                  .join('')
+                  `
+                ).join('')
               }
 
             </div>
-
 
             <span
               class="status ${esc(application.status)}"
@@ -3246,104 +4336,91 @@ function renderCustomerApplications(
 
           </div>
         `;
-
-      })
-      .join('');
-
+      }
+    ).join('');
 
   const legacyHtml =
-    legacy
-      .map(order => `
+    legacy.map(order => `
+      <div class="service-row">
 
-        <div class="service-row">
+        <div>
 
-          <div>
-
-            <strong>
-              ${esc(
-                order.services
-                  ?.name ||
-                'Service'
-              )}
-            </strong>
-
-
-            <small>
-              ${esc(
-                new Date(
-                  order.created_at
-                )
-                  .toLocaleString(
-                    'en-IN'
-                  )
-              )}
-            </small>
-
-
-            ${
-              order.note
-                ? `
-                  <small>
-                    ${esc(order.note)}
-                  </small>
-                `
-                : ''
-            }
-
-
-            ${
-              Number(
-                order.amount ||
-                0
-              ) > 0
-                ? `
-                  <small>
-                    Amount:
-                    ${money(
-                      order.amount
-                    )}
-                  </small>
-                `
-                : ''
-            }
-
-          </div>
-
-
-          <span
-            class="status ${esc(order.status || 'pending')}"
-          >
+          <strong>
             ${esc(
-              order.status ||
-              'pending'
+              order.services
+                ?.name ||
+              'Service'
             )}
-          </span>
+          </strong>
+
+          <small>
+            ${esc(
+              new Date(
+                order.created_at
+              )
+                .toLocaleString(
+                  'en-IN'
+                )
+            )}
+          </small>
+
+          ${
+            order.note
+              ? `
+                <small>
+                  ${esc(order.note)}
+                </small>
+              `
+              : ''
+          }
+
+          ${
+            Number(
+              order.amount ||
+              0
+            ) > 0
+              ? `
+                <small>
+                  Amount:
+                  ${money(
+                    order.amount
+                  )}
+                </small>
+              `
+              : ''
+          }
 
         </div>
 
-      `)
-      .join('');
+        <span
+          class="status ${esc(order.status || 'pending')}"
+        >
+          ${esc(
+            order.status ||
+            'pending'
+          )}
+        </span>
 
+      </div>
+    `).join('');
 
   list.innerHTML =
-    newHtml +
+    applicationHtml +
     legacyHtml;
 }
 
 
 /* =========================================================
-   OUTPUT DOWNLOAD
+   RECEIPT DOWNLOAD
 ========================================================= */
 
 window.downloadApplicationOutput =
   async output => {
 
     try {
-
       if (
         output.external_url
       ) {
-
         window.open(
           output.external_url,
           '_blank',
@@ -3353,18 +4430,15 @@ window.downloadApplicationOutput =
         return;
       }
 
-
       if (
         !output.storage_path
       ) {
-
         msg(
           'Document file available नहीं है।'
         );
 
         return;
       }
-
 
       const {
         data,
@@ -3379,11 +4453,9 @@ window.downloadApplicationOutput =
             60
           );
 
-
       if (error) {
         throw error;
       }
-
 
       window.open(
         data.signedUrl,
@@ -3391,9 +4463,7 @@ window.downloadApplicationOutput =
         'noopener'
       );
 
-
     } catch (error) {
-
       msg(error.message);
     }
   };
