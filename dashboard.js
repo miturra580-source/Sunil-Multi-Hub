@@ -911,5 +911,298 @@ if (orderForm) {
 /* =========================================
    START
 ========================================= */
+/* =========================================
+   SERVICE DETAILS POPUP FIX
+========================================= */
 
+function createServiceModal() {
+  if (document.getElementById('serviceDetailsModal')) return;
+
+  const wrap = document.createElement('div');
+  wrap.id = 'serviceDetailsModal';
+
+  wrap.innerHTML = `
+    <div id="serviceDetailsBackdrop"
+      style="display:none;position:fixed;inset:0;background:rgba(8,18,38,.58);z-index:9998;">
+    </div>
+
+    <div id="serviceDetailsBox"
+      style="
+        position:fixed;
+        left:50%;
+        bottom:0;
+        width:min(620px,100%);
+        max-height:88vh;
+        overflow:auto;
+        background:#fff;
+        z-index:9999;
+        border-radius:26px 26px 0 0;
+        padding:22px;
+        box-shadow:0 -20px 60px rgba(0,0,0,.25);
+        transform:translateX(-50%) translateY(110%);
+        transition:.25s ease;
+      ">
+
+      <div style="display:flex;justify-content:space-between;gap:15px;align-items:flex-start">
+
+        <div style="display:flex;gap:12px;align-items:center">
+
+          <div id="serviceModalIcon"
+            style="
+              width:58px;
+              height:58px;
+              border-radius:18px;
+              background:#eef3ff;
+              display:grid;
+              place-items:center;
+              font-size:29px;
+            ">🧩</div>
+
+          <div>
+            <small id="serviceModalCategory"
+              style="color:#2855cc;font-weight:800">
+              SERVICE
+            </small>
+
+            <h2 id="serviceModalName"
+              style="margin:4px 0 0">
+              Service
+            </h2>
+          </div>
+
+        </div>
+
+        <button type="button" id="serviceModalClose"
+          style="
+            width:40px;
+            height:40px;
+            border:0;
+            border-radius:50%;
+            background:#f1f4f8;
+            font-size:22px;
+          ">×</button>
+
+      </div>
+
+      <p id="serviceModalDescription"
+        style="color:#667085;line-height:1.6;margin:18px 0">
+      </p>
+
+      <div id="serviceModalPriceBox"
+        style="
+          background:#edf3ff;
+          padding:15px;
+          border-radius:16px;
+          margin-bottom:15px;
+        ">
+
+        <small style="color:#667085">
+          Service Price
+        </small>
+
+        <strong id="serviceModalPrice"
+          style="
+            display:block;
+            font-size:26px;
+            color:#2855cc;
+            margin-top:3px;
+          ">₹0</strong>
+      </div>
+
+      <div style="
+        border:1px solid #e4e9f1;
+        border-radius:16px;
+        padding:16px;
+        margin-bottom:14px;
+      ">
+        <h3 style="margin:0 0 10px">
+          📄 आवश्यक दस्तावेज़
+        </h3>
+
+        <div id="serviceModalDocuments"
+          style="color:#566174;line-height:1.8">
+        </div>
+      </div>
+
+      <div style="
+        border:1px solid #e4e9f1;
+        border-radius:16px;
+        padding:16px;
+        margin-bottom:18px;
+      ">
+        <h3 style="margin:0 0 10px">
+          ℹ️ जरूरी जानकारी
+        </h3>
+
+        <div id="serviceModalInstructions"
+          style="color:#566174;line-height:1.7">
+        </div>
+      </div>
+
+      <button type="button"
+        id="serviceApplyBtn"
+        class="btn primary"
+        style="width:100%;min-height:52px;font-size:16px">
+        Apply Now
+      </button>
+
+    </div>
+  `;
+
+  document.body.appendChild(wrap);
+
+  document.getElementById('serviceModalClose').onclick =
+    closeServiceDetails;
+
+  document.getElementById('serviceDetailsBackdrop').onclick =
+    closeServiceDetails;
+
+  document.getElementById('serviceApplyBtn').onclick =
+    applySelectedService;
+}
+
+
+function documentList(text) {
+  const value = String(text || '').trim();
+
+  if (!value) {
+    return 'इस सेवा के लिए दस्तावेज़ की जानकारी उपलब्ध नहीं है।';
+  }
+
+  return value
+    .split(/\n+/)
+    .filter(Boolean)
+    .map(item => `
+      <div style="display:flex;gap:8px;margin:6px 0">
+        <span>✓</span>
+        <span>${esc(item.trim())}</span>
+      </div>
+    `)
+    .join('');
+}
+
+
+function openServiceDetails(id) {
+  createServiceModal();
+
+  const service = services.find(
+    s => String(s.id) === String(id)
+  );
+
+  if (!service) {
+    msg('Service उपलब्ध नहीं है');
+    return;
+  }
+
+  activeService = service;
+
+  document.getElementById('serviceModalIcon').textContent =
+    service.icon || '🧩';
+
+  document.getElementById('serviceModalCategory').textContent =
+    service.category || 'Service';
+
+  document.getElementById('serviceModalName').textContent =
+    service.name;
+
+  document.getElementById('serviceModalDescription').textContent =
+    service.description || '';
+
+  const price = Number(service.price || 0);
+
+  const priceBox =
+    document.getElementById('serviceModalPriceBox');
+
+  if (price > 0) {
+    priceBox.style.display = 'block';
+
+    document.getElementById('serviceModalPrice').textContent =
+      money(price);
+  } else {
+    priceBox.style.display = 'none';
+  }
+
+  document.getElementById('serviceModalDocuments').innerHTML =
+    documentList(service.required_documents);
+
+  document.getElementById('serviceModalInstructions').textContent =
+    service.instructions ||
+    'आवेदन से पहले सभी जानकारी और दस्तावेज़ जाँच लें।';
+
+  document.getElementById('serviceDetailsBackdrop').style.display =
+    'block';
+
+  requestAnimationFrame(() => {
+    document.getElementById('serviceDetailsBox').style.transform =
+      'translateX(-50%) translateY(0)';
+  });
+
+  document.body.style.overflow = 'hidden';
+}
+
+
+function closeServiceDetails() {
+  const box = document.getElementById('serviceDetailsBox');
+  const backdrop = document.getElementById('serviceDetailsBackdrop');
+
+  if (!box || !backdrop) return;
+
+  box.style.transform =
+    'translateX(-50%) translateY(110%)';
+
+  setTimeout(() => {
+    backdrop.style.display = 'none';
+  }, 220);
+
+  document.body.style.overflow = '';
+}
+
+
+function applySelectedService() {
+  if (!activeService) return;
+
+  const select = document.getElementById('serviceSelect');
+
+  if (select) {
+    select.value = activeService.id;
+  }
+
+  const name = activeService.name;
+
+  closeServiceDetails();
+
+  setTimeout(() => {
+    document.getElementById('requestSection')
+      ?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+
+    msg(name + ' selected');
+  }, 250);
+}
+
+
+/* Existing service cards को popup से connect करें */
+
+window.selectServiceById = function(id) {
+  openServiceDetails(id);
+};
+
+window.selectServiceByName = function(name) {
+  const service = services.find(
+    s =>
+      String(s.name).trim().toLowerCase() ===
+      String(name).trim().toLowerCase()
+  );
+
+  if (!service) {
+    msg('यह service अभी available नहीं है');
+    return;
+  }
+
+  openServiceDetails(service.id);
+};
+
+window.openServiceDetails = openServiceDetails;
 boot();
