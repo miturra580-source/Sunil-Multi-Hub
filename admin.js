@@ -143,11 +143,7 @@ async function loadOrders() {
           <strong>${esc(o.services?.name || 'Service')}</strong>
 
           <small>
-            ${esc(
-              o.profiles?.full_name ||
-              o.profiles?.email ||
-              'Customer'
-            )}
+            ${esc(o.profiles?.full_name || o.profiles?.email || 'Customer')}
             •
             ${new Date(o.created_at).toLocaleString()}
           </small>
@@ -156,16 +152,13 @@ async function loadOrders() {
         </div>
 
         <div class="order-controls">
-
           <select class="order-status">
             ${
               ['pending', 'processing', 'completed', 'cancelled']
-              .map(s =>
-                `<option value="${s}" ${o.status === s ? 'selected' : ''}>
-                  ${s}
-                </option>`
-              )
-              .join('')
+                .map(s =>
+                  `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>`
+                )
+                .join('')
             }
           </select>
 
@@ -181,7 +174,6 @@ async function loadOrders() {
           <button class="btn secondary save-order">
             Save
           </button>
-
         </div>
       </div>
     `).join('')
@@ -192,13 +184,8 @@ async function loadOrders() {
       const row = btn.closest('[data-order]');
       const id = row.dataset.order;
 
-      const status =
-        row.querySelector('.order-status').value;
-
-      const amount =
-        Number(
-          row.querySelector('.order-amount').value || 0
-        );
+      const status = row.querySelector('.order-status').value;
+      const amount = Number(row.querySelector('.order-amount').value || 0);
 
       btn.disabled = true;
 
@@ -240,7 +227,9 @@ async function loadServices() {
       active,
       sort_order,
       category,
-      icon
+      icon,
+      required_documents,
+      instructions
     `)
     .order('sort_order', { ascending: true });
 
@@ -293,115 +282,110 @@ async function loadServices() {
     `).join('')
     : '<p>No services.</p>';
 
-  document.querySelectorAll('.edit-service')
-    .forEach(btn => {
-      btn.onclick = () => {
-        const id =
-          btn.closest('[data-service]').dataset.service;
+  document.querySelectorAll('.edit-service').forEach(btn => {
+    btn.onclick = () => {
+      const id = btn.closest('[data-service]').dataset.service;
+      editService(id, rows);
+    };
+  });
 
-        editService(id, rows);
-      };
-    });
+  document.querySelectorAll('.toggle-service').forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.closest('[data-service]').dataset.service;
+      const service = rows.find(x => x.id === id);
 
-  document.querySelectorAll('.toggle-service')
-    .forEach(btn => {
-      btn.onclick = async () => {
-        const id =
-          btn.closest('[data-service]').dataset.service;
+      if (!service) return;
 
-        const service =
-          rows.find(x => x.id === id);
+      const { error } = await sb
+        .from('services')
+        .update({
+          active: !service.active
+        })
+        .eq('id', id);
 
-        if (!service) return;
+      if (error) {
+        msg(error.message);
+        return;
+      }
 
-        const { error } = await sb
-          .from('services')
-          .update({
-            active: !service.active
-          })
-          .eq('id', id);
+      msg('Service updated');
+      await loadServices();
+    };
+  });
 
-        if (error) {
-          msg(error.message);
-          return;
-        }
+  document.querySelectorAll('.delete-service').forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.closest('[data-service]').dataset.service;
 
-        msg('Service updated');
-        await loadServices();
-      };
-    });
+      if (!confirm('Delete this service?')) return;
 
-  document.querySelectorAll('.delete-service')
-    .forEach(btn => {
-      btn.onclick = async () => {
-        const id =
-          btn.closest('[data-service]').dataset.service;
+      const { error } = await sb
+        .from('services')
+        .delete()
+        .eq('id', id);
 
-        if (!confirm('Delete this service?')) return;
+      if (error) {
+        msg(error.message);
+        return;
+      }
 
-        const { error } = await sb
-          .from('services')
-          .delete()
-          .eq('id', id);
-
-        if (error) {
-          msg(error.message);
-          return;
-        }
-
-        msg('Service deleted');
-        await loadServices();
-      };
-    });
+      msg('Service deleted');
+      await loadServices();
+    };
+  });
 }
 
+
+/* =========================
+   EDIT SERVICE
+========================= */
 
 async function editService(id, rows) {
   const s = rows.find(x => x.id === id);
 
   if (!s) return;
 
-  const name = prompt(
-    'Service name',
-    s.name || ''
-  );
-
+  const name = prompt('Service name', s.name || '');
   if (name === null) return;
 
-  const price = prompt(
-    'Price',
-    String(s.price || 0)
-  );
-
+  const price = prompt('Price', String(s.price || 0));
   if (price === null) return;
 
   const category = prompt(
     'Category: Popular / Government / Print / Other',
     s.category || 'Other'
   );
-
   if (category === null) return;
 
   const icon = prompt(
     'Icon / Emoji',
     s.icon || '🧩'
   );
-
   if (icon === null) return;
 
   const sortOrder = prompt(
     'Sort order',
     String(s.sort_order || 0)
   );
-
   if (sortOrder === null) return;
 
   const description = prompt(
-    'Description',
+    'Short description',
     s.description || ''
   );
-
   if (description === null) return;
+
+  const requiredDocuments = prompt(
+    'Required documents — हर document नई line में लिखें',
+    s.required_documents || ''
+  );
+  if (requiredDocuments === null) return;
+
+  const instructions = prompt(
+    'Instructions / Important information',
+    s.instructions || ''
+  );
+  if (instructions === null) return;
 
   const { error } = await sb
     .from('services')
@@ -411,7 +395,9 @@ async function editService(id, rows) {
       category: category.trim() || 'Other',
       icon: icon.trim() || '🧩',
       sort_order: Number(sortOrder || 0),
-      description: description.trim()
+      description: description.trim(),
+      required_documents: requiredDocuments.trim(),
+      instructions: instructions.trim()
     })
     .eq('id', id);
 
@@ -425,31 +411,43 @@ async function editService(id, rows) {
 }
 
 
+/* =========================
+   ADD SERVICE
+========================= */
+
 addServiceBtn.onclick = async () => {
   const name = prompt('New service name');
-
   if (!name?.trim()) return;
 
   const price = prompt('Price', '0');
-
   if (price === null) return;
 
   const category = prompt(
     'Category: Popular / Government / Print / Other',
     'Other'
   );
-
   if (category === null) return;
 
   const icon = prompt(
     'Icon / Emoji',
     '🧩'
   );
-
   if (icon === null) return;
 
-  const description =
-    prompt('Description', '') ?? '';
+  const description = prompt(
+    'Short description',
+    ''
+  ) ?? '';
+
+  const requiredDocuments = prompt(
+    'Required documents — हर document नई line में लिखें',
+    ''
+  ) ?? '';
+
+  const instructions = prompt(
+    'Instructions / Important information',
+    'आवेदन से पहले सभी जानकारी और दस्तावेज़ जाँच लें।'
+  ) ?? '';
 
   const { data: maxRows } = await sb
     .from('services')
@@ -469,7 +467,9 @@ addServiceBtn.onclick = async () => {
       active: true,
       sort_order,
       category: category.trim() || 'Other',
-      icon: icon.trim() || '🧩'
+      icon: icon.trim() || '🧩',
+      required_documents: requiredDocuments.trim(),
+      instructions: instructions.trim()
     });
 
   if (error) {
