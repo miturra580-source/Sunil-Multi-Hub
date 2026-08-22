@@ -1,4 +1,50 @@
 const toast=document.getElementById('toast');
+const loggedIn=document.getElementById('loggedIn');
+const apiBadge=document.getElementById('apiBadge');
+const apiText=document.getElementById('apiText');
+
+const ordersCount=document.getElementById('ordersCount');
+const revenueCount=document.getElementById('revenueCount');
+const ordersWrap=document.getElementById('ordersWrap');
+
+const servicesCount=document.getElementById('servicesCount');
+const servicesWrap=document.getElementById('servicesWrap');
+
+const usersCount=document.getElementById('usersCount');
+const usersWrap=document.getElementById('usersWrap');
+
+const refreshBtn=document.getElementById('refreshBtn');
+const logoutBtn=document.getElementById('logoutBtn');
+const addServiceBtn=document.getElementById('addServiceBtn');
+
+const orderEditModal=document.getElementById('orderEditModal');
+const closeOrderModal=document.getElementById('closeOrderModal');
+const cancelOrderEdit=document.getElementById('cancelOrderEdit');
+const saveOrderEdit=document.getElementById('saveOrderEdit');
+
+const editOrderId=document.getElementById('editOrderId');
+const editOrderService=document.getElementById('editOrderService');
+const editOrderCustomer=document.getElementById('editOrderCustomer');
+const editOrderStatus=document.getElementById('editOrderStatus');
+const editOrderAmount=document.getElementById('editOrderAmount');
+const editOrderNote=document.getElementById('editOrderNote');
+
+const serviceEditModal=document.getElementById('serviceEditModal');
+const closeServiceModal=document.getElementById('closeServiceModal');
+const cancelServiceEdit=document.getElementById('cancelServiceEdit');
+const saveServiceEdit=document.getElementById('saveServiceEdit');
+
+const editServiceId=document.getElementById('editServiceId');
+const serviceModalHeading=document.getElementById('serviceModalHeading');
+const editServiceName=document.getElementById('editServiceName');
+const editServicePrice=document.getElementById('editServicePrice');
+const editServiceIcon=document.getElementById('editServiceIcon');
+const editServiceCategory=document.getElementById('editServiceCategory');
+const editServiceSort=document.getElementById('editServiceSort');
+const editServiceDescription=document.getElementById('editServiceDescription');
+const editServiceDocuments=document.getElementById('editServiceDocuments');
+const editServiceInstructions=document.getElementById('editServiceInstructions');
+const editServiceActive=document.getElementById('editServiceActive');
 let tm,me=null,currentOrders=[],services=[];
 
 function msg(t){
