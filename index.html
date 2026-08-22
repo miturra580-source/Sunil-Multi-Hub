@@ -1,315 +1,174 @@
-<!DOCTYPE html>
-<html lang="hi">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0b4fd8" />
-  <title>SUNIL MULTI HUB — Digital Services & Online Tools</title>
-  <meta name="description" content="Digital services, document tools, printing, certificates, mobile services and vehicle services in one place." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="topbar">
-    <div class="container topbar-inner">
-      <span>⚡ तेज़ • सुरक्षित • आसान डिजिटल सेवाएँ</span>
-      <button class="lang-btn" id="langToggle">EN</button>
-    </div>
-  </div>
-
-  <header class="site-header">
-    <div class="container nav">
-      <a href="#home" class="brand" aria-label="Sunil Multi Hub">
-        <span class="brand-mark">SM</span>
-        <span>
-          <strong>SUNIL MULTI HUB</strong>
-          <small>Digital • Print • Mobile • Vehicle</small>
-        </span>
-      </a>
-      <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
-      <nav id="mainNav">
-        <a href="#home" data-hi="होम" data-en="Home">होम</a>
-        <a href="#services" data-hi="सेवाएँ" data-en="Services">सेवाएँ</a>
-        <a href="#tools" data-hi="ऑनलाइन टूल्स" data-en="Online Tools">ऑनलाइन टूल्स</a>
-        <a href="#pricing" data-hi="प्लान" data-en="Plans">प्लान</a>
-        <a href="#contact" data-hi="संपर्क" data-en="Contact">संपर्क</a>
-        <a class="login-link" href="auth.html" data-hi="लॉगिन" data-en="Login" data-hi="लॉगिन" data-en="Login">लॉगिन</a>
-      <a href="admin.html" data-hi="एडमिन" data-en="Admin">एडमिन</a></nav>
-    </div>
-  </header>
-
-  <main id="home">
-    <section class="hero">
-      <div class="hero-glow hero-glow-a"></div>
-      <div class="hero-glow hero-glow-b"></div>
-      <div class="container hero-grid">
-        <div class="hero-copy">
-          <span class="eyebrow">ONE STOP DIGITAL SERVICE CENTER</span>
-          <h1 data-hi="आपके सभी डिजिटल काम, एक ही जगह" data-en="All your digital work, in one place">आपके सभी डिजिटल काम, <span>एक ही जगह</span></h1>
-          <p data-hi="सरकारी प्रमाण-पत्र, दस्तावेज़ प्रिंटिंग, फोटो/PDF टूल्स, मोबाइल सेवाएँ और वाहन सेवाएँ — तेज़ और आसान अनुभव के साथ।"
-             data-en="Certificates, document printing, photo/PDF tools, mobile services and vehicle services — with a fast, simple experience.">
-             सरकारी प्रमाण-पत्र, दस्तावेज़ प्रिंटिंग, फोटो/PDF टूल्स, मोबाइल सेवाएँ और वाहन सेवाएँ — तेज़ और आसान अनुभव के साथ।
-          </p>
-          <div class="hero-actions">
-            <a class="btn primary" href="#services" data-hi="सेवाएँ देखें" data-en="Explore Services">सेवाएँ देखें</a>
-            <a class="btn secondary" href="#tools" data-hi="टूल्स खोलें" data-en="Open Tools">टूल्स खोलें</a>
-          </div>
-          <div class="trust-row">
-            <span>✓ Mobile Friendly</span>
-            <span>✓ Fast Workflow</span>
-            <span>✓ Secure Upload</span>
-          </div>
-        </div>
-
-        <div class="hero-panel">
-          <div class="panel-head">
-            <div>
-              <strong data-hi="क्विक सर्विस" data-en="Quick Service">क्विक सर्विस</strong>
-              <small data-hi="काम चुनें और आगे बढ़ें" data-en="Choose a service to continue">काम चुनें और आगे बढ़ें</small>
-            </div>
-            <span class="live-dot">LIVE</span>
-          </div>
-          <div class="quick-grid">
-            <button onclick="scrollToCard('certificate')"><span>📄</span><b data-hi="प्रमाण पत्र" data-en="Certificates">प्रमाण पत्र</b></button>
-            <button onclick="scrollToCard('passport')"><span>📸</span><b data-hi="पासपोर्ट फोटो" data-en="Passport Photo">पासपोर्ट फोटो</b></button>
-            <button onclick="scrollToCard('pdf')"><span>🧾</span><b data-hi="PDF टूल्स" data-en="PDF Tools">PDF टूल्स</b></button>
-            <button onclick="scrollToCard('idprint')"><span>🪪</span><b data-hi="कार्ड प्रिंट" data-en="Card Print">कार्ड प्रिंट</b></button>
-            <button onclick="scrollToCard('mobile')"><span>📱</span><b data-hi="मोबाइल" data-en="Mobile">मोबाइल</b></button>
-            <button onclick="scrollToCard('vehicle')"><span>🚗</span><b data-hi="वाहन" data-en="Vehicle">वाहन</b></button>
-          </div>
-          <div class="search-box">
-            <span>⌕</span>
-            <input id="serviceSearch" type="search" placeholder="सेवा खोजें..." data-placeholder-hi="सेवा खोजें..." data-placeholder-en="Search services..." />
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="services">
-      <div class="container">
-        <div class="section-head">
-          <div>
-            <span class="eyebrow" data-hi="लोकप्रिय सेवाएँ" data-en="POPULAR SERVICES">लोकप्रिय सेवाएँ</span>
-            <h2 data-hi="दैनिक काम के लिए जरूरी सेवाएँ" data-en="Essential services for everyday work">दैनिक काम के लिए जरूरी सेवाएँ</h2>
-          </div>
-          <p data-hi="Customer-facing website + shop workflow — दोनों के लिए तैयार structure."
-             data-en="A structure designed for both customers and shop workflow.">
-             Customer-facing website + shop workflow — दोनों के लिए तैयार structure.
-          </p>
-        </div>
-
-        <div class="cards service-cards" id="serviceCards">
-          <article class="service-card" id="certificate" data-search="आय जाति निवास प्रमाण पत्र income caste residence certificate">
-            <div class="icon">📑</div>
-            <div><span class="tag">GOVT</span><h3 data-hi="आय • जाति • निवास प्रमाण पत्र" data-en="Income • Caste • Residence Certificates">आय • जाति • निवास प्रमाण पत्र</h3>
-            <p data-hi="आवेदन सहायता, दस्तावेज़ जाँच और प्रिंटिंग।" data-en="Application help, document checks and printing.">आवेदन सहायता, दस्तावेज़ जाँच और प्रिंटिंग।</p></div>
-            <button class="card-arrow" onclick="openService('आय • जाति • निवास प्रमाण पत्र')">→</button>
-          </article>
-
-          <article class="service-card" data-search="जीवन प्रमाण पत्र पेंशन फार्म pension jeevan pramaan">
-            <div class="icon">👴</div>
-            <div><span class="tag">CITIZEN</span><h3 data-hi="जीवन प्रमाण पत्र • पेंशन फार्म" data-en="Life Certificate • Pension Form">जीवन प्रमाण पत्र • पेंशन फार्म</h3>
-            <p data-hi="पेंशन संबंधित ऑनलाइन सहायता और दस्तावेज़ सेवा।" data-en="Online assistance for pension-related services.">पेंशन संबंधित ऑनलाइन सहायता और दस्तावेज़ सेवा।</p></div>
-            <button class="card-arrow" onclick="openService('जीवन प्रमाण पत्र • पेंशन फार्म')">→</button>
-          </article>
-
-          <article class="service-card" data-search="राशन कार्ड श्रम कार्ड ration labour card">
-            <div class="icon">🧑‍🔧</div>
-            <div><span class="tag">PUBLIC</span><h3 data-hi="राशन कार्ड • श्रम कार्ड" data-en="Ration Card • Labour Card">राशन कार्ड • श्रम कार्ड</h3>
-            <p data-hi="नई/अपडेट सेवा, प्रिंट और आवेदन सहायता।" data-en="New/update support, printing and application help.">नई/अपडेट सेवा, प्रिंट और आवेदन सहायता।</p></div>
-            <button class="card-arrow" onclick="openService('राशन कार्ड • श्रम कार्ड')">→</button>
-          </article>
-
-          <article class="service-card" data-search="आयुष्मान कार्ड ayushman health">
-            <div class="icon">🏥</div>
-            <div><span class="tag">HEALTH</span><h3 data-hi="आयुष्मान कार्ड" data-en="Ayushman Card">आयुष्मान कार्ड</h3>
-            <p data-hi="आयुष्मान संबंधित ऑनलाइन सहायता और कार्ड प्रिंट।" data-en="Ayushman online assistance and card print.">आयुष्मान संबंधित ऑनलाइन सहायता और कार्ड प्रिंट।</p></div>
-            <button class="card-arrow" onclick="openService('आयुष्मान कार्ड')">→</button>
-          </article>
-
-          <article class="service-card" id="idprint" data-search="aadhar aadhaar pan voter id card print pvc">
-            <div class="icon">🪪</div>
-            <div><span class="tag">PRINT</span><h3 data-hi="आधार • PAN • वोटर ID प्रिंट" data-en="Aadhaar • PAN • Voter ID Print">आधार • PAN • वोटर ID प्रिंट</h3>
-            <p data-hi="ID कार्ड को standard print size में तैयार करें।" data-en="Prepare ID cards in standard print sizes.">ID कार्ड को standard print size में तैयार करें।</p></div>
-            <button class="card-arrow" onclick="openTool('ID Card Print')">→</button>
-          </article>
-
-          <article class="service-card" data-search="print photocopy lamination फोटो कॉपी लेमिनेशन">
-            <div class="icon">🖨️</div>
-            <div><span class="tag">SHOP</span><h3 data-hi="प्रिंट • फोटोकॉपी • लेमिनेशन" data-en="Print • Photocopy • Lamination">प्रिंट • फोटोकॉपी • लेमिनेशन</h3>
-            <p data-hi="Documents, photos और कार्ड के लिए quick shop service." data-en="Quick shop service for documents, photos and cards.">Documents, photos और कार्ड के लिए quick shop service.</p></div>
-            <button class="card-arrow" onclick="openService('प्रिंट • फोटोकॉपी • लेमिनेशन')">→</button>
-          </article>
-
-          <article class="service-card" id="mobile" data-search="mobile sales repair recharge मोबाइल सेल्स रिपेयरिंग">
-            <div class="icon">📱</div>
-            <div><span class="tag">MOBILE</span><h3 data-hi="मोबाइल सेल्स • रिपेयरिंग" data-en="Mobile Sales • Repairing">मोबाइल सेल्स • रिपेयरिंग</h3>
-            <p data-hi="मोबाइल accessories, basic repair और service enquiries." data-en="Mobile accessories, basic repairs and service enquiries.">मोबाइल accessories, basic repair और service enquiries.</p></div>
-            <button class="card-arrow" onclick="openService('मोबाइल सेल्स • रिपेयरिंग')">→</button>
-          </article>
-
-          <article class="service-card" id="vehicle" data-search="vehicle insurance pollution hsrp number plate वाहन बीमा प्रदूषण हाई सिक्योरिटी नंबर प्लेट">
-            <div class="icon">🚘</div>
-            <div><span class="tag">VEHICLE</span><h3 data-hi="वाहन सेवाएँ" data-en="Vehicle Services">वाहन सेवाएँ</h3>
-            <p data-hi="वाहन बीमा, प्रदूषण और हाई सिक्योरिटी नंबर प्लेट सहायता।" data-en="Vehicle insurance, pollution and HSRP assistance.">वाहन बीमा, प्रदूषण और हाई सिक्योरिटी नंबर प्लेट सहायता।</p></div>
-            <button class="card-arrow" onclick="openService('वाहन सेवाएँ')">→</button>
-          </article>
-        </div>
-        <div class="empty-state" id="emptyState">कोई matching service नहीं मिली।</div>
-      </div>
-    </section>
-
-    <section class="section soft" id="tools">
-      <div class="container">
-        <div class="section-head">
-          <div>
-            <span class="eyebrow" data-hi="स्मार्ट टूल्स" data-en="SMART TOOLS">स्मार्ट टूल्स</span>
-            <h2 data-hi="दस्तावेज़ और फोटो टूल्स" data-en="Document & photo tools">दस्तावेज़ और फोटो टूल्स</h2>
-          </div>
-          <p data-hi="Phase 1 demo में UI ready है; processing engine को Phase 2 में जोड़ना है."
-             data-en="The Phase 1 demo has the UI ready; processing engines can be connected in Phase 2.">
-             Phase 1 demo में UI ready है; processing engine को Phase 2 में जोड़ना है.
-          </p>
-        </div>
-
-        <div class="tool-grid">
-          <button class="tool-card" id="passport" onclick="openTool('Passport Photo Maker')">
-            <span class="tool-icon">📸</span><strong data-hi="पासपोर्ट फोटो मेकर" data-en="Passport Photo Maker">पासपोर्ट फोटो मेकर</strong>
-            <small data-hi="Crop • Size • Print Sheet" data-en="Crop • Size • Print Sheet">Crop • Size • Print Sheet</small>
-          </button>
-          <button class="tool-card" id="pdf" onclick="openTool('JPG to PDF')">
-            <span class="tool-icon">📄</span><strong>JPG → PDF</strong><small data-hi="कई फोटो एक PDF में" data-en="Combine photos into a PDF">कई फोटो एक PDF में</small>
-          </button>
-          <button class="tool-card" onclick="openTool('Merge PDF')">
-            <span class="tool-icon">🧩</span><strong>Merge PDF</strong><small data-hi="PDF फाइलें जोड़ें" data-en="Combine PDF files">PDF फाइलें जोड़ें</small>
-          </button>
-          <button class="tool-card" onclick="openTool('Photo Resize')">
-            <span class="tool-icon">🖼️</span><strong data-hi="फोटो Resize" data-en="Photo Resize">फोटो Resize</strong><small data-hi="Pixel / KB / Ratio" data-en="Pixel / KB / Ratio">Pixel / KB / Ratio</small>
-          </button>
-          <button class="tool-card" onclick="openTool('ID Card Print')">
-            <span class="tool-icon">🪪</span><strong data-hi="ID कार्ड प्रिंट" data-en="ID Card Print">ID कार्ड प्रिंट</strong><small>Aadhaar • PAN • Voter</small>
-          </button>
-          <button class="tool-card" onclick="openTool('Resume Maker')">
-            <span class="tool-icon">📋</span><strong data-hi="Resume Maker" data-en="Resume Maker">Resume Maker</strong><small data-hi="Simple CV generator" data-en="Simple CV generator">Simple CV generator</small>
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="container workflow">
-        <div>
-          <span class="eyebrow" data-hi="कैसे काम करेगा" data-en="HOW IT WORKS">कैसे काम करेगा</span>
-          <h2 data-hi="तीन आसान स्टेप" data-en="Three simple steps">तीन आसान स्टेप</h2>
-        </div>
-        <div class="steps">
-          <article><span>1</span><h3 data-hi="सेवा चुनें" data-en="Choose service">सेवा चुनें</h3><p data-hi="जिस काम की जरूरत है उसे खोजें या category से चुनें।" data-en="Search or choose the service you need.">जिस काम की जरूरत है उसे खोजें या category से चुनें।</p></article>
-          <article><span>2</span><h3 data-hi="डिटेल/फाइल दें" data-en="Add details/files">डिटेल/फाइल दें</h3><p data-hi="जरूरी जानकारी या document securely upload करें।" data-en="Securely upload the required information or document.">जरूरी जानकारी या document securely upload करें।</p></article>
-          <article><span>3</span><h3 data-hi="पेमेंट/डिलीवरी" data-en="Payment/delivery">पेमेंट/डिलीवरी</h3><p data-hi="Shop pickup, WhatsApp update या online download." data-en="Shop pickup, WhatsApp update or online download.">Shop pickup, WhatsApp update या online download.</p></article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section pricing-section" id="pricing">
-      <div class="container">
-        <div class="section-head centered">
-          <div><span class="eyebrow" data-hi="MEMBERSHIP" data-en="MEMBERSHIP">MEMBERSHIP</span>
-          <h2 data-hi="Simple plans, clear features" data-en="Simple plans, clear features">Simple plans, clear features</h2></div>
-        </div>
-        <div class="pricing-grid">
-          <article class="price-card">
-            <span class="tag">FREE</span><h3 data-hi="Basic" data-en="Basic">Basic</h3><div class="price">₹0 <small>/ forever</small></div>
-            <ul><li>Service directory</li><li>Basic PDF tools</li><li>Photo resize</li><li>WhatsApp enquiry</li></ul>
-            <button class="btn secondary full" onclick="openToast('Free account flow will be connected in Phase 2')">Start Free</button>
-          </article>
-          <article class="price-card featured">
-            <span class="tag">POPULAR</span><h3>Shop Pro</h3><div class="price">₹99 <small>/ month</small></div>
-            <ul><li>All document tools</li><li>ID print layouts</li><li>Passport photo sheets</li><li>Ad-free dashboard</li></ul>
-            <button class="btn primary full" onclick="openToast('Payment gateway will be connected after admin setup')">Choose Pro</button>
-          </article>
-          <article class="price-card">
-            <span class="tag">BUSINESS</span><h3 data-hi="Partner" data-en="Partner">Partner</h3><div class="price">Custom</div>
-            <ul><li>Shop dashboard</li><li>Order queue</li><li>Custom pricing</li><li>Admin controls</li></ul>
-            <button class="btn secondary full" onclick="document.querySelector('#contact').scrollIntoView({behavior:'smooth'})">Contact</button>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section soft">
-      <div class="container faq-wrap">
-        <div>
-          <span class="eyebrow">FAQ</span>
-          <h2 data-hi="अक्सर पूछे जाने वाले सवाल" data-en="Frequently asked questions">अक्सर पूछे जाने वाले सवाल</h2>
-          <p data-hi="Content और policies को final business details के अनुसार update किया जाएगा।"
-             data-en="Content and policies can be updated according to the final business details.">
-             Content और policies को final business details के अनुसार update किया जाएगा।
-          </p>
-        </div>
-        <div class="faq-list">
-          <details><summary data-hi="क्या वेबसाइट मोबाइल पर चलेगी?" data-en="Will the website work on mobile?">क्या वेबसाइट मोबाइल पर चलेगी?</summary><p data-hi="हाँ, design mobile-first और fully responsive रखा गया है।" data-en="Yes. The design is mobile-first and fully responsive.">हाँ, design mobile-first और fully responsive रखा गया है।</p></details>
-          <details><summary data-hi="क्या admin सेवाएँ जोड़/हटा सकेगा?" data-en="Can admin add or remove services?">क्या admin सेवाएँ जोड़/हटा सकेगा?</summary><p data-hi="हाँ. Phase 2 में admin panel से services, rates, banners और status manage किए जा सकते हैं।" data-en="Yes. Phase 2 can include admin controls for services, rates, banners and status.">हाँ. Phase 2 में admin panel से services, rates, banners और status manage किए जा सकते हैं।</p></details>
-          <details><summary data-hi="क्या PDF और passport tools actual काम करेंगे?" data-en="Will PDF and passport tools actually work?">क्या PDF और passport tools actual काम करेंगे?</summary><p data-hi="हाँ, processing libraries/API connect करके इन्हें functional बनाया जा सकता है।" data-en="Yes, they can be made functional with browser processing libraries or APIs.">हाँ, processing libraries/API connect करके इन्हें functional बनाया जा सकता है।</p></details>
-        </div>
-      </div>
-    </section>
-
-    <section class="section contact-section" id="contact">
-      <div class="container contact-card">
-        <div>
-          <span class="eyebrow light">GET IN TOUCH</span>
-          <h2 data-hi="अपने डिजिटल काम को आसान बनाइए" data-en="Make your digital work easier">अपने डिजिटल काम को आसान बनाइए</h2>
-          <p data-hi="Phone, WhatsApp, address और Google Map final setup में जोड़ें।"
-             data-en="Add phone, WhatsApp, address and Google Map in the final setup.">
-             Phone, WhatsApp, address और Google Map final setup में जोड़ें।
-          </p>
-        </div>
-        <div class="contact-actions">
-          <button class="btn white" onclick="openContact()">WhatsApp / Enquiry</button>
-          <a class="btn glass" href="#services" data-hi="सेवाएँ देखें" data-en="View Services">सेवाएँ देखें</a>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <div class="container footer-grid">
+<section class="section soft" id="tools">
+  <div class="container">
+    <div class="section-head">
       <div>
-        <a class="brand footer-brand" href="#home"><span class="brand-mark">SM</span><span><strong>SUNIL MULTI HUB</strong><small>One Stop Digital Service Center</small></span></a>
-        <p data-hi="Digital services, print tools, mobile services और vehicle support के लिए एक modern platform."
-           data-en="A modern platform for digital services, print tools, mobile services and vehicle support.">
-          Digital services, print tools, mobile services और vehicle support के लिए एक modern platform.
-        </p>
+        <span class="eyebrow">DIGITAL TOOLS & SERVICES</span>
+        <h2>ऑनलाइन टूल्स और स्मार्ट सेवाएँ</h2>
       </div>
-      <div><h4 data-hi="क्विक लिंक" data-en="Quick Links">क्विक लिंक</h4><a href="#services">Services</a><a href="#tools">Tools</a><a href="#pricing">Pricing</a></div>
-      <div><h4 data-hi="कानूनी" data-en="Legal">कानूनी</h4><a href="#" onclick="openToast('Privacy Policy page: Phase 2');return false;">Privacy Policy</a><a href="#" onclick="openToast('Terms page: Phase 2');return false;">Terms</a><a href="#" onclick="openToast('Refund Policy page: Phase 2');return false;">Refund Policy</a></div>
-      <div><h4 data-hi="संपर्क" data-en="Contact">संपर्क</h4><span>📍 Your Shop Address</span><span>☎ +91 XXXXX XXXXX</span><span>✉ contact@example.com</span></div>
-    </div>
-    <div class="container copyright">© 2026 SUNIL MULTI HUB. Demo website.</div>
-  </footer>
-
-  <div class="modal-backdrop" id="serviceModal" aria-hidden="true">
-    <div class="modal">
-      <button class="modal-close" onclick="closeModal('serviceModal')">×</button>
-      <span class="eyebrow">SERVICE REQUEST</span>
-      <h3 id="modalTitle">Service</h3>
-      <p data-hi="यह demo interaction है। Final version में form, file upload, price, WhatsApp update और admin order queue connect होगी।"
-         data-en="This is a demo interaction. The final version can connect forms, file upload, pricing, WhatsApp updates and an admin order queue.">
-         यह demo interaction है। Final version में form, file upload, price, WhatsApp update और admin order queue connect होगी।
+      <p>
+        Photo, PDF, ID Print, Resume, Government Jobs और Shop Utilities —
+        एक ही जगह।
       </p>
-      <label data-hi="नाम" data-en="Name">नाम</label>
-      <input type="text" placeholder="Your name" />
-      <label data-hi="मोबाइल नंबर" data-en="Mobile number">मोबाइल नंबर</label>
-      <input type="tel" placeholder="+91" />
-      <label data-hi="नोट" data-en="Note">नोट</label>
-      <textarea rows="3" placeholder="What do you need?"></textarea>
-      <button class="btn primary full" onclick="openToast('Demo request saved locally'); closeModal('serviceModal')">Submit Demo Request</button>
+    </div>
+
+    <div class="tool-category">
+      <h3 class="tool-category-title">⭐ Important Services</h3>
+      <div class="tool-grid">
+
+        <button class="tool-card" onclick="openTool('Government Jobs')">
+          <span class="tool-icon">💼</span>
+          <strong>Govt Job</strong>
+          <small>Latest Jobs • Forms • Updates</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('Mock Test')">
+          <span class="tool-icon">📝</span>
+          <strong>Mock Test</strong>
+          <small>Practice Tests • Exams</small>
+        </button>
+
+        <button class="tool-card" id="passport" onclick="openTool('Passport Photo Maker')">
+          <span class="tool-icon">📸</span>
+          <strong>Passport Photo</strong>
+          <small>Crop • Resize • Print Sheet</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('Resume Maker')">
+          <span class="tool-icon">📋</span>
+          <strong>Resume Maker</strong>
+          <small>CV • Fresher • Professional</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('Photo Resize')">
+          <span class="tool-icon">🖼️</span>
+          <strong>Photo Resize</strong>
+          <small>Pixel • KB • Ratio</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('ID Card Print')">
+          <span class="tool-icon">🪪</span>
+          <strong>ID Card Print</strong>
+          <small>Aadhaar • PAN • Voter • PVC</small>
+        </button>
+
+      </div>
+    </div>
+
+    <div class="tool-category">
+      <h3 class="tool-category-title">📄 PDF & Image Convert Tools</h3>
+      <div class="tool-grid">
+
+        <button class="tool-card" id="pdf" onclick="openTool('JPG to PDF')">
+          <span class="tool-icon">📄</span>
+          <strong>JPG → PDF</strong>
+          <small>Images to PDF</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('Merge PDF')">
+          <span class="tool-icon">🧩</span>
+          <strong>Merge PDF</strong>
+          <small>Combine PDF files</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('Delete PDF Pages')">
+          <span class="tool-icon">🗑️</span>
+          <strong>Delete PDF Pages</strong>
+          <small>Remove unwanted pages</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('PNG to PDF')">
+          <span class="tool-icon">📑</span>
+          <strong>PNG → PDF</strong>
+          <small>PNG images to PDF</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('PDF to JPG')">
+          <span class="tool-icon">🖼️</span>
+          <strong>PDF → JPG</strong>
+          <small>Extract PDF pages</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('PNG to JPG')">
+          <span class="tool-icon">🔄</span>
+          <strong>PNG → JPG</strong>
+          <small>Image format converter</small>
+        </button>
+
+      </div>
+    </div>
+
+    <div class="tool-category">
+      <h3 class="tool-category-title">🎨 Creative Design Studio</h3>
+      <div class="tool-grid">
+
+        <button class="tool-card" onclick="openTool('Pro Resume Maker')">
+          <span class="tool-icon">📃</span>
+          <strong>Pro Resume Maker</strong>
+          <small>Modern resume designs</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('Marriage Biodata')">
+          <span class="tool-icon">💍</span>
+          <strong>Marriage Biodata</strong>
+          <small>Ready biodata templates</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('Pro ID Maker')">
+          <span class="tool-icon">🪪</span>
+          <strong>Pro ID Maker</strong>
+          <small>Custom ID design</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('Poster Maker')">
+          <span class="tool-icon">🎨</span>
+          <strong>Poster Maker</strong>
+          <small>Business • Festival • Offer</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('Application Maker')">
+          <span class="tool-icon">✍️</span>
+          <strong>Application Maker</strong>
+          <small>Hindi / English applications</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('Shop Promotion Maker')">
+          <span class="tool-icon">📢</span>
+          <strong>Shop Promotion</strong>
+          <small>Banner • Offer • Social Post</small>
+        </button>
+
+      </div>
+    </div>
+
+    <div class="tool-category">
+      <h3 class="tool-category-title">🏪 Shop Utilities</h3>
+      <div class="tool-grid">
+
+        <button class="tool-card" onclick="openTool('Payment Locked QR')">
+          <span class="tool-icon">📲</span>
+          <strong>Payment Locked QR</strong>
+          <small>Fixed Amount UPI QR</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('PVC Auto Crop')">
+          <span class="tool-icon">✂️</span>
+          <strong>PVC Auto Crop</strong>
+          <small>Card crop & print layout</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('Auto Print')">
+          <span class="tool-icon">🖨️</span>
+          <strong>Auto Print</strong>
+          <small>Shop print workflow</small>
+        </button>
+
+        <button class="tool-card" onclick="openTool('PPT / Company Profile')">
+          <span class="tool-icon">📊</span>
+          <strong>PPT / Profile</strong>
+          <small>Company profile creator</small>
+        </button>
+
+      </div>
     </div>
   </div>
-<div class="toast" id="toast"></div>
-
-  <script src="app.js"></script>
-</body>
-</html>
+</section>
