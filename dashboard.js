@@ -5716,3 +5716,322 @@ window.addEventListener(
 
   }
 );
+/* =========================================================
+   AADHAAR → PAN LOOKUP (TEST MODE)
+========================================================= */
+
+const AADHAAR_PAN_SERVICE_ID =
+  'edf53c2d-1712-4108-8f72-1acd10920c77';
+
+
+function setupAadhaarPanLookupButton() {
+
+  const form =
+    document.getElementById(
+      'dynamicApplicationForm'
+    );
+
+  if (!form) return;
+
+
+  const serviceId =
+    activeService?.id || '';
+
+
+  if (
+    String(serviceId) !==
+    AADHAAR_PAN_SERVICE_ID
+  ) {
+    return;
+  }
+
+
+  if (
+    document.getElementById(
+      'fetchPanDataBtn'
+    )
+  ) {
+    return;
+  }
+
+
+  const aadhaarInput =
+    form.querySelector(
+      '[name="aadhaar_number"]'
+    );
+
+
+  if (!aadhaarInput) {
+    return;
+  }
+
+
+  const wrapper =
+    document.createElement('div');
+
+  wrapper.style.marginTop =
+    '16px';
+
+
+  wrapper.innerHTML = `
+    <button
+      type="button"
+      id="fetchPanDataBtn"
+      class="btn primary"
+      style="
+        width:100%;
+        min-height:52px;
+      "
+    >
+      🔎 Fetch PAN Data
+    </button>
+
+    <div
+      id="panLookupResult"
+      style="
+        margin-top:14px;
+        display:none;
+        border:1px solid #dfe5ee;
+        border-radius:14px;
+        padding:14px;
+        background:#f8fafc;
+      "
+    ></div>
+  `;
+
+
+  aadhaarInput
+    .closest('.dynamic-field')
+    ?.after(wrapper);
+
+
+  const fetchBtn =
+    document.getElementById(
+      'fetchPanDataBtn'
+    );
+
+
+  if (!fetchBtn) {
+    return;
+  }
+
+
+  fetchBtn.onclick =
+    async () => {
+
+      const aadhaar =
+        String(
+          aadhaarInput.value || ''
+        )
+          .replace(/\D/g, '');
+
+
+      if (
+        !/^\d{12}$/.test(
+          aadhaar
+        )
+      ) {
+
+        msg(
+          '12 digit Aadhaar Number भरें'
+        );
+
+        aadhaarInput.focus();
+
+        return;
+      }
+
+
+      fetchBtn.disabled =
+        true;
+
+      fetchBtn.textContent =
+        'Fetching PAN...';
+
+
+      const resultBox =
+        document.getElementById(
+          'panLookupResult'
+        );
+
+
+      try {
+
+        const {
+          data,
+          error
+        } =
+          await sb.functions.invoke(
+            'aadhaar-pan-lookup',
+            {
+              body: {
+                aadhaar
+              }
+            }
+          );
+
+
+        if (error) {
+          throw error;
+        }
+
+
+        if (
+          !data?.success
+        ) {
+          throw new Error(
+            data?.message ||
+            'PAN lookup failed'
+          );
+        }
+
+
+        if (resultBox) {
+
+          resultBox.style.display =
+            'block';
+
+          resultBox.innerHTML = `
+            <div
+              style="
+                font-weight:800;
+                color:#15803d;
+                margin-bottom:10px;
+              "
+            >
+              ✅ PAN Data Found
+            </div>
+
+            <div
+              style="
+                display:grid;
+                gap:8px;
+              "
+            >
+              <div>
+                <strong>PAN Number:</strong>
+                ${esc(
+                  data.data?.pan || ''
+                )}
+              </div>
+
+              <div>
+                <strong>Aadhaar:</strong>
+                ${esc(
+                  data.data?.aadhaar || ''
+                )}
+              </div>
+
+              <div>
+                <strong>Status:</strong>
+                ${esc(
+                  data.data?.details || ''
+                )}
+              </div>
+
+              ${
+                data.test_mode
+                  ? `
+                    <div
+                      style="
+                        margin-top:8px;
+                        padding:9px;
+                        border-radius:10px;
+                        background:#fff7e6;
+                        color:#8a5a00;
+                        font-size:13px;
+                      "
+                    >
+                      TEST MODE — कोई real PAN lookup या wallet debit नहीं हुआ।
+                    </div>
+                  `
+                  : ''
+              }
+            </div>
+          `;
+
+        }
+
+
+        msg(
+          'PAN data fetched successfully'
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          'PAN lookup error:',
+          error
+        );
+
+
+        if (resultBox) {
+
+          resultBox.style.display =
+            'block';
+
+          resultBox.innerHTML = `
+            <div
+              style="
+                color:#b42318;
+                font-weight:700;
+              "
+            >
+              PAN lookup failed:
+              ${esc(
+                error.message ||
+                'Unknown error'
+              )}
+            </div>
+          `;
+
+        }
+
+
+        msg(
+          error.message ||
+          'PAN lookup failed'
+        );
+
+
+      } finally {
+
+        fetchBtn.disabled =
+          false;
+
+        fetchBtn.textContent =
+          '🔎 Fetch PAN Data';
+
+      }
+
+    };
+
+}
+
+
+/* =========================================================
+   AUTO ATTACH FETCH PAN BUTTON
+========================================================= */
+
+const panLookupObserver =
+  new MutationObserver(
+    () => {
+      setupAadhaarPanLookupButton();
+    }
+  );
+
+
+panLookupObserver.observe(
+  document.body,
+  {
+    childList: true,
+    subtree: true
+  }
+);
+
+
+setTimeout(
+  setupAadhaarPanLookupButton,
+  1000
+);
