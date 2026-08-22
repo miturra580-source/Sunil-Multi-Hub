@@ -101,10 +101,23 @@ async function loadServices() {
   }
 
   const serviceCount = document.getElementById('serviceCount');
+if (serviceCount) {
+  serviceCount.textContent = services.length;
+}
 
-  if (serviceCount) {
-    serviceCount.textContent = services.length;
+const requestedService = localStorage.getItem('smh-selected-service');
+
+if (requestedService && select) {
+  const match = services.find(
+    s => s.name.trim().toLowerCase() === requestedService.trim().toLowerCase()
+  );
+
+  if (match) {
+    select.value = match.id;
+    localStorage.removeItem('smh-selected-service');
+    msg(`${match.name} selected`);
   }
+}
 }
 
 /* =========================
