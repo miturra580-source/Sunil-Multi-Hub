@@ -3,73 +3,426 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#1557d6">
   <title>SUNIL MULTI HUB — Admin</title>
+
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="phase2.css">
+
+  <style>
+    .admin-page{
+      padding-top:24px;
+    }
+
+    .dashboard-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .admin-orders-grid{
+      display:grid;
+      gap:14px;
+      margin-top:16px;
+    }
+
+    .admin-order-card{
+      border:1px solid #e5e9f0;
+      border-radius:18px;
+      padding:16px;
+      background:#fff;
+    }
+
+    .admin-order-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+    }
+
+    .admin-order-top strong{
+      display:block;
+      font-size:16px;
+    }
+
+    .admin-order-top small{
+      display:block;
+      margin-top:5px;
+      color:#667085;
+      line-height:1.5;
+    }
+
+    .admin-order-note{
+      background:#f7f9fc;
+      border-radius:12px;
+      padding:11px;
+      margin:12px 0;
+      color:#475467;
+      line-height:1.5;
+    }
+
+    .admin-order-bottom{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+
+    .admin-order-amount{
+      font-size:18px;
+      font-weight:800;
+      color:#2855cc;
+    }
+
+    .admin-modal-backdrop{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      background:rgba(8,18,38,.60);
+      z-index:9999;
+    }
+
+    .admin-modal-backdrop.show{
+      display:flex;
+    }
+
+    .admin-modal{
+      width:min(620px,100%);
+      max-height:90vh;
+      overflow:auto;
+      background:#fff;
+      border-radius:26px 26px 0 0;
+      padding:22px;
+      box-shadow:0 -20px 60px rgba(0,0,0,.22);
+    }
+
+    .admin-modal-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:14px;
+      margin-bottom:18px;
+    }
+
+    .admin-modal-head h2{
+      margin:0;
+    }
+
+    .admin-modal-close{
+      width:40px;
+      height:40px;
+      border:0;
+      border-radius:50%;
+      background:#f2f4f7;
+      font-size:22px;
+      cursor:pointer;
+    }
+
+    .admin-field{
+      display:block;
+      margin:14px 0;
+      font-weight:700;
+      font-size:13px;
+    }
+
+    .admin-field input,
+    .admin-field select,
+    .admin-field textarea{
+      width:100%;
+      margin-top:7px;
+      padding:13px;
+      border:1px solid #d8e0eb;
+      border-radius:12px;
+      font:inherit;
+      background:#fff;
+    }
+
+    .admin-field textarea{
+      min-height:100px;
+      resize:vertical;
+    }
+
+    .admin-modal-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:18px;
+    }
+
+    .admin-modal-actions button{
+      min-height:48px;
+    }
+
+    @media(max-width:760px){
+      .admin-head{
+        margin-bottom:18px;
+      }
+
+      .admin-head h1{
+        font-size:34px;
+      }
+
+      .stat-grid{
+        grid-template-columns:1fr 1fr;
+      }
+
+      .admin-card{
+        padding:16px;
+      }
+
+      .service-row{
+        grid-template-columns:1fr;
+      }
+
+      .row-actions{
+        display:flex;
+        flex-wrap:wrap;
+        gap:7px;
+      }
+
+      .admin-order-top{
+        flex-direction:column;
+      }
+
+      .admin-order-bottom{
+        align-items:flex-start;
+      }
+    }
+  </style>
 </head>
+
 <body>
+
 <header class="site-header">
   <div class="container nav">
+
     <a href="index.html" class="brand">
       <span class="brand-mark">SM</span>
-      <span><strong>SUNIL MULTI HUB</strong><small>Admin Panel</small></span>
+
+      <span>
+        <strong>SUNIL MULTI HUB</strong>
+        <small>Admin Panel</small>
+      </span>
     </a>
-    <button id="logoutBtn" class="btn secondary">Logout</button>
+
+    <button id="logoutBtn" class="btn secondary">
+      Logout
+    </button>
+
   </div>
 </header>
 
+
 <main class="admin-page">
   <div class="container">
+
     <section class="admin-head">
+
       <div>
         <span class="eyebrow">ADMIN</span>
         <h1>Admin Dashboard</h1>
         <p id="loggedIn">Checking admin access…</p>
       </div>
+
       <div class="dashboard-actions">
-        <a class="btn primary" href="tools.html">Open Tools</a>
-        <button class="btn secondary" id="refreshBtn">Refresh Data</button>
+        <a class="btn primary" href="tools.html">
+          Open Tools
+        </a>
+
+        <button class="btn secondary" id="refreshBtn">
+          Refresh Data
+        </button>
       </div>
+
     </section>
+
 
     <div class="stat-grid">
-      <article><span>Orders</span><strong id="ordersCount">0</strong></article>
-      <article><span>Services</span><strong id="servicesCount">0</strong></article>
-      <article><span>Users</span><strong id="usersCount">0</strong></article>
-      <article><span>Revenue</span><strong id="revenueCount">₹0</strong></article>
+
+      <article>
+        <span>Orders</span>
+        <strong id="ordersCount">0</strong>
+      </article>
+
+      <article>
+        <span>Services</span>
+        <strong id="servicesCount">0</strong>
+      </article>
+
+      <article>
+        <span>Users</span>
+        <strong id="usersCount">0</strong>
+      </article>
+
+      <article>
+        <span>Revenue</span>
+        <strong id="revenueCount">₹0</strong>
+      </article>
+
     </div>
 
-    <section class="admin-card">
-      <div class="card-head">
-        <div><h2>Orders</h2><p>Customer requests और status manage करें।</p></div>
-      </div>
-      <div id="ordersWrap"></div>
-    </section>
 
     <section class="admin-card">
+
       <div class="card-head">
-        <div><h2>Services</h2><p>Supabase service list manage करें।</p></div>
-        <button class="btn primary" id="addServiceBtn">+ Add Service</button>
+        <div>
+          <h2>📦 Orders</h2>
+          <p>Customer requests, payment amount और status manage करें।</p>
+        </div>
       </div>
+
+      <div id="ordersWrap" class="admin-orders-grid">
+        <p>Loading orders...</p>
+      </div>
+
+    </section>
+
+
+    <section class="admin-card">
+
+      <div class="card-head">
+
+        <div>
+          <h2>🧩 Services</h2>
+          <p>
+            Name, price, icon, category, documents और instructions manage करें।
+          </p>
+        </div>
+
+        <button class="btn primary" id="addServiceBtn">
+          + Add Service
+        </button>
+
+      </div>
+
       <div id="servicesWrap"></div>
+
     </section>
 
+
     <section class="admin-card">
-      <h2>Users</h2>
+
+      <h2>👥 Users</h2>
+
       <div id="usersWrap"></div>
+
     </section>
 
+
     <section class="admin-card">
-      <h2>API / Database Status</h2>
-      <p><span id="apiBadge" class="status pending">Checking…</span></p>
-      <small id="apiText">Connecting to Supabase…</small>
+
+      <h2>🔌 API / Database Status</h2>
+
+      <p>
+        <span id="apiBadge" class="status pending">
+          Checking…
+        </span>
+      </p>
+
+      <small id="apiText">
+        Connecting to Supabase…
+      </small>
+
     </section>
+
   </div>
 </main>
 
+
+<!-- ORDER EDIT MODAL -->
+
+<div class="admin-modal-backdrop" id="orderEditModal">
+
+  <div class="admin-modal">
+
+    <div class="admin-modal-head">
+
+      <div>
+        <span class="eyebrow">ORDER</span>
+        <h2 id="editOrderService">Service Request</h2>
+        <p id="editOrderCustomer"></p>
+      </div>
+
+      <button
+        type="button"
+        class="admin-modal-close"
+        id="closeOrderModal">
+        ×
+      </button>
+
+    </div>
+
+
+    <input type="hidden" id="editOrderId">
+
+
+    <label class="admin-field">
+      Status
+
+      <select id="editOrderStatus">
+        <option value="pending">Pending</option>
+        <option value="processing">Processing</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </label>
+
+
+    <label class="admin-field">
+      Amount ₹
+
+      <input
+        id="editOrderAmount"
+        type="number"
+        min="0"
+        step="0.01"
+        placeholder="0">
+    </label>
+
+
+    <label class="admin-field">
+      Customer Note
+
+      <textarea
+        id="editOrderNote"
+        readonly>
+      </textarea>
+    </label>
+
+
+    <div class="admin-modal-actions">
+
+      <button
+        type="button"
+        class="btn secondary"
+        id="cancelOrderEdit">
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="btn primary"
+        id="saveOrderEdit">
+        Save Changes
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
 <div class="toast" id="toast"></div>
+
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="admin.js"></script>
+
 </body>
 </html>
