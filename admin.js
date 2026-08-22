@@ -1,30 +1,52 @@
 const toast = document.getElementById('toast');
+
 let tm;
+let me = null;
+let services = [];
+let currentOrders = [];
 
-function msg(t) {
+/* =========================
+   HELPERS
+========================= */
+
+function msg(text) {
   if (!toast) return;
-  toast.textContent = t;
+
+  toast.textContent = text;
   toast.classList.add('show');
+
   clearTimeout(tm);
-  tm = setTimeout(() => toast.classList.remove('show'), 2500);
+  tm = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2500);
 }
 
-function money(v) {
-  return '₹' + Number(v || 0).toLocaleString('en-IN');
+function money(value) {
+  return '₹' + Number(value || 0).toLocaleString('en-IN');
 }
 
-function esc(s = '') {
-  return String(s).replace(/[&<>"']/g, m => ({
+function esc(value = '') {
+  return String(value).replace(/[&<>"']/g, char => ({
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
     "'": '&#39;'
-  }[m]));
+  })[char]);
+}
+
+function formatDate(value) {
+  if (!value) return '';
+
+  return new Date(value).toLocaleString('en-IN', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  });
 }
 
 function makeClient() {
   const cfg = window.SMH_CONFIG || {};
+
   const url = cfg.supabaseUrl;
   const key = cfg.supabaseAnonKey || cfg.supabaseKey;
 
@@ -41,10 +63,23 @@ function makeClient() {
 }
 
 const sb = makeClient();
-let me = null;
+
+
+/* =========================
+   BOOT
+========================= */
 
 async function boot() {
-  const { data: { session } } = await sb.auth.getSession();
+
+  const {
+    data: { session },
+    error
+  } = await sb.auth.getSession();
+
+  if (error) {
+    msg(error.message);
+    return;
+  }
 
   if (!session) {
     location.replace('auth.html');
@@ -53,7 +88,10 @@ async function boot() {
 
   me = session.user;
 
-  const { data: profile, error: pErr } = await sb
+  const {
+    data: profile,
+    error: pErr
+  } = await sb
     .from('profiles')
     .select('id,email,full_name,role')
     .eq('id', me.id)
@@ -65,40 +103,90 @@ async function boot() {
   }
 
   if (profile?.role !== 'admin') {
+
     msg('Admin access required');
-    setTimeout(() => location.replace('dashboard.html'), 900);
+
+    setTimeout(() => {
+      location.replace('dashboard.html');
+    }, 900);
+
     return;
   }
 
-  loggedIn.textContent =
-    `Logged in: ${profile.full_name || profile.email || me.email}`;
+  const loggedIn = document.getElementById('loggedIn');
+
+  if (loggedIn) {
+    loggedIn.textContent =
+      `Logged in: ${profile.full_name || profile.email || me.email}`;
+  }
 
   setApi(true, 'Connected to Supabase');
+
+  setupOrderModal();
+
   await loadAll();
 }
 
+
+/* =========================
+   API STATUS
+========================= */
+
 function setApi(ok, text) {
-  apiBadge.textContent = ok ? 'Connected' : 'Not Connected';
-  apiBadge.className = 'status ' + (ok ? 'completed' : 'pending');
-  apiText.textContent = text || '';
+
+  const badge = document.getElementById('apiBadge');
+  const apiText = document.getElementById('apiText');
+
+  if (badge) {
+    badge.textContent = ok ? 'Connected' : 'Not Connected';
+    badge.className =
+      'status ' + (ok ? 'completed' : 'pending');
+  }
+
+  if (apiText) {
+    apiText.textContent = text || '';
+  }
 }
 
+
+/* =========================
+   LOAD ALL
+========================= */
+
 async function loadAll() {
-  refreshBtn.disabled = true;
+
+  const refreshBtn =
+    document.getElementById('refreshBtn');
+
+  if (refreshBtn) {
+    refreshBtn.disabled = true;
+  }
 
   try {
+
     await Promise.all([
       loadOrders(),
       loadServices(),
       loadUsers()
     ]);
 
-    setApi(true, 'Connected to Supabase • Live data');
+    setApi(
+      true,
+      'Connected to Supabase • Live data'
+    );
+
   } catch (e) {
+
+    console.error(e);
+
     setApi(false, e.message);
     msg(e.message);
+
   } finally {
-    refreshBtn.disabled = false;
+
+    if (refreshBtn) {
+      refreshBtn.disabled = false;
+    }
   }
 }
 
@@ -108,7 +196,11 @@ async function loadAll() {
 ========================= */
 
 async function loadOrders() {
-  const { data, error } = await sb
+
+  const {
+    data,
+    error
+  } = await sb
     .from('orders')
     .select(`
       id,
@@ -119,96 +211,366 @@ async function loadOrders() {
       amount,
       created_at,
       updated_at,
-      profiles(full_name,email,phone),
-      services(name)
+      profiles (
+        full_name,
+        email,
+        phone
+      ),
+      services (
+        name
+      )
     `)
-    .order('created_at', { ascending: false });
+    .order('created_at', {
+      ascending: false
+    });
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
-  const rows = data || [];
+  currentOrders = data || [];
 
-  ordersCount.textContent = rows.length;
+  const ordersCount =
+    document.getElementById('ordersCount');
 
-  revenueCount.textContent = money(
-    rows
-      .filter(x => x.status === 'completed')
-      .reduce((a, b) => a + Number(b.amount || 0), 0)
-  );
+  const revenueCount =
+    document.getElementById('revenueCount');
 
-  ordersWrap.innerHTML = rows.length
-    ? rows.map(o => `
-      <div class="order-row" data-order="${o.id}">
-        <div class="order-main">
-          <strong>${esc(o.services?.name || 'Service')}</strong>
+  const ordersWrap =
+    document.getElementById('ordersWrap');
 
-          <small>
-            ${esc(o.profiles?.full_name || o.profiles?.email || 'Customer')}
-            •
-            ${new Date(o.created_at).toLocaleString()}
-          </small>
+  if (ordersCount) {
+    ordersCount.textContent =
+      currentOrders.length;
+  }
 
-          ${o.note ? `<p>${esc(o.note)}</p>` : ''}
-        </div>
+  if (revenueCount) {
 
-        <div class="order-controls">
-          <select class="order-status">
-            ${
-              ['pending', 'processing', 'completed', 'cancelled']
-                .map(s =>
-                  `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>`
-                )
-                .join('')
-            }
-          </select>
+    const revenue = currentOrders
+      .filter(order =>
+        order.status === 'completed'
+      )
+      .reduce(
+        (total, order) =>
+          total + Number(order.amount || 0),
+        0
+      );
 
-          <input
-            class="order-amount"
-            type="number"
-            min="0"
-            step="0.01"
-            value="${Number(o.amount || 0)}"
-            placeholder="Amount"
-          >
+    revenueCount.textContent =
+      money(revenue);
+  }
 
-          <button class="btn secondary save-order">
-            Save
-          </button>
-        </div>
-      </div>
-    `).join('')
-    : '<p>No orders yet.</p>';
+  if (!ordersWrap) return;
 
-  document.querySelectorAll('.save-order').forEach(btn => {
-    btn.onclick = async () => {
-      const row = btn.closest('[data-order]');
-      const id = row.dataset.order;
+  if (!currentOrders.length) {
 
-      const status = row.querySelector('.order-status').value;
-      const amount = Number(row.querySelector('.order-amount').value || 0);
+    ordersWrap.innerHTML =
+      '<p>No orders yet.</p>';
 
-      btn.disabled = true;
+    return;
+  }
 
-      const { error } = await sb
-        .from('orders')
-        .update({
-          status,
-          amount,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id);
+  ordersWrap.innerHTML =
+    currentOrders.map(order => {
 
-      btn.disabled = false;
+      const customer =
+        order.profiles?.full_name ||
+        order.profiles?.email ||
+        'Customer';
 
-      if (error) {
-        msg(error.message);
-        return;
+      const service =
+        order.services?.name ||
+        'Service Request';
+
+      const status =
+        order.status || 'pending';
+
+      return `
+        <article class="admin-order-card">
+
+          <div class="admin-order-top">
+
+            <div>
+              <strong>
+                ${esc(service)}
+              </strong>
+
+              <small>
+                ${esc(customer)}
+                ${order.profiles?.phone
+                  ? ' • ' + esc(order.profiles.phone)
+                  : ''}
+              </small>
+
+              <small>
+                ${esc(formatDate(order.created_at))}
+              </small>
+            </div>
+
+            <span class="status ${esc(status)}">
+              ${esc(status)}
+            </span>
+
+          </div>
+
+          ${
+            order.note
+              ? `
+                <div class="admin-order-note">
+                  ${esc(order.note)}
+                </div>
+              `
+              : ''
+          }
+
+          <div class="admin-order-bottom">
+
+            <div>
+              <small>Amount</small>
+
+              <div class="admin-order-amount">
+                ${money(order.amount)}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn primary edit-order-btn"
+              data-id="${esc(order.id)}">
+              Edit Order
+            </button>
+
+          </div>
+
+        </article>
+      `;
+
+    }).join('');
+
+  document
+    .querySelectorAll('.edit-order-btn')
+    .forEach(button => {
+
+      button.onclick = () => {
+        openOrderEditor(
+          button.dataset.id
+        );
+      };
+
+    });
+}
+
+
+/* =========================
+   ORDER MODAL
+========================= */
+
+function setupOrderModal() {
+
+  const modal =
+    document.getElementById('orderEditModal');
+
+  const closeBtn =
+    document.getElementById('closeOrderModal');
+
+  const cancelBtn =
+    document.getElementById('cancelOrderEdit');
+
+  const saveBtn =
+    document.getElementById('saveOrderEdit');
+
+  if (closeBtn) {
+    closeBtn.onclick = closeOrderEditor;
+  }
+
+  if (cancelBtn) {
+    cancelBtn.onclick = closeOrderEditor;
+  }
+
+  if (saveBtn) {
+    saveBtn.onclick = saveOrderChanges;
+  }
+
+  if (modal) {
+
+    modal.addEventListener(
+      'click',
+      event => {
+
+        if (event.target === modal) {
+          closeOrderEditor();
+        }
+
       }
+    );
+  }
+}
 
-      msg('Order updated');
-      await loadOrders();
-    };
-  });
+function openOrderEditor(id) {
+
+  const order =
+    currentOrders.find(
+      item =>
+        String(item.id) === String(id)
+    );
+
+  if (!order) {
+    msg('Order not found');
+    return;
+  }
+
+  const modal =
+    document.getElementById('orderEditModal');
+
+  const service =
+    document.getElementById('editOrderService');
+
+  const customer =
+    document.getElementById('editOrderCustomer');
+
+  const idInput =
+    document.getElementById('editOrderId');
+
+  const status =
+    document.getElementById('editOrderStatus');
+
+  const amount =
+    document.getElementById('editOrderAmount');
+
+  const note =
+    document.getElementById('editOrderNote');
+
+  if (service) {
+    service.textContent =
+      order.services?.name ||
+      'Service Request';
+  }
+
+  if (customer) {
+
+    const customerName =
+      order.profiles?.full_name ||
+      order.profiles?.email ||
+      'Customer';
+
+    customer.textContent =
+      customerName +
+      (order.profiles?.phone
+        ? ' • ' + order.profiles.phone
+        : '');
+  }
+
+  if (idInput) {
+    idInput.value = order.id;
+  }
+
+  if (status) {
+    status.value =
+      order.status || 'pending';
+  }
+
+  if (amount) {
+    amount.value =
+      Number(order.amount || 0);
+  }
+
+  if (note) {
+    note.value =
+      order.note || '';
+  }
+
+  if (modal) {
+    modal.classList.add('show');
+  }
+
+  document.body.style.overflow = 'hidden';
+}
+
+function closeOrderEditor() {
+
+  const modal =
+    document.getElementById('orderEditModal');
+
+  if (modal) {
+    modal.classList.remove('show');
+  }
+
+  document.body.style.overflow = '';
+}
+
+async function saveOrderChanges() {
+
+  const id =
+    document.getElementById(
+      'editOrderId'
+    )?.value;
+
+  const status =
+    document.getElementById(
+      'editOrderStatus'
+    )?.value;
+
+  const amount =
+    Number(
+      document.getElementById(
+        'editOrderAmount'
+      )?.value || 0
+    );
+
+  const saveBtn =
+    document.getElementById(
+      'saveOrderEdit'
+    );
+
+  if (!id) {
+    msg('Order ID missing');
+    return;
+  }
+
+  if (saveBtn) {
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+  }
+
+  try {
+
+    const {
+      error
+    } = await sb
+      .from('orders')
+      .update({
+        status,
+        amount,
+        updated_at:
+          new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (error) {
+      throw error;
+    }
+
+    closeOrderEditor();
+
+    msg('Order updated successfully');
+
+    await loadOrders();
+
+  } catch (error) {
+
+    console.error(error);
+    msg(error.message);
+
+  } finally {
+
+    if (saveBtn) {
+
+      saveBtn.disabled = false;
+      saveBtn.textContent =
+        'Save Changes';
+    }
+  }
 }
 
 
@@ -217,7 +579,11 @@ async function loadOrders() {
 ========================= */
 
 async function loadServices() {
-  const { data, error } = await sb
+
+  const {
+    data,
+    error
+  } = await sb
     .from('services')
     .select(`
       id,
@@ -225,114 +591,202 @@ async function loadServices() {
       description,
       price,
       active,
-      sort_order,
-      category,
-      icon,
-      required_documents,
-      instructions
+      sort_order
     `)
-    .order('sort_order', { ascending: true });
+    .order('sort_order', {
+      ascending: true
+    });
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
-  const rows = data || [];
+  services = data || [];
 
-  servicesCount.textContent = rows.length;
+  const servicesCount =
+    document.getElementById(
+      'servicesCount'
+    );
 
-  servicesWrap.innerHTML = rows.length
-    ? rows.map(s => `
-      <div class="service-row" data-service="${s.id}">
+  const servicesWrap =
+    document.getElementById(
+      'servicesWrap'
+    );
+
+  if (servicesCount) {
+    servicesCount.textContent =
+      services.length;
+  }
+
+  if (!servicesWrap) return;
+
+  if (!services.length) {
+
+    servicesWrap.innerHTML =
+      '<p>No services.</p>';
+
+    return;
+  }
+
+  servicesWrap.innerHTML =
+    services.map(service => `
+
+      <div
+        class="service-row"
+        data-service="${esc(service.id)}">
+
         <div>
+
           <strong>
-            ${esc(s.icon || '🧩')}
-            ${esc(s.name)}
+            ${esc(service.name)}
           </strong>
 
           <small>
-            ${esc(s.category || 'Other')}
-            •
-            ${s.active ? 'Active' : 'Inactive'}
-            •
-            ${money(s.price)}
-            •
-            Sort ${Number(s.sort_order || 0)}
+            ${service.active
+              ? 'Active'
+              : 'Inactive'}
+            • ${money(service.price)}
+            • Sort ${Number(
+              service.sort_order || 0
+            )}
           </small>
 
           ${
-            s.description
-              ? `<small>${esc(s.description)}</small>`
+            service.description
+              ? `
+                <p>
+                  ${esc(service.description)}
+                </p>
+              `
               : ''
           }
+
         </div>
 
         <div class="row-actions">
-          <button class="btn secondary edit-service">
+
+          <button
+            class="btn secondary edit-service">
             Edit
           </button>
 
-          <button class="btn secondary toggle-service">
-            ${s.active ? 'Disable' : 'Enable'}
+          <button
+            class="btn secondary toggle-service">
+            ${service.active
+              ? 'Disable'
+              : 'Enable'}
           </button>
 
-          <button class="btn secondary delete-service">
+          <button
+            class="btn secondary delete-service">
             Delete
           </button>
+
         </div>
+
       </div>
-    `).join('')
-    : '<p>No services.</p>';
 
-  document.querySelectorAll('.edit-service').forEach(btn => {
-    btn.onclick = () => {
-      const id = btn.closest('[data-service]').dataset.service;
-      editService(id, rows);
-    };
-  });
+    `).join('');
 
-  document.querySelectorAll('.toggle-service').forEach(btn => {
-    btn.onclick = async () => {
-      const id = btn.closest('[data-service]').dataset.service;
-      const service = rows.find(x => x.id === id);
 
-      if (!service) return;
+  document
+    .querySelectorAll('.edit-service')
+    .forEach(button => {
 
-      const { error } = await sb
-        .from('services')
-        .update({
-          active: !service.active
-        })
-        .eq('id', id);
+      button.onclick = () => {
 
-      if (error) {
-        msg(error.message);
-        return;
-      }
+        const id =
+          button
+            .closest('[data-service]')
+            .dataset.service;
 
-      msg('Service updated');
-      await loadServices();
-    };
-  });
+        editService(id);
+      };
 
-  document.querySelectorAll('.delete-service').forEach(btn => {
-    btn.onclick = async () => {
-      const id = btn.closest('[data-service]').dataset.service;
+    });
 
-      if (!confirm('Delete this service?')) return;
 
-      const { error } = await sb
-        .from('services')
-        .delete()
-        .eq('id', id);
+  document
+    .querySelectorAll('.toggle-service')
+    .forEach(button => {
 
-      if (error) {
-        msg(error.message);
-        return;
-      }
+      button.onclick =
+        async () => {
 
-      msg('Service deleted');
-      await loadServices();
-    };
-  });
+          const id =
+            button
+              .closest('[data-service]')
+              .dataset.service;
+
+          const service =
+            services.find(
+              item =>
+                String(item.id) ===
+                String(id)
+            );
+
+          if (!service) return;
+
+          const {
+            error
+          } = await sb
+            .from('services')
+            .update({
+              active: !service.active
+            })
+            .eq('id', id);
+
+          if (error) {
+            msg(error.message);
+            return;
+          }
+
+          msg('Service updated');
+
+          await loadServices();
+        };
+
+    });
+
+
+  document
+    .querySelectorAll('.delete-service')
+    .forEach(button => {
+
+      button.onclick =
+        async () => {
+
+          const id =
+            button
+              .closest('[data-service]')
+              .dataset.service;
+
+          if (
+            !confirm(
+              'Delete this service?'
+            )
+          ) {
+            return;
+          }
+
+          const {
+            error
+          } = await sb
+            .from('services')
+            .delete()
+            .eq('id', id);
+
+          if (error) {
+            msg(error.message);
+            return;
+          }
+
+          msg('Service deleted');
+
+          await loadServices();
+        };
+
+    });
 }
 
 
@@ -340,64 +794,53 @@ async function loadServices() {
    EDIT SERVICE
 ========================= */
 
-async function editService(id, rows) {
-  const s = rows.find(x => x.id === id);
+async function editService(id) {
 
-  if (!s) return;
+  const service =
+    services.find(
+      item =>
+        String(item.id) ===
+        String(id)
+    );
 
-  const name = prompt('Service name', s.name || '');
+  if (!service) {
+    msg('Service not found');
+    return;
+  }
+
+  const name =
+    prompt(
+      'Service name',
+      service.name
+    );
+
   if (name === null) return;
 
-  const price = prompt('Price', String(s.price || 0));
+  const price =
+    prompt(
+      'Price',
+      String(service.price || 0)
+    );
+
   if (price === null) return;
 
-  const category = prompt(
-    'Category: Popular / Government / Print / Other',
-    s.category || 'Other'
-  );
-  if (category === null) return;
+  const description =
+    prompt(
+      'Description',
+      service.description || ''
+    );
 
-  const icon = prompt(
-    'Icon / Emoji',
-    s.icon || '🧩'
-  );
-  if (icon === null) return;
-
-  const sortOrder = prompt(
-    'Sort order',
-    String(s.sort_order || 0)
-  );
-  if (sortOrder === null) return;
-
-  const description = prompt(
-    'Short description',
-    s.description || ''
-  );
   if (description === null) return;
 
-  const requiredDocuments = prompt(
-    'Required documents — हर document नई line में लिखें',
-    s.required_documents || ''
-  );
-  if (requiredDocuments === null) return;
-
-  const instructions = prompt(
-    'Instructions / Important information',
-    s.instructions || ''
-  );
-  if (instructions === null) return;
-
-  const { error } = await sb
+  const {
+    error
+  } = await sb
     .from('services')
     .update({
       name: name.trim(),
       price: Number(price || 0),
-      category: category.trim() || 'Other',
-      icon: icon.trim() || '🧩',
-      sort_order: Number(sortOrder || 0),
-      description: description.trim(),
-      required_documents: requiredDocuments.trim(),
-      instructions: instructions.trim()
+      description:
+        description.trim()
     })
     .eq('id', id);
 
@@ -407,6 +850,7 @@ async function editService(id, rows) {
   }
 
   msg('Service saved');
+
   await loadServices();
 }
 
@@ -415,71 +859,81 @@ async function editService(id, rows) {
    ADD SERVICE
 ========================= */
 
-addServiceBtn.onclick = async () => {
-  const name = prompt('New service name');
-  if (!name?.trim()) return;
-
-  const price = prompt('Price', '0');
-  if (price === null) return;
-
-  const category = prompt(
-    'Category: Popular / Government / Print / Other',
-    'Other'
+const addServiceBtn =
+  document.getElementById(
+    'addServiceBtn'
   );
-  if (category === null) return;
 
-  const icon = prompt(
-    'Icon / Emoji',
-    '🧩'
-  );
-  if (icon === null) return;
+if (addServiceBtn) {
 
-  const description = prompt(
-    'Short description',
-    ''
-  ) ?? '';
+  addServiceBtn.onclick =
+    async () => {
 
-  const requiredDocuments = prompt(
-    'Required documents — हर document नई line में लिखें',
-    ''
-  ) ?? '';
+      const name =
+        prompt(
+          'New service name'
+        );
 
-  const instructions = prompt(
-    'Instructions / Important information',
-    'आवेदन से पहले सभी जानकारी और दस्तावेज़ जाँच लें।'
-  ) ?? '';
+      if (!name?.trim()) return;
 
-  const { data: maxRows } = await sb
-    .from('services')
-    .select('sort_order')
-    .order('sort_order', { ascending: false })
-    .limit(1);
+      const price =
+        prompt(
+          'Price',
+          '0'
+        );
 
-  const sort_order =
-    (maxRows?.[0]?.sort_order || 0) + 10;
+      if (price === null) return;
 
-  const { error } = await sb
-    .from('services')
-    .insert({
-      name: name.trim(),
-      price: Number(price || 0),
-      description: description.trim(),
-      active: true,
-      sort_order,
-      category: category.trim() || 'Other',
-      icon: icon.trim() || '🧩',
-      required_documents: requiredDocuments.trim(),
-      instructions: instructions.trim()
-    });
+      const description =
+        prompt(
+          'Description',
+          ''
+        ) ?? '';
 
-  if (error) {
-    msg(error.message);
-    return;
-  }
+      const {
+        data: maxRows,
+        error: maxError
+      } = await sb
+        .from('services')
+        .select('sort_order')
+        .order('sort_order', {
+          ascending: false
+        })
+        .limit(1);
 
-  msg('Service added');
-  await loadServices();
-};
+      if (maxError) {
+        msg(maxError.message);
+        return;
+      }
+
+      const sort_order =
+        Number(
+          maxRows?.[0]?.sort_order || 0
+        ) + 10;
+
+      const {
+        error
+      } = await sb
+        .from('services')
+        .insert({
+          name: name.trim(),
+          price: Number(price || 0),
+          description:
+            description.trim(),
+          active: true,
+          sort_order
+        });
+
+      if (error) {
+        msg(error.message);
+        return;
+      }
+
+      msg('Service added');
+
+      await loadServices();
+    };
+}
 
 
 /* =========================
@@ -487,7 +941,11 @@ addServiceBtn.onclick = async () => {
 ========================= */
 
 async function loadUsers() {
-  const { data, error } = await sb
+
+  const {
+    data,
+    error
+  } = await sb
     .from('profiles')
     .select(`
       id,
@@ -497,50 +955,122 @@ async function loadUsers() {
       role,
       created_at
     `)
-    .order('created_at', { ascending: false });
+    .order('created_at', {
+      ascending: false
+    });
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
   const rows = data || [];
 
-  usersCount.textContent = rows.length;
+  const usersCount =
+    document.getElementById(
+      'usersCount'
+    );
 
-  usersWrap.innerHTML = rows.length
-    ? rows.map(u => `
+  const usersWrap =
+    document.getElementById(
+      'usersWrap'
+    );
+
+  if (usersCount) {
+    usersCount.textContent =
+      rows.length;
+  }
+
+  if (!usersWrap) return;
+
+  if (!rows.length) {
+
+    usersWrap.innerHTML =
+      '<p>No users.</p>';
+
+    return;
+  }
+
+  usersWrap.innerHTML =
+    rows.map(user => `
+
       <div class="service-row">
+
         <div>
+
           <strong>
-            ${esc(u.full_name || u.email || 'User')}
+            ${esc(
+              user.full_name ||
+              user.email ||
+              'User'
+            )}
           </strong>
 
           <small>
-            ${esc(u.email || '')}
-            ${u.phone ? ' • ' + esc(u.phone) : ''}
+            ${esc(user.email || '')}
+
+            ${
+              user.phone
+                ? ' • ' +
+                  esc(user.phone)
+                : ''
+            }
           </small>
+
         </div>
 
-        <span class="status ${
-          u.role === 'admin'
-            ? 'completed'
-            : 'pending'
-        }">
-          ${esc(u.role || 'customer')}
+        <span
+          class="status ${
+            user.role === 'admin'
+              ? 'completed'
+              : 'pending'
+          }">
+
+          ${esc(
+            user.role || 'customer'
+          )}
+
         </span>
+
       </div>
-    `).join('')
-    : '<p>No users.</p>';
+
+    `).join('');
 }
 
 
 /* =========================
-   ACTIONS
+   BUTTONS
 ========================= */
 
-refreshBtn.onclick = loadAll;
+const refreshBtn =
+  document.getElementById(
+    'refreshBtn'
+  );
 
-logoutBtn.onclick = async () => {
-  await sb.auth.signOut();
-  location.href = 'auth.html';
-};
+if (refreshBtn) {
+  refreshBtn.onclick = loadAll;
+}
+
+
+const logoutBtn =
+  document.getElementById(
+    'logoutBtn'
+  );
+
+if (logoutBtn) {
+
+  logoutBtn.onclick =
+    async () => {
+
+      await sb.auth.signOut();
+
+      location.href =
+        'auth.html';
+    };
+}
+
+
+/* =========================
+   START
+========================= */
 
 boot();
