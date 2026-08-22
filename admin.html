@@ -11,9 +11,7 @@
   <link rel="stylesheet" href="phase2.css">
 
   <style>
-    .admin-page{
-      padding-top:24px;
-    }
+    .admin-page{padding-top:24px}
 
     .dashboard-actions,
     .row-actions{
@@ -22,39 +20,45 @@
       flex-wrap:wrap;
     }
 
-    .admin-orders-grid{
+    .admin-orders-grid,
+    .admin-applications-grid{
       display:grid;
       gap:14px;
       margin-top:16px;
     }
 
-    .admin-order-card{
+    .admin-order-card,
+    .admin-application-card{
       border:1px solid #e5e9f0;
       border-radius:18px;
       padding:16px;
       background:#fff;
     }
 
-    .admin-order-top{
+    .admin-order-top,
+    .admin-application-top{
       display:flex;
       justify-content:space-between;
       align-items:flex-start;
       gap:12px;
     }
 
-    .admin-order-top strong{
+    .admin-order-top strong,
+    .admin-application-top strong{
       display:block;
       font-size:16px;
     }
 
-    .admin-order-top small{
+    .admin-order-top small,
+    .admin-application-top small{
       display:block;
       margin-top:5px;
       color:#667085;
       line-height:1.5;
     }
 
-    .admin-order-note{
+    .admin-order-note,
+    .admin-application-note{
       background:#f7f9fc;
       border-radius:12px;
       padding:11px;
@@ -63,7 +67,8 @@
       line-height:1.5;
     }
 
-    .admin-order-bottom{
+    .admin-order-bottom,
+    .admin-application-bottom{
       display:flex;
       align-items:center;
       justify-content:space-between;
@@ -72,7 +77,8 @@
       margin-top:12px;
     }
 
-    .admin-order-amount{
+    .admin-order-amount,
+    .admin-application-amount{
       font-size:18px;
       font-weight:800;
       color:#2855cc;
@@ -84,10 +90,6 @@
       margin-top:5px;
       line-height:1.5;
     }
-
-    /* =========================
-       MODALS
-    ========================= */
 
     .admin-modal-backdrop{
       position:fixed;
@@ -104,8 +106,8 @@
     }
 
     .admin-modal{
-      width:min(650px,100%);
-      max-height:92vh;
+      width:min(720px,100%);
+      max-height:94vh;
       overflow:auto;
       background:#fff;
       border-radius:26px 26px 0 0;
@@ -184,62 +186,103 @@
       min-height:48px;
     }
 
+    .application-detail-block{
+      border:1px solid #e4e9f1;
+      border-radius:16px;
+      padding:16px;
+      margin:14px 0;
+    }
+
+    .application-detail-block h3{
+      margin:0 0 12px;
+    }
+
+    .application-field-row{
+      display:grid;
+      grid-template-columns:180px 1fr;
+      gap:12px;
+      padding:8px 0;
+      border-bottom:1px solid #eef1f5;
+    }
+
+    .application-field-row:last-child{
+      border-bottom:0;
+    }
+
+    .application-field-row span:first-child{
+      color:#667085;
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .document-row,
+    .output-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      padding:10px 0;
+      border-bottom:1px solid #eef1f5;
+    }
+
+    .document-row:last-child,
+    .output-row:last-child{
+      border-bottom:0;
+    }
+
+    .verify-badge{
+      display:inline-block;
+      padding:7px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      background:#f2f4f7;
+    }
+
+    .verify-badge.matched{
+      background:#ecfdf3;
+      color:#067647;
+    }
+
+    .verify-badge.mismatch,
+    .verify-badge.failed{
+      background:#fef3f2;
+      color:#b42318;
+    }
+
+    .verify-badge.pending,
+    .verify-badge.not_checked,
+    .verify-badge.unavailable{
+      background:#fff7e8;
+      color:#b54708;
+    }
+
     @media(max-width:760px){
-
-      .admin-head{
-        margin-bottom:18px;
-      }
-
-      .admin-head h1{
-        font-size:34px;
-      }
-
-      .stat-grid{
-        grid-template-columns:1fr 1fr;
-      }
-
-      .admin-card{
-        padding:16px;
-      }
-
-      .service-row{
-        grid-template-columns:1fr;
-      }
-
-      .admin-order-top{
-        flex-direction:column;
-      }
-
-      .admin-order-bottom{
-        align-items:flex-start;
-      }
-
-      .admin-form-grid{
-        grid-template-columns:1fr;
-      }
+      .admin-head{margin-bottom:18px}
+      .admin-head h1{font-size:34px}
+      .stat-grid{grid-template-columns:1fr 1fr}
+      .admin-card{padding:16px}
+      .service-row{grid-template-columns:1fr}
+      .admin-order-top,
+      .admin-application-top{flex-direction:column}
+      .admin-form-grid{grid-template-columns:1fr}
+      .application-field-row{grid-template-columns:1fr}
     }
   </style>
 </head>
 
 <body>
 
-
-<!-- =========================
-     HEADER
-========================= -->
-
 <header class="site-header">
   <div class="container nav">
 
     <a href="index.html" class="brand">
-
       <span class="brand-mark">SM</span>
 
       <span>
         <strong>SUNIL MULTI HUB</strong>
         <small>Admin Panel</small>
       </span>
-
     </a>
 
     <button
@@ -251,34 +294,18 @@
   </div>
 </header>
 
-
-<!-- =========================
-     MAIN
-========================= -->
-
 <main class="admin-page">
-
   <div class="container">
 
     <section class="admin-head">
-
       <div>
-
         <span class="eyebrow">ADMIN</span>
-
         <h1>Admin Dashboard</h1>
-
-        <p id="loggedIn">
-          Checking admin access…
-        </p>
-
+        <p id="loggedIn">Checking admin access…</p>
       </div>
 
       <div class="dashboard-actions">
-
-        <a
-          class="btn primary"
-          href="tools.html">
+        <a class="btn primary" href="tools.html">
           Open Tools
         </a>
 
@@ -287,15 +314,15 @@
           id="refreshBtn">
           Refresh Data
         </button>
-
       </div>
-
     </section>
 
-
-    <!-- STATS -->
-
     <div class="stat-grid">
+
+      <article>
+        <span>Applications</span>
+        <strong id="applicationsCount">0</strong>
+      </article>
 
       <article>
         <span>Orders</span>
@@ -319,35 +346,47 @@
 
     </div>
 
-
-    <!-- ORDERS -->
+    <!-- NEW APPLICATIONS -->
 
     <section class="admin-card">
 
       <div class="card-head">
-
         <div>
-
-          <h2>📦 Orders</h2>
-
+          <h2>📝 Applications</h2>
           <p>
-            Customer requests, payment amount और status manage करें।
+            Beneficiary details, supporting documents, status और receipt manage करें।
           </p>
-
         </div>
+      </div>
 
+      <div
+        id="applicationsWrap"
+        class="admin-applications-grid">
+        <p>Loading applications...</p>
+      </div>
+
+    </section>
+
+    <!-- LEGACY ORDERS -->
+
+    <section class="admin-card">
+
+      <div class="card-head">
+        <div>
+          <h2>📦 Legacy Orders</h2>
+          <p>
+            पुराने customer requests और status manage करें।
+          </p>
+        </div>
       </div>
 
       <div
         id="ordersWrap"
         class="admin-orders-grid">
-
         <p>Loading orders...</p>
-
       </div>
 
     </section>
-
 
     <!-- SERVICES -->
 
@@ -356,13 +395,10 @@
       <div class="card-head">
 
         <div>
-
           <h2>🧩 Services</h2>
-
           <p>
             Name, price, icon, category, documents और instructions manage करें।
           </p>
-
         </div>
 
         <button
@@ -378,7 +414,6 @@
 
     </section>
 
-
     <!-- USERS -->
 
     <section class="admin-card">
@@ -389,23 +424,18 @@
 
     </section>
 
-
-    <!-- API -->
+    <!-- API STATUS -->
 
     <section class="admin-card">
 
       <h2>🔌 API / Database Status</h2>
 
       <p>
-
         <span
           id="apiBadge"
           class="status pending">
-
           Checking…
-
         </span>
-
       </p>
 
       <small id="apiText">
@@ -414,10 +444,226 @@
 
     </section>
 
+  </div>
+</main>
+
+
+<!-- =========================================================
+     APPLICATION VIEWER MODAL
+========================================================= -->
+
+<div
+  class="admin-modal-backdrop"
+  id="applicationViewModal">
+
+  <div class="admin-modal">
+
+    <div class="admin-modal-head">
+
+      <div>
+        <span class="eyebrow">APPLICATION</span>
+
+        <h2 id="viewApplicationService">
+          Application
+        </h2>
+
+        <p id="viewApplicationMeta"></p>
+      </div>
+
+      <button
+        type="button"
+        class="admin-modal-close"
+        id="closeApplicationModal">
+        ×
+      </button>
+
+    </div>
+
+    <input
+      type="hidden"
+      id="viewApplicationId">
+
+    <div class="application-detail-block">
+
+      <h3>👤 Beneficiary Details</h3>
+
+      <div id="viewApplicationFields">
+        <p>Loading...</p>
+      </div>
+
+    </div>
+
+    <div class="application-detail-block">
+
+      <h3>🔐 Aadhaar Verification</h3>
+
+      <p>
+        <span
+          id="viewAadhaarStatus"
+          class="verify-badge not_checked">
+          Not Checked
+        </span>
+      </p>
+
+      <div id="viewAadhaarDetails"></div>
+
+    </div>
+
+    <div class="application-detail-block">
+
+      <h3>📎 Supporting Documents</h3>
+
+      <div id="viewApplicationDocuments">
+        <p>No documents.</p>
+      </div>
+
+    </div>
+
+    <div class="application-detail-block">
+
+      <h3>⚙ Processing</h3>
+
+      <div class="admin-form-grid">
+
+        <label class="admin-field">
+          Status
+
+          <select id="viewApplicationStatus">
+
+            <option value="pending">
+              Pending
+            </option>
+
+            <option value="processing">
+              Processing
+            </option>
+
+            <option value="submitted">
+              Submitted to Portal
+            </option>
+
+            <option value="completed">
+              Completed
+            </option>
+
+            <option value="rejected">
+              Rejected
+            </option>
+
+            <option value="cancelled">
+              Cancelled
+            </option>
+
+          </select>
+        </label>
+
+        <label class="admin-field">
+          Amount ₹
+
+          <input
+            id="viewApplicationAmount"
+            type="number"
+            min="0"
+            step="0.01">
+        </label>
+
+      </div>
+
+      <label class="admin-field">
+        External / Portal Reference No.
+
+        <input
+          id="viewApplicationReference"
+          type="text"
+          placeholder="Application / acknowledgement number">
+      </label>
+
+      <label class="admin-field">
+        Admin Note
+
+        <textarea
+          id="viewApplicationAdminNote"
+          placeholder="Internal note / customer update"></textarea>
+      </label>
+
+      <button
+        type="button"
+        class="btn primary"
+        id="saveApplicationChanges"
+        style="width:100%;min-height:48px">
+        Save Application
+      </button>
+
+    </div>
+
+    <div class="application-detail-block">
+
+      <h3>📥 Receipt / Output</h3>
+
+      <label class="admin-field">
+        Output Type
+
+        <select id="applicationOutputType">
+          <option value="receipt">Receipt</option>
+          <option value="acknowledgement">Acknowledgement</option>
+          <option value="certificate">Certificate</option>
+          <option value="final_document">Final Document</option>
+          <option value="other">Other</option>
+        </select>
+      </label>
+
+      <label class="admin-field">
+        Title
+
+        <input
+          id="applicationOutputTitle"
+          type="text"
+          placeholder="PAN acknowledgement / receipt">
+      </label>
+
+      <label class="admin-field">
+        Reference No.
+
+        <input
+          id="applicationOutputReference"
+          type="text">
+      </label>
+
+      <label class="admin-field">
+        Upload File
+
+        <input
+          id="applicationOutputFile"
+          type="file"
+          accept=".pdf,.jpg,.jpeg,.png">
+      </label>
+
+      <label class="admin-field">
+        OR External URL
+
+        <input
+          id="applicationOutputUrl"
+          type="url"
+          placeholder="https://...">
+      </label>
+
+      <button
+        type="button"
+        class="btn primary"
+        id="uploadApplicationOutput"
+        style="width:100%;min-height:48px">
+        Add Receipt / Output
+      </button>
+
+      <div
+        id="applicationOutputsList"
+        style="margin-top:15px">
+      </div>
+
+    </div>
 
   </div>
-
-</main>
+</div>
 
 
 <!-- =========================================================
@@ -433,17 +679,9 @@
     <div class="admin-modal-head">
 
       <div>
-
-        <span class="eyebrow">
-          ORDER
-        </span>
-
-        <h2 id="editOrderService">
-          Service Request
-        </h2>
-
+        <span class="eyebrow">ORDER</span>
+        <h2 id="editOrderService">Service Request</h2>
         <p id="editOrderCustomer"></p>
-
       </div>
 
       <button
@@ -455,41 +693,22 @@
 
     </div>
 
-
     <input
       type="hidden"
       id="editOrderId">
 
-
     <label class="admin-field">
-
       Status
 
       <select id="editOrderStatus">
-
-        <option value="pending">
-          Pending
-        </option>
-
-        <option value="processing">
-          Processing
-        </option>
-
-        <option value="completed">
-          Completed
-        </option>
-
-        <option value="cancelled">
-          Cancelled
-        </option>
-
+        <option value="pending">Pending</option>
+        <option value="processing">Processing</option>
+        <option value="completed">Completed</option>
+        <option value="cancelled">Cancelled</option>
       </select>
-
     </label>
 
-
     <label class="admin-field">
-
       Amount ₹
 
       <input
@@ -498,20 +717,15 @@
         min="0"
         step="0.01"
         placeholder="0">
-
     </label>
 
-
     <label class="admin-field">
-
       Customer Note
 
       <textarea
         id="editOrderNote"
         readonly></textarea>
-
     </label>
-
 
     <div class="admin-modal-actions">
 
@@ -519,25 +733,19 @@
         type="button"
         class="btn secondary"
         id="cancelOrderEdit">
-
         Cancel
-
       </button>
-
 
       <button
         type="button"
         class="btn primary"
         id="saveOrderEdit">
-
         Save Changes
-
       </button>
 
     </div>
 
   </div>
-
 </div>
 
 
@@ -554,19 +762,12 @@
     <div class="admin-modal-head">
 
       <div>
-
-        <span class="eyebrow">
-          SERVICE
-        </span>
-
-        <h2 id="serviceModalHeading">
-          Edit Service
-        </h2>
+        <span class="eyebrow">SERVICE</span>
+        <h2 id="serviceModalHeading">Edit Service</h2>
 
         <p>
           Customer Portal की पूरी service details manage करें।
         </p>
-
       </div>
 
       <button
@@ -578,202 +779,132 @@
 
     </div>
 
-
     <input
       type="hidden"
       id="editServiceId">
 
-
     <label class="admin-field">
-
       Service Name
 
       <input
         id="editServiceName"
-        type="text"
-        placeholder="Service name">
-
+        type="text">
     </label>
-
 
     <div class="admin-form-grid">
 
-
       <label class="admin-field">
-
         Price ₹
 
         <input
           id="editServicePrice"
           type="number"
           min="0"
-          step="0.01"
-          placeholder="0">
-
+          step="0.01">
       </label>
 
-
       <label class="admin-field">
-
         Icon / Emoji
 
         <input
           id="editServiceIcon"
           type="text"
           placeholder="🧩">
-
       </label>
 
-
       <label class="admin-field">
-
         Category
 
         <select id="editServiceCategory">
-
-          <option value="Popular">
-            Popular
-          </option>
-
-          <option value="Government">
-            Government
-          </option>
-
-          <option value="Print">
-            Print
-          </option>
-
-          <option value="Other">
-            Other
-          </option>
-
+          <option value="Popular">Popular</option>
+          <option value="Government">Government</option>
+          <option value="Print">Print</option>
+          <option value="Other">Other</option>
         </select>
-
       </label>
 
-
       <label class="admin-field">
-
         Sort Order
 
         <input
           id="editServiceSort"
           type="number"
-          min="0"
-          placeholder="10">
-
+          min="0">
       </label>
 
+      <label class="admin-field">
+        Processing Mode
+
+        <select id="editServiceProcessingMode">
+          <option value="admin">Admin</option>
+          <option value="api">API</option>
+          <option value="public_portal">Public Portal</option>
+          <option value="hybrid">Hybrid</option>
+        </select>
+      </label>
+
+      <label class="admin-field">
+        Status
+
+        <select id="editServiceActive">
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+      </label>
 
     </div>
 
-
     <label class="admin-field">
-
       Short Description
 
       <textarea
-        id="editServiceDescription"
-        placeholder="Service के बारे में छोटी जानकारी"></textarea>
-
+        id="editServiceDescription"></textarea>
     </label>
 
-
     <label class="admin-field">
-
-      Required Documents
+      Required Documents Summary
 
       <textarea
-        id="editServiceDocuments"
-        placeholder="हर document नई line में लिखें
-
-आधार कार्ड
-फोटो
-मोबाइल नंबर"></textarea>
-
+        id="editServiceDocuments"></textarea>
     </label>
 
-
     <label class="admin-field">
-
       Important Instructions
 
       <textarea
-        id="editServiceInstructions"
-        placeholder="Customer के लिए जरूरी जानकारी"></textarea>
-
+        id="editServiceInstructions"></textarea>
     </label>
-
-
-    <label class="admin-field">
-
-      Status
-
-      <select id="editServiceActive">
-
-        <option value="true">
-          Active
-        </option>
-
-        <option value="false">
-          Inactive
-        </option>
-
-      </select>
-
-    </label>
-
 
     <div class="admin-modal-actions">
-
 
       <button
         type="button"
         class="btn secondary"
         id="cancelServiceEdit">
-
         Cancel
-
       </button>
-
 
       <button
         type="button"
         class="btn primary"
         id="saveServiceEdit">
-
         Save Service
-
       </button>
-
 
     </div>
 
   </div>
-
 </div>
 
-
-<!-- =========================
-     TOAST
-========================= -->
 
 <div
   class="toast"
   id="toast">
 </div>
 
-
-<!-- =========================
-     SCRIPTS
-========================= -->
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script src="config.js"></script>
-
 <script src="admin.js"></script>
-
 
 </body>
 </html>
