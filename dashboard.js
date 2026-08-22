@@ -1,6 +1,6 @@
 /* =========================================================
    SUNIL MULTI HUB
-   CUSTOMER PORTAL + DYNAMIC APPLICATION SYSTEM
+   CUSTOMER PORTAL + SERVICE VARIANTS + DYNAMIC FORMS
 ========================================================= */
 
 const $ = id => document.getElementById(id);
@@ -9,11 +9,14 @@ const toast = $('toast');
 
 let toastTimer = null;
 let user = null;
+
 let services = [];
 let activeService = null;
+let activeVariant = null;
 
 let applicationFields = [];
 let applicationDocuments = [];
+let serviceVariants = [];
 
 let aadhaarVerification = {
   status: 'not_checked',
@@ -80,7 +83,23 @@ function safeFileName(name = 'file') {
 
 
 function isPANService(service) {
-  return String(service?.name || '').toLowerCase().includes('pan');
+  return String(service?.name || '')
+    .toLowerCase()
+    .includes('pan');
+}
+
+
+function fieldInputStyle() {
+  return `
+    width:100%;
+    box-sizing:border-box;
+    margin-top:7px;
+    padding:13px;
+    border:1px solid #d8e0eb;
+    border-radius:12px;
+    font:inherit;
+    background:#fff
+  `;
 }
 
 
@@ -94,12 +113,16 @@ function makeClient() {
     throw new Error('Supabase config missing');
   }
 
-  return window.supabase.createClient(url, key, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true
+  return window.supabase.createClient(
+    url,
+    key,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true
+      }
     }
-  });
+  );
 }
 
 
@@ -112,6 +135,7 @@ const sb = makeClient();
 
 async function boot() {
   createServiceDetailsModal();
+  createVariantModal();
   createApplicationModal();
 
   try {
@@ -130,7 +154,8 @@ async function boot() {
     user = session.user;
 
     if ($('who')) {
-      $('who').textContent = user.email || 'Customer';
+      $('who').textContent =
+        user.email || 'Customer';
     }
 
     setupBasicActions();
@@ -154,24 +179,29 @@ function setupBasicActions() {
   }
 
   /*
-    पुराने generic form को अब service-specific form replace करेगा.
+    पुराने generic order form को अब dynamic form replace करेगा.
   */
   if ($('orderForm')) {
     $('orderForm').onsubmit = event => {
       event.preventDefault();
 
-      msg('ऊपर service चुनकर Apply Now दबाएँ।');
+      msg(
+        'Service card खोलकर Apply Now दबाएँ।'
+      );
     };
   }
 }
 
 
 /* =========================================================
-   SERVICES
+   LOAD SERVICES
 ========================================================= */
 
 async function loadServices() {
-  const { data, error } = await sb
+  const {
+    data,
+    error
+  } = await sb
     .from('services')
     .select(`
       id,
@@ -187,28 +217,39 @@ async function loadServices() {
       processing_mode
     `)
     .eq('active', true)
-    .order('sort_order', { ascending: true });
+    .order('sort_order', {
+      ascending: true
+    });
 
   if (error) throw error;
 
   services = data || [];
 
   if ($('serviceCount')) {
-    $('serviceCount').textContent = services.length;
+    $('serviceCount').textContent =
+      services.length;
   }
 
   renderServiceSections();
 
   const requested =
-    localStorage.getItem('smh-selected-service');
+    localStorage.getItem(
+      'smh-selected-service'
+    );
 
   if (requested) {
-    localStorage.removeItem('smh-selected-service');
+    localStorage.removeItem(
+      'smh-selected-service'
+    );
 
     const match = services.find(
       service =>
-        String(service.name).trim().toLowerCase() ===
-        requested.trim().toLowerCase()
+        String(service.name)
+          .trim()
+          .toLowerCase() ===
+        requested
+          .trim()
+          .toLowerCase()
     );
 
     if (match) {
@@ -218,16 +259,29 @@ async function loadServices() {
 }
 
 
+/* =========================================================
+   SERVICE CARDS
+========================================================= */
+
 function getGridByHeading(text) {
   const sections =
-    [...document.querySelectorAll('.portal-section')];
+    [...document.querySelectorAll(
+      '.portal-section'
+    )];
 
-  const section = sections.find(sec => {
-    const heading = sec.querySelector('h2');
-    return heading && heading.textContent.includes(text);
-  });
+  const section =
+    sections.find(sec => {
+      const heading =
+        sec.querySelector('h2');
 
-  return section?.querySelector('.portal-service-grid');
+      return (
+        heading &&
+        heading.textContent.includes(text)
+      );
+    });
+
+  return section
+    ?.querySelector('.portal-service-grid');
 }
 
 
@@ -238,6 +292,7 @@ function serviceCard(service) {
       class="portal-service-card"
       onclick="window.openServiceDetails('${esc(service.id)}')"
     >
+
       <span class="portal-service-icon">
         ${esc(service.icon || '🧩')}
       </span>
@@ -247,7 +302,10 @@ function serviceCard(service) {
       </strong>
 
       <small>
-        ${esc(service.description || 'Online Service')}
+        ${esc(
+          service.description ||
+          'Online Service'
+        )}
       </small>
 
       ${
@@ -264,68 +322,124 @@ function serviceCard(service) {
           `
           : ''
       }
+
     </button>
   `;
 }
 
 
 function renderServiceSections() {
-  const popularGrid = getGridByHeading('लोकप्रिय सेवाएँ');
-  const governmentGrid = getGridByHeading('सरकारी एवं नागरिक सेवाएँ');
-  const printGrid = getGridByHeading('प्रिंट और दस्तावेज़ सेवाएँ');
-  const otherGrid = getGridByHeading('अन्य सेवाएँ');
+  const popularGrid =
+    getGridByHeading('लोकप्रिय सेवाएँ');
+
+  const governmentGrid =
+    getGridByHeading(
+      'सरकारी एवं नागरिक सेवाएँ'
+    );
+
+  const printGrid =
+    getGridByHeading(
+      'प्रिंट और दस्तावेज़ सेवाएँ'
+    );
+
+  const otherGrid =
+    getGridByHeading('अन्य सेवाएँ');
+
 
   const byCategory = category =>
     services.filter(
-      s => normalizeCategory(s.category) === category
+      service =>
+        normalizeCategory(
+          service.category
+        ) === category
     );
+
 
   if (popularGrid) {
     popularGrid.innerHTML =
-      byCategory('Popular').map(serviceCard).join('') ||
+      byCategory('Popular')
+        .map(serviceCard)
+        .join('') ||
       '<p>No services available.</p>';
   }
+
 
   if (governmentGrid) {
     governmentGrid.innerHTML =
-      byCategory('Government').map(serviceCard).join('') ||
+      byCategory('Government')
+        .map(serviceCard)
+        .join('') ||
       '<p>No services available.</p>';
   }
 
+
   if (printGrid) {
     printGrid.innerHTML =
-      byCategory('Print').map(serviceCard).join('') +
+      byCategory('Print')
+        .map(serviceCard)
+        .join('') +
 
       `
-      <a class="portal-service-card" href="tools.html#passport">
-        <span class="portal-service-icon">📸</span>
+      <a
+        class="portal-service-card"
+        href="tools.html#passport">
+
+        <span class="portal-service-icon">
+          📸
+        </span>
+
         <strong>Passport Photo</strong>
         <small>Photo Maker</small>
+
       </a>
 
-      <a class="portal-service-card" href="tools.html#jpg-pdf">
-        <span class="portal-service-icon">📄</span>
+      <a
+        class="portal-service-card"
+        href="tools.html#jpg-pdf">
+
+        <span class="portal-service-icon">
+          📄
+        </span>
+
         <strong>JPG → PDF</strong>
         <small>Online Tool</small>
+
       </a>
 
-      <a class="portal-service-card" href="tools.html#merge-pdf">
-        <span class="portal-service-icon">🧩</span>
+      <a
+        class="portal-service-card"
+        href="tools.html#merge-pdf">
+
+        <span class="portal-service-icon">
+          🧩
+        </span>
+
         <strong>Merge PDF</strong>
         <small>PDF Tool</small>
+
       </a>
       `;
   }
 
+
   if (otherGrid) {
     otherGrid.innerHTML =
-      byCategory('Other').map(serviceCard).join('') +
+      byCategory('Other')
+        .map(serviceCard)
+        .join('') +
 
       `
-      <a class="portal-service-card" href="tools.html">
-        <span class="portal-service-icon">🧰</span>
+      <a
+        class="portal-service-card"
+        href="tools.html">
+
+        <span class="portal-service-icon">
+          🧰
+        </span>
+
         <strong>All Online Tools</strong>
         <small>Open Toolkit</small>
+
       </a>
       `;
   }
@@ -339,11 +453,14 @@ function renderServiceSections() {
 function createServiceDetailsModal() {
   if ($('serviceDetailsModal')) return;
 
-  const wrapper = document.createElement('div');
+  const wrapper =
+    document.createElement('div');
 
-  wrapper.id = 'serviceDetailsModal';
+  wrapper.id =
+    'serviceDetailsModal';
 
   wrapper.innerHTML = `
+
     <div
       id="serviceDetailsBackdrop"
       style="
@@ -371,7 +488,8 @@ function createServiceDetailsModal() {
         border-radius:26px 26px 0 0;
         box-shadow:0 -20px 60px rgba(0,0,0,.25);
         transition:.25s ease
-      ">
+      "
+    >
 
       <div style="
         display:flex;
@@ -380,7 +498,11 @@ function createServiceDetailsModal() {
         align-items:flex-start
       ">
 
-        <div style="display:flex;gap:12px;align-items:center">
+        <div style="
+          display:flex;
+          gap:12px;
+          align-items:center
+        ">
 
           <div
             id="serviceModalIcon"
@@ -397,9 +519,13 @@ function createServiceDetailsModal() {
           </div>
 
           <div>
+
             <small
               id="serviceModalCategory"
-              style="font-weight:800;color:#2855cc">
+              style="
+                font-weight:800;
+                color:#2855cc
+              ">
               SERVICE
             </small>
 
@@ -408,9 +534,11 @@ function createServiceDetailsModal() {
               style="margin:4px 0 0">
               Service
             </h2>
+
           </div>
 
         </div>
+
 
         <button
           type="button"
@@ -428,6 +556,7 @@ function createServiceDetailsModal() {
 
       </div>
 
+
       <p
         id="serviceModalDescription"
         style="
@@ -437,6 +566,7 @@ function createServiceDetailsModal() {
         ">
       </p>
 
+
       <div
         id="serviceModalPriceBox"
         style="
@@ -444,9 +574,12 @@ function createServiceDetailsModal() {
           padding:15px;
           border-radius:16px;
           margin-bottom:15px
-        ">
+        "
+      >
 
-        <small>Service Price</small>
+        <small>
+          Service Price
+        </small>
 
         <strong
           id="serviceModalPrice"
@@ -459,6 +592,7 @@ function createServiceDetailsModal() {
         </strong>
 
       </div>
+
 
       <div style="
         border:1px solid #e4e9f1;
@@ -473,10 +607,14 @@ function createServiceDetailsModal() {
 
         <div
           id="serviceModalDocuments"
-          style="color:#566174;line-height:1.8">
+          style="
+            color:#566174;
+            line-height:1.8
+          ">
         </div>
 
       </div>
+
 
       <div style="
         border:1px solid #e4e9f1;
@@ -491,54 +629,72 @@ function createServiceDetailsModal() {
 
         <div
           id="serviceModalInstructions"
-          style="color:#566174;line-height:1.7">
+          style="
+            color:#566174;
+            line-height:1.7
+          ">
         </div>
 
       </div>
+
 
       <button
         type="button"
         id="serviceApplyBtn"
         class="btn primary"
-        style="width:100%;min-height:52px">
+        style="
+          width:100%;
+          min-height:52px
+        ">
         Apply Now
       </button>
 
     </div>
   `;
 
-  document.body.appendChild(wrapper);
+  document.body.appendChild(
+    wrapper
+  );
+
 
   $('serviceModalClose').onclick =
     closeServiceDetails;
 
+
   $('serviceDetailsBackdrop').onclick =
     closeServiceDetails;
 
+
   $('serviceApplyBtn').onclick =
-    () => {
-      if (activeService) {
-        closeServiceDetails();
-        setTimeout(() => openApplicationForm(activeService.id), 220);
-      }
-    };
+    handleServiceApply;
 }
 
 
 function documentList(text) {
-  const value = String(text || '').trim();
+  const value =
+    String(text || '').trim();
 
   if (!value) {
-    return 'Document list application form में दिखाई जाएगी।';
+    return `
+      Application के अनुसार documents
+      अगले step में दिखाई जाएँगे।
+    `;
   }
 
   return value
     .split(/\n+/)
     .filter(Boolean)
     .map(item => `
-      <div style="display:flex;gap:8px;margin:6px 0">
+      <div style="
+        display:flex;
+        gap:8px;
+        margin:6px 0
+      ">
         <span>✓</span>
-        <span>${esc(item.trim())}</span>
+
+        <span>
+          ${esc(item.trim())}
+        </span>
       </div>
     `)
     .join('');
@@ -546,9 +702,12 @@ function documentList(text) {
 
 
 function openServiceDetails(id) {
-  const service = services.find(
-    s => String(s.id) === String(id)
-  );
+  const service =
+    services.find(
+      item =>
+        String(item.id) ===
+        String(id)
+    );
 
   if (!service) {
     msg('Service उपलब्ध नहीं है');
@@ -556,91 +715,201 @@ function openServiceDetails(id) {
   }
 
   activeService = service;
+  activeVariant = null;
+
 
   $('serviceModalIcon').textContent =
     service.icon || '🧩';
 
+
   $('serviceModalCategory').textContent =
-    normalizeCategory(service.category);
+    normalizeCategory(
+      service.category
+    );
+
 
   $('serviceModalName').textContent =
     service.name;
 
+
   $('serviceModalDescription').textContent =
     service.description || '';
 
-  if (Number(service.price || 0) > 0) {
-    $('serviceModalPriceBox').style.display = 'block';
-    $('serviceModalPrice').textContent = money(service.price);
+
+  if (
+    Number(service.price || 0) > 0
+  ) {
+    $('serviceModalPriceBox')
+      .style.display = 'block';
+
+    $('serviceModalPrice')
+      .textContent =
+        money(service.price);
+
   } else {
-    $('serviceModalPriceBox').style.display = 'none';
+    $('serviceModalPriceBox')
+      .style.display = 'none';
   }
 
-  $('serviceModalDocuments').innerHTML =
-    documentList(service.required_documents);
 
-  $('serviceModalInstructions').textContent =
-    service.instructions ||
-    'आवेदन से पहले सभी जानकारी और दस्तावेज़ जाँच लें।';
+  $('serviceModalDocuments')
+    .innerHTML =
+      documentList(
+        service.required_documents
+      );
 
-  $('serviceDetailsBackdrop').style.display = 'block';
+
+  $('serviceModalInstructions')
+    .textContent =
+      service.instructions ||
+      'आवेदन से पहले सभी जानकारी और दस्तावेज़ जाँच लें।';
+
+
+  $('serviceDetailsBackdrop')
+    .style.display = 'block';
+
 
   requestAnimationFrame(() => {
-    $('serviceDetailsBox').style.transform =
-      'translateX(-50%) translateY(0)';
+    $('serviceDetailsBox')
+      .style.transform =
+        'translateX(-50%) translateY(0)';
   });
 
-  document.body.style.overflow = 'hidden';
+
+  document.body.style.overflow =
+    'hidden';
 }
 
 
 function closeServiceDetails() {
-  if (!$('serviceDetailsBox')) return;
+  if (!$('serviceDetailsBox')) {
+    return;
+  }
 
-  $('serviceDetailsBox').style.transform =
-    'translateX(-50%) translateY(110%)';
+  $('serviceDetailsBox')
+    .style.transform =
+      'translateX(-50%) translateY(110%)';
+
 
   setTimeout(() => {
+
     if ($('serviceDetailsBackdrop')) {
-      $('serviceDetailsBackdrop').style.display = 'none';
+      $('serviceDetailsBackdrop')
+        .style.display =
+          'none';
     }
+
   }, 220);
 
-  document.body.style.overflow = '';
+
+  document.body.style.overflow =
+    '';
 }
 
 
-window.openServiceDetails = openServiceDetails;
+window.openServiceDetails =
+  openServiceDetails;
 
-window.selectServiceById = openServiceDetails;
-
-window.selectServiceByName = name => {
-  const service = services.find(
-    s =>
-      String(s.name).trim().toLowerCase() ===
-      String(name).trim().toLowerCase()
-  );
-
-  if (service) {
-    openServiceDetails(service.id);
-  }
-};
+window.selectServiceById =
+  openServiceDetails;
 
 
 /* =========================================================
-   APPLICATION MODAL
+   SERVICE APPLY
 ========================================================= */
 
-function createApplicationModal() {
-  if ($('dynamicApplicationModal')) return;
+async function handleServiceApply() {
+  if (!activeService) return;
 
-  const wrapper = document.createElement('div');
+  closeServiceDetails();
 
-  wrapper.id = 'dynamicApplicationModal';
+  try {
+    const {
+      data,
+      error
+    } = await sb
+      .from('service_variants')
+      .select(`
+        id,
+        service_id,
+        variant_key,
+        name,
+        description,
+        processing_mode,
+        assistance_fee,
+        official_fee,
+        fee_note,
+        requires_aadhaar_verification,
+        requires_otp,
+        official_portal_url,
+        active,
+        sort_order
+      `)
+      .eq(
+        'service_id',
+        activeService.id
+      )
+      .eq('active', true)
+      .order(
+        'sort_order',
+        {
+          ascending: true
+        }
+      );
+
+    if (error) throw error;
+
+
+    serviceVariants =
+      data || [];
+
+
+    if (serviceVariants.length) {
+
+      setTimeout(() => {
+        openVariantSelector();
+      }, 220);
+
+      return;
+    }
+
+
+    setTimeout(() => {
+      openApplicationForm(
+        activeService.id,
+        null
+      );
+    }, 220);
+
+  } catch (error) {
+    console.error(error);
+    msg(error.message);
+  }
+}
+
+
+/* =========================================================
+   VARIANT SELECTOR MODAL
+========================================================= */
+
+function createVariantModal() {
+  if ($('serviceVariantModal')) {
+    return;
+  }
+
+
+  const wrapper =
+    document.createElement('div');
+
+
+  wrapper.id =
+    'serviceVariantModal';
+
 
   wrapper.innerHTML = `
+
     <div
-      id="applicationBackdrop"
+      id="variantBackdrop"
       style="
         display:none;
         position:fixed;
@@ -649,6 +918,365 @@ function createApplicationModal() {
         z-index:10000
       ">
     </div>
+
+
+    <div
+      id="variantBox"
+      style="
+        position:fixed;
+        left:50%;
+        bottom:0;
+        width:min(650px,100%);
+        max-height:92vh;
+        overflow:auto;
+        transform:translateX(-50%) translateY(110%);
+        background:#fff;
+        z-index:10001;
+        border-radius:26px 26px 0 0;
+        padding:22px;
+        box-shadow:0 -20px 60px rgba(0,0,0,.28);
+        transition:.25s ease
+      "
+    >
+
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:14px
+      ">
+
+        <div>
+
+          <small style="
+            font-weight:800;
+            color:#2855cc
+          ">
+            SELECT SERVICE
+          </small>
+
+          <h2
+            id="variantServiceName"
+            style="margin:4px 0">
+            Select Work
+          </h2>
+
+          <p style="
+            margin:0;
+            color:#667085
+          ">
+            आपको कौन-सी सेवा चाहिए?
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          id="variantClose"
+          style="
+            width:42px;
+            height:42px;
+            border:0;
+            border-radius:50%;
+            background:#f2f4f7;
+            font-size:22px
+          ">
+          ×
+        </button>
+
+      </div>
+
+
+      <div
+        id="variantCards"
+        style="
+          display:grid;
+          grid-template-columns:
+            repeat(auto-fit,minmax(220px,1fr));
+          gap:12px;
+          margin-top:20px
+        ">
+      </div>
+
+    </div>
+  `;
+
+
+  document.body.appendChild(
+    wrapper
+  );
+
+
+  $('variantClose').onclick =
+    closeVariantSelector;
+
+
+  $('variantBackdrop').onclick =
+    closeVariantSelector;
+}
+
+
+function variantIcon(key) {
+  if (key === 'new_pan') {
+    return '🆕';
+  }
+
+  if (key === 'pan_correction') {
+    return '✏️';
+  }
+
+  if (key === 'epan') {
+    return '📧';
+  }
+
+  if (key === 'track_pan') {
+    return '🔎';
+  }
+
+  return '🧩';
+}
+
+
+function openVariantSelector() {
+  if (!activeService) return;
+
+
+  $('variantServiceName')
+    .textContent =
+      activeService.name;
+
+
+  $('variantCards').innerHTML =
+    serviceVariants
+      .map(variant => {
+
+        const fee =
+          Number(
+            variant.assistance_fee ||
+            0
+          );
+
+        const officialFee =
+          Number(
+            variant.official_fee ||
+            0
+          );
+
+
+        return `
+
+          <button
+            type="button"
+            data-variant-id="${esc(variant.id)}"
+            class="variant-select-btn"
+            style="
+              text-align:left;
+              border:1px solid #dfe5ef;
+              border-radius:18px;
+              padding:17px;
+              background:#fff;
+              cursor:pointer
+            "
+          >
+
+            <span style="
+              display:block;
+              font-size:30px;
+              margin-bottom:10px
+            ">
+              ${variantIcon(
+                variant.variant_key
+              )}
+            </span>
+
+
+            <strong style="
+              display:block;
+              font-size:16px
+            ">
+              ${esc(variant.name)}
+            </strong>
+
+
+            <small style="
+              display:block;
+              color:#667085;
+              margin-top:6px;
+              line-height:1.5
+            ">
+              ${esc(
+                variant.description ||
+                ''
+              )}
+            </small>
+
+
+            ${
+              fee > 0
+                ? `
+                  <span style="
+                    display:block;
+                    margin-top:10px;
+                    color:#2855cc;
+                    font-weight:800
+                  ">
+                    Assistance Fee:
+                    ${money(fee)}
+                  </span>
+                `
+                : ''
+            }
+
+
+            ${
+              officialFee === 0 &&
+              variant.variant_key === 'epan'
+                ? `
+                  <small style="
+                    display:block;
+                    margin-top:4px;
+                    color:#067647;
+                    font-weight:700
+                  ">
+                    Official e-PAN service: Free
+                  </small>
+                `
+                : ''
+            }
+
+          </button>
+        `;
+
+      })
+      .join('');
+
+
+  document
+    .querySelectorAll(
+      '.variant-select-btn'
+    )
+    .forEach(button => {
+
+      button.onclick =
+        () => {
+
+          selectVariant(
+            button.dataset.variantId
+          );
+
+        };
+    });
+
+
+  $('variantBackdrop')
+    .style.display = 'block';
+
+
+  requestAnimationFrame(() => {
+
+    $('variantBox')
+      .style.transform =
+        'translateX(-50%) translateY(0)';
+
+  });
+
+
+  document.body.style.overflow =
+    'hidden';
+}
+
+
+function closeVariantSelector() {
+  if (!$('variantBox')) return;
+
+
+  $('variantBox')
+    .style.transform =
+      'translateX(-50%) translateY(110%)';
+
+
+  setTimeout(() => {
+
+    $('variantBackdrop')
+      .style.display =
+        'none';
+
+  }, 220);
+
+
+  document.body.style.overflow =
+    '';
+}
+
+
+function selectVariant(id) {
+  const variant =
+    serviceVariants.find(
+      item =>
+        String(item.id) ===
+        String(id)
+    );
+
+
+  if (!variant) {
+    msg(
+      'Service option नहीं मिला'
+    );
+
+    return;
+  }
+
+
+  activeVariant =
+    variant;
+
+
+  closeVariantSelector();
+
+
+  setTimeout(() => {
+
+    openApplicationForm(
+      activeService.id,
+      variant.id
+    );
+
+  }, 220);
+}
+
+
+/* =========================================================
+   APPLICATION MODAL
+========================================================= */
+
+function createApplicationModal() {
+  if ($('dynamicApplicationModal')) {
+    return;
+  }
+
+
+  const wrapper =
+    document.createElement('div');
+
+
+  wrapper.id =
+    'dynamicApplicationModal';
+
+
+  wrapper.innerHTML = `
+
+    <div
+      id="applicationBackdrop"
+      style="
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(8,18,38,.65);
+        z-index:10010
+      ">
+    </div>
+
 
     <div
       id="applicationBox"
@@ -661,12 +1289,13 @@ function createApplicationModal() {
         overflow:auto;
         transform:translateX(-50%) translateY(110%);
         background:#fff;
-        z-index:10001;
+        z-index:10011;
         border-radius:26px 26px 0 0;
         padding:22px;
         box-shadow:0 -20px 60px rgba(0,0,0,.28);
         transition:.25s ease
-      ">
+      "
+    >
 
       <div style="
         display:flex;
@@ -676,9 +1305,14 @@ function createApplicationModal() {
       ">
 
         <div>
-          <small style="font-weight:800;color:#2855cc">
+
+          <small style="
+            font-weight:800;
+            color:#2855cc
+          ">
             APPLICATION
           </small>
+
 
           <h2
             id="applicationServiceName"
@@ -686,11 +1320,27 @@ function createApplicationModal() {
             Service Application
           </h2>
 
+
+          <p
+            id="applicationVariantName"
+            style="
+              margin:0;
+              color:#475467;
+              font-weight:700
+            ">
+          </p>
+
+
           <p
             id="applicationServicePrice"
-            style="margin:0;color:#667085">
+            style="
+              margin:4px 0 0;
+              color:#667085
+            ">
           </p>
+
         </div>
+
 
         <button
           type="button"
@@ -708,22 +1358,30 @@ function createApplicationModal() {
 
       </div>
 
+
       <form id="dynamicApplicationForm">
+
 
         <div
           id="beneficiaryFields"
           style="margin-top:20px">
         </div>
 
+
         <div
           id="aadhaarVerificationSection"
-          style="display:none;margin-top:20px">
+          style="
+            display:none;
+            margin-top:20px
+          ">
         </div>
+
 
         <div
           id="supportingDocumentsSection"
           style="margin-top:22px">
         </div>
+
 
         <div
           id="applicationError"
@@ -737,6 +1395,7 @@ function createApplicationModal() {
           ">
         </div>
 
+
         <button
           type="submit"
           id="submitDynamicApplication"
@@ -749,32 +1408,70 @@ function createApplicationModal() {
           Submit Application
         </button>
 
+
       </form>
 
     </div>
   `;
 
-  document.body.appendChild(wrapper);
+
+  document.body.appendChild(
+    wrapper
+  );
+
 
   $('applicationClose').onclick =
     closeApplicationForm;
 
+
   $('applicationBackdrop').onclick =
     closeApplicationForm;
 
-  $('dynamicApplicationForm').onsubmit =
-    submitDynamicApplication;
+
+  $('dynamicApplicationForm')
+    .onsubmit =
+      submitDynamicApplication;
 }
 
 
-async function openApplicationForm(serviceId) {
-  const service = services.find(
-    s => String(s.id) === String(serviceId)
-  );
+/* =========================================================
+   LOAD DYNAMIC FORM
+========================================================= */
 
-  if (!service) return;
+async function openApplicationForm(
+  serviceId,
+  variantId = null
+) {
+  const service =
+    services.find(
+      item =>
+        String(item.id) ===
+        String(serviceId)
+    );
 
-  activeService = service;
+
+  if (!service) {
+    return;
+  }
+
+
+  activeService =
+    service;
+
+
+  if (variantId) {
+    activeVariant =
+      serviceVariants.find(
+        item =>
+          String(item.id) ===
+          String(variantId)
+      ) ||
+      activeVariant;
+
+  } else {
+    activeVariant = null;
+  }
+
 
   aadhaarVerification = {
     status: 'not_checked',
@@ -784,59 +1481,186 @@ async function openApplicationForm(serviceId) {
     result: {}
   };
 
-  $('applicationServiceName').textContent =
-    service.name;
 
-  $('applicationServicePrice').textContent =
-    Number(service.price || 0) > 0
-      ? `Service Price: ${money(service.price)}`
-      : '';
+  $('applicationServiceName')
+    .textContent =
+      service.name;
 
-  $('beneficiaryFields').innerHTML =
-    '<p>Form loading...</p>';
 
-  $('supportingDocumentsSection').innerHTML = '';
+  $('applicationVariantName')
+    .textContent =
+      activeVariant
+        ? activeVariant.name
+        : '';
+
+
+  const price =
+    activeVariant
+      ? Number(
+          activeVariant.assistance_fee ||
+          0
+        )
+      : Number(
+          service.price ||
+          0
+        );
+
+
+  $('applicationServicePrice')
+    .textContent =
+      price > 0
+        ? `Assistance Fee: ${money(price)}`
+        : '';
+
+
+  if (
+    activeVariant?.variant_key ===
+    'epan'
+  ) {
+
+    $('applicationServicePrice')
+      .innerHTML = `
+        <strong style="color:#067647">
+          Official e-PAN Service: Free
+        </strong>
+        <br>
+        SUNIL MULTI HUB Assistance Fee:
+        ${money(price)}
+      `;
+  }
+
+
+  $('beneficiaryFields')
+    .innerHTML =
+      '<p>Form loading...</p>';
+
+
+  $('supportingDocumentsSection')
+    .innerHTML = '';
+
 
   try {
-    const [fieldsResult, docsResult] = await Promise.all([
+    let fieldsQuery =
       sb
         .from('service_fields')
         .select('*')
-        .eq('service_id', service.id)
-        .eq('active', true)
-        .order('sort_order'),
+        .eq(
+          'service_id',
+          service.id
+        )
+        .eq(
+          'active',
+          true
+        );
 
+
+    let documentsQuery =
       sb
         .from('service_documents')
         .select('*')
-        .eq('service_id', service.id)
-        .eq('active', true)
-        .order('sort_order')
-    ]);
+        .eq(
+          'service_id',
+          service.id
+        )
+        .eq(
+          'active',
+          true
+        );
 
-    if (fieldsResult.error) throw fieldsResult.error;
-    if (docsResult.error) throw docsResult.error;
+
+    if (variantId) {
+
+      fieldsQuery =
+        fieldsQuery.eq(
+          'service_variant_id',
+          variantId
+        );
+
+
+      documentsQuery =
+        documentsQuery.eq(
+          'service_variant_id',
+          variantId
+        );
+
+    } else {
+
+      fieldsQuery =
+        fieldsQuery.is(
+          'service_variant_id',
+          null
+        );
+
+
+      documentsQuery =
+        documentsQuery.is(
+          'service_variant_id',
+          null
+        );
+    }
+
+
+    const [
+      fieldsResult,
+      docsResult
+    ] =
+      await Promise.all([
+
+        fieldsQuery.order(
+          'sort_order'
+        ),
+
+        documentsQuery.order(
+          'sort_order'
+        )
+
+      ]);
+
+
+    if (fieldsResult.error) {
+      throw fieldsResult.error;
+    }
+
+
+    if (docsResult.error) {
+      throw docsResult.error;
+    }
+
 
     applicationFields =
       fieldsResult.data || [];
 
+
     applicationDocuments =
       docsResult.data || [];
 
+
     renderBeneficiaryFields();
+
     renderSupportingDocuments();
+
     renderAadhaarVerification();
 
-    $('applicationBackdrop').style.display = 'block';
+
+    $('applicationBackdrop')
+      .style.display =
+        'block';
+
 
     requestAnimationFrame(() => {
-      $('applicationBox').style.transform =
-        'translateX(-50%) translateY(0)';
+
+      $('applicationBox')
+        .style.transform =
+          'translateX(-50%) translateY(0)';
+
     });
 
-    document.body.style.overflow = 'hidden';
+
+    document.body.style.overflow =
+      'hidden';
 
   } catch (error) {
+    console.error(error);
     msg(error.message);
   }
 }
@@ -845,14 +1669,23 @@ async function openApplicationForm(serviceId) {
 function closeApplicationForm() {
   if (!$('applicationBox')) return;
 
-  $('applicationBox').style.transform =
-    'translateX(-50%) translateY(110%)';
+
+  $('applicationBox')
+    .style.transform =
+      'translateX(-50%) translateY(110%)';
+
 
   setTimeout(() => {
-    $('applicationBackdrop').style.display = 'none';
+
+    $('applicationBackdrop')
+      .style.display =
+        'none';
+
   }, 220);
 
-  document.body.style.overflow = '';
+
+  document.body.style.overflow =
+    '';
 }
 
 
@@ -862,51 +1695,64 @@ function closeApplicationForm() {
 
 function renderBeneficiaryFields() {
   if (!applicationFields.length) {
-    $('beneficiaryFields').innerHTML = `
-      <div style="
-        padding:15px;
-        background:#fff7e8;
-        border-radius:14px
-      ">
-        इस service का beneficiary form अभी Admin द्वारा configure नहीं किया गया है।
-      </div>
-    `;
+
+    $('beneficiaryFields')
+      .innerHTML = `
+        <div style="
+          padding:15px;
+          background:#fff7e8;
+          border-radius:14px
+        ">
+          इस service का form अभी
+          Admin द्वारा configure नहीं किया गया है।
+        </div>
+      `;
+
     return;
   }
 
-  $('beneficiaryFields').innerHTML = `
-    <h3>👤 Beneficiary Details</h3>
 
-    ${applicationFields.map(field => renderField(field)).join('')}
-  `;
+  $('beneficiaryFields')
+    .innerHTML = `
 
-  const applicationType =
-    document.querySelector('[name="application_type"]');
+      <h3>
+        👤 Beneficiary Details
+      </h3>
 
-  if (applicationType) {
-    applicationType.addEventListener(
-      'change',
-      applyConditionalPANRules
-    );
+      ${
+        applicationFields
+          .map(renderField)
+          .join('')
+      }
 
-    applyConditionalPANRules();
-  }
+    `;
 
-  /*
-    Aadhaar data बदलते ही previous verification invalid होगा.
-  */
+
   [
     'full_name',
     'aadhaar_number',
     'date_of_birth',
     'gender'
   ].forEach(key => {
+
     const element =
-      document.querySelector(`[name="${key}"]`);
+      document.querySelector(
+        `[name="${key}"]`
+      );
+
 
     if (element) {
-      element.addEventListener('input', resetAadhaarVerification);
-      element.addEventListener('change', resetAadhaarVerification);
+
+      element.addEventListener(
+        'input',
+        resetAadhaarVerification
+      );
+
+      element.addEventListener(
+        'change',
+        resetAadhaarVerification
+      );
+
     }
   });
 }
@@ -915,13 +1761,19 @@ function renderBeneficiaryFields() {
 function renderField(field) {
   const requiredMark =
     field.required
-      ? '<span style="color:#d92d20">*</span>'
+      ? `
+        <span style="color:#d92d20">
+          *
+        </span>
+      `
       : '';
+
 
   const requiredAttribute =
     field.required
       ? 'required'
       : '';
+
 
   const common = `
     id="field_${esc(field.field_key)}"
@@ -929,87 +1781,138 @@ function renderField(field) {
     ${requiredAttribute}
   `;
 
+
   let input = '';
 
-  if (field.field_type === 'textarea') {
+
+  if (
+    field.field_type ===
+    'textarea'
+  ) {
+
     input = `
       <textarea
         ${common}
         rows="3"
         placeholder="${esc(field.placeholder || '')}"
-        style="${fieldInputStyle()}"></textarea>
+        style="${fieldInputStyle()}"
+      ></textarea>
     `;
+
 
   } else if (
     field.field_type === 'select' ||
     field.field_type === 'radio'
   ) {
+
     const options =
-      Array.isArray(field.options)
+      Array.isArray(
+        field.options
+      )
         ? field.options
         : [];
+
 
     input = `
       <select
         ${common}
-        style="${fieldInputStyle()}">
+        style="${fieldInputStyle()}"
+      >
 
         <option value="">
           Select
         </option>
 
-        ${options.map(option => `
-          <option value="${esc(option)}">
-            ${esc(option)}
-          </option>
-        `).join('')}
+        ${
+          options.map(option => `
+            <option value="${esc(option)}">
+              ${esc(option)}
+            </option>
+          `).join('')
+        }
 
       </select>
     `;
 
-  } else if (field.field_type === 'checkbox') {
+
+  } else if (
+    field.field_type ===
+    'checkbox'
+  ) {
+
     input = `
-      <label style="display:flex;gap:9px;align-items:flex-start">
+      <label style="
+        display:flex;
+        gap:9px;
+        align-items:flex-start;
+        margin-top:7px
+      ">
+
         <input
           type="checkbox"
           name="${esc(field.field_key)}"
           ${requiredAttribute}
           style="margin-top:4px"
         >
-        <span>${esc(field.label)}</span>
+
+        <span>
+          ${esc(field.label)}
+          ${requiredMark}
+        </span>
+
       </label>
     `;
 
+
   } else {
+
     input = `
       <input
         ${common}
-        type="${esc(field.field_type || 'text')}"
+        type="${esc(
+          field.field_type ||
+          'text'
+        )}"
         placeholder="${esc(field.placeholder || '')}"
-        ${field.min_length ? `minlength="${field.min_length}"` : ''}
-        ${field.max_length ? `maxlength="${field.max_length}"` : ''}
+        ${
+          field.min_length
+            ? `minlength="${field.min_length}"`
+            : ''
+        }
+        ${
+          field.max_length
+            ? `maxlength="${field.max_length}"`
+            : ''
+        }
         style="${fieldInputStyle()}"
       >
     `;
   }
 
+
   return `
     <label
-      data-field-wrap="${esc(field.field_key)}"
       style="
         display:block;
         margin:14px 0;
         font-size:13px;
         font-weight:700
-      ">
+      "
+    >
 
       ${
-        field.field_type !== 'checkbox'
-          ? `${esc(field.label)} ${requiredMark}`
+        field.field_type !==
+        'checkbox'
+          ? `
+            ${esc(field.label)}
+            ${requiredMark}
+          `
           : ''
       }
 
+
       ${input}
+
 
       ${
         field.help_text
@@ -1031,206 +1934,213 @@ function renderField(field) {
 }
 
 
-function fieldInputStyle() {
-  return `
-    width:100%;
-    box-sizing:border-box;
-    margin-top:7px;
-    padding:13px;
-    border:1px solid #d8e0eb;
-    border-radius:12px;
-    font:inherit;
-    background:#fff
-  `;
-}
-
-
 /* =========================================================
-   PAN CONDITIONAL RULES
+   DOCUMENTS
 ========================================================= */
-
-function getApplicationType() {
-  return String(
-    document.querySelector('[name="application_type"]')?.value || ''
-  ).toLowerCase();
-}
-
-
-function isPANCorrection() {
-  return getApplicationType().includes('correction');
-}
-
-
-function applyConditionalPANRules() {
-  const existingPAN =
-    document.querySelector('[name="existing_pan"]');
-
-  const wrapper =
-    document.querySelector('[data-field-wrap="existing_pan"]');
-
-  if (!existingPAN || !wrapper) return;
-
-  if (isPANCorrection()) {
-    wrapper.style.display = 'block';
-    existingPAN.required = true;
-
-  } else {
-    wrapper.style.display = 'none';
-    existingPAN.required = false;
-    existingPAN.value = '';
-  }
-
-  renderSupportingDocuments();
-}
-
-
-/* =========================================================
-   DOCUMENT RENDERER
-========================================================= */
-
-function isDocumentRequired(doc) {
-  if (
-    doc.document_key === 'existing_pan_card' &&
-    isPANCorrection()
-  ) {
-    return true;
-  }
-
-  return !!doc.required;
-}
-
 
 function renderSupportingDocuments() {
   if (!applicationDocuments.length) {
-    $('supportingDocumentsSection').innerHTML = '';
+
+    $('supportingDocumentsSection')
+      .innerHTML = '';
+
     return;
   }
 
-  $('supportingDocumentsSection').innerHTML = `
-    <h3>📎 Supporting Documents</h3>
 
-    <p style="color:#667085;font-size:13px">
-      * वाले documents upload करना अनिवार्य है।
-    </p>
+  $('supportingDocumentsSection')
+    .innerHTML = `
 
-    ${applicationDocuments.map(doc => {
-      const required = isDocumentRequired(doc);
-
-      const accept =
-        Array.isArray(doc.allowed_types)
-          ? doc.allowed_types.join(',')
-          : 'application/pdf,image/jpeg,image/png';
-
-      return `
-        <label style="
-          display:block;
-          border:1px solid #e4e9f1;
-          border-radius:14px;
-          padding:14px;
-          margin:12px 0
-        ">
-
-          <strong>
-            ${esc(doc.name)}
-            ${
-              required
-                ? '<span style="color:#d92d20">*</span>'
-                : '<small style="color:#667085"> (Optional)</small>'
-            }
-          </strong>
-
-          ${
-            doc.instructions
-              ? `
-                <small style="
-                  display:block;
-                  color:#667085;
-                  margin:5px 0 10px
-                ">
-                  ${esc(doc.instructions)}
-                </small>
-              `
-              : ''
-          }
-
-          <input
-            type="file"
-            name="document_${esc(doc.id)}"
-            data-document-id="${esc(doc.id)}"
-            data-required="${required}"
-            accept="${esc(accept)}"
-            style="display:block;width:100%;margin-top:9px"
-          >
-
-          <small style="display:block;color:#667085;margin-top:6px">
-            Maximum ${Number(doc.max_size_mb || 5)} MB
-          </small>
-
-        </label>
-      `;
-    }).join('')}
-  `;
-}
-
-
-/* =========================================================
-   AADHAAR DEMOGRAPHIC VERIFICATION
-========================================================= */
-
-function renderAadhaarVerification() {
-  const required =
-    isPANService(activeService) &&
-    applicationFields.some(f => f.field_key === 'aadhaar_number');
-
-  if (!required) {
-    $('aadhaarVerificationSection').style.display = 'none';
-    return;
-  }
-
-  $('aadhaarVerificationSection').style.display = 'block';
-
-  $('aadhaarVerificationSection').innerHTML = `
-    <div style="
-      padding:16px;
-      border:1px solid #dce5ff;
-      border-radius:16px;
-      background:#f6f8ff
-    ">
-
-      <h3 style="margin-top:0">
-        🔐 Aadhaar Demographic Verification
+      <h3>
+        📎 Supporting Documents
       </h3>
 
       <p style="
         color:#667085;
-        font-size:13px;
-        line-height:1.5
+        font-size:13px
       ">
-        PAN application submit करने से पहले Name, DOB और Gender
-        Aadhaar authentication provider से match होना जरूरी है।
+        * वाले documents upload करना अनिवार्य है।
       </p>
 
-      <div
-        id="aadhaarVerificationStatus"
-        style="
-          padding:10px 12px;
-          background:#fff;
-          border-radius:10px;
-          margin-bottom:12px
+      ${
+        applicationDocuments
+          .map(doc => {
+
+            const required =
+              !!doc.required;
+
+
+            const accept =
+              Array.isArray(
+                doc.allowed_types
+              )
+                ? doc.allowed_types
+                    .join(',')
+                : 'application/pdf,image/jpeg,image/png';
+
+
+            return `
+
+              <label style="
+                display:block;
+                border:1px solid #e4e9f1;
+                border-radius:14px;
+                padding:14px;
+                margin:12px 0
+              ">
+
+                <strong>
+
+                  ${esc(doc.name)}
+
+                  ${
+                    required
+                      ? `
+                        <span style="color:#d92d20">
+                          *
+                        </span>
+                      `
+                      : `
+                        <small style="color:#667085">
+                          (Optional)
+                        </small>
+                      `
+                  }
+
+                </strong>
+
+
+                ${
+                  doc.instructions
+                    ? `
+                      <small style="
+                        display:block;
+                        color:#667085;
+                        margin:5px 0 10px
+                      ">
+                        ${esc(doc.instructions)}
+                      </small>
+                    `
+                    : ''
+                }
+
+
+                <input
+                  type="file"
+                  data-document-id="${esc(doc.id)}"
+                  data-required="${required}"
+                  accept="${esc(accept)}"
+                  style="
+                    display:block;
+                    width:100%;
+                    margin-top:9px
+                  "
+                >
+
+
+                <small style="
+                  display:block;
+                  color:#667085;
+                  margin-top:6px
+                ">
+                  Maximum
+                  ${Number(doc.max_size_mb || 1)}
+                  MB
+                </small>
+
+              </label>
+            `;
+
+          })
+          .join('')
+      }
+
+    `;
+}
+
+
+/* =========================================================
+   AADHAAR VERIFICATION
+========================================================= */
+
+function renderAadhaarVerification() {
+  const required =
+    !!activeVariant
+      ? !!activeVariant
+          .requires_aadhaar_verification
+      : (
+          isPANService(activeService) &&
+          applicationFields.some(
+            field =>
+              field.field_key ===
+              'aadhaar_number'
+          )
+        );
+
+
+  if (!required) {
+
+    $('aadhaarVerificationSection')
+      .style.display =
+        'none';
+
+    return;
+  }
+
+
+  $('aadhaarVerificationSection')
+    .style.display =
+      'block';
+
+
+  $('aadhaarVerificationSection')
+    .innerHTML = `
+
+      <div style="
+        padding:16px;
+        border:1px solid #dce5ff;
+        border-radius:16px;
+        background:#f6f8ff
+      ">
+
+        <h3 style="margin-top:0">
+          🔐 Aadhaar Verification
+        </h3>
+
+        <p style="
+          color:#667085;
+          font-size:13px;
+          line-height:1.5
         ">
-        Status: Not Verified
+          आगे बढ़ने से पहले Aadhaar demographic
+          details verify करना आवश्यक है।
+        </p>
+
+
+        <div
+          id="aadhaarVerificationStatus"
+          style="
+            padding:10px 12px;
+            background:#fff;
+            border-radius:10px;
+            margin-bottom:12px
+          ">
+          Status: Not Verified
+        </div>
+
+
+        <button
+          type="button"
+          class="btn secondary"
+          id="verifyAadhaarBtn"
+          style="width:100%"
+        >
+          Verify Aadhaar Details
+        </button>
+
       </div>
+    `;
 
-      <button
-        type="button"
-        class="btn secondary"
-        id="verifyAadhaarBtn"
-        style="width:100%">
-        Verify Aadhaar Details
-      </button>
-
-    </div>
-  `;
 
   $('verifyAadhaarBtn').onclick =
     verifyAadhaarDetails;
@@ -1238,7 +2148,13 @@ function renderAadhaarVerification() {
 
 
 function resetAadhaarVerification() {
-  if (aadhaarVerification.status === 'not_checked') return;
+  if (
+    aadhaarVerification.status ===
+    'not_checked'
+  ) {
+    return;
+  }
+
 
   aadhaarVerification = {
     status: 'not_checked',
@@ -1248,236 +2164,283 @@ function resetAadhaarVerification() {
     result: {}
   };
 
+
   if ($('aadhaarVerificationStatus')) {
-    $('aadhaarVerificationStatus').textContent =
-      'Status: Details changed — Verify again';
+
+    $('aadhaarVerificationStatus')
+      .textContent =
+        'Status: Details changed — Verify again';
+
   }
 }
 
 
 async function verifyAadhaarDetails() {
   const name =
-    document.querySelector('[name="full_name"]')?.value.trim();
+    document
+      .querySelector(
+        '[name="full_name"]'
+      )
+      ?.value
+      .trim();
+
 
   const aadhaar =
-    document.querySelector('[name="aadhaar_number"]')?.value
+    document
+      .querySelector(
+        '[name="aadhaar_number"]'
+      )
+      ?.value
       .replace(/\D/g, '');
 
+
   const dob =
-    document.querySelector('[name="date_of_birth"]')?.value;
+    document
+      .querySelector(
+        '[name="date_of_birth"]'
+      )
+      ?.value;
+
 
   const gender =
-    document.querySelector('[name="gender"]')?.value;
+    document
+      .querySelector(
+        '[name="gender"]'
+      )
+      ?.value;
 
-  if (!name || !aadhaar || !dob || !gender) {
-    msg('Name, Aadhaar, DOB और Gender पहले भरें।');
-    return;
-  }
 
-  if (!/^\d{12}$/.test(aadhaar)) {
-    msg('Aadhaar number 12 digit होना चाहिए।');
-    return;
-  }
+  if (
+    !name ||
+    !aadhaar ||
+    !dob ||
+    !gender
+  ) {
 
-  const button = $('verifyAadhaarBtn');
-
-  button.disabled = true;
-  button.textContent = 'Verifying...';
-
-  $('aadhaarVerificationStatus').textContent =
-    'Status: Verification in progress...';
-
-  aadhaarVerification.status = 'pending';
-
-  try {
-    /*
-      IMPORTANT:
-      यह real backend hook है.
-      Supabase Edge Function का नाम:
-      verify-aadhaar-demographic
-
-      इसमें authorized Aadhaar/API provider integrate होगा.
-      Browser से UIDAI को direct call नहीं किया जाएगा.
-    */
-
-    const { data, error } = await sb.functions.invoke(
-      'verify-aadhaar-demographic',
-      {
-        body: {
-          aadhaar_number: aadhaar,
-          name,
-          date_of_birth: dob,
-          gender
-        }
-      }
+    msg(
+      'Name, Aadhaar, DOB और Gender पहले भरें।'
     );
 
-    if (error) throw error;
+    return;
+  }
+
+
+  if (
+    !/^\d{12}$/.test(aadhaar)
+  ) {
+
+    msg(
+      'Aadhaar number 12 digit होना चाहिए।'
+    );
+
+    return;
+  }
+
+
+  const button =
+    $('verifyAadhaarBtn');
+
+
+  button.disabled =
+    true;
+
+
+  button.textContent =
+    'Verifying...';
+
+
+  $('aadhaarVerificationStatus')
+    .textContent =
+      'Status: Verification in progress...';
+
+
+  aadhaarVerification.status =
+    'pending';
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await sb.functions.invoke(
+        'verify-aadhaar-demographic',
+        {
+          body: {
+            aadhaar_number:
+              aadhaar,
+
+            name,
+
+            date_of_birth:
+              dob,
+
+            gender,
+
+            service_variant:
+              activeVariant
+                ?.variant_key ||
+              null
+          }
+        }
+      );
+
+
+    if (error) {
+      throw error;
+    }
+
 
     if (!data?.matched) {
+
       aadhaarVerification = {
         status: 'mismatch',
-        provider: data?.provider || null,
-        verifiedAt: null,
-        last4: aadhaar.slice(-4),
-        result: data || {}
+        provider:
+          data?.provider ||
+          null,
+
+        verifiedAt:
+          null,
+
+        last4:
+          aadhaar.slice(-4),
+
+        result:
+          data || {}
       };
 
-      $('aadhaarVerificationStatus').innerHTML =
-        '<strong style="color:#b42318">❌ Demographic details mismatch</strong>';
 
-      msg('Aadhaar details match नहीं हुईं।');
+      $('aadhaarVerificationStatus')
+        .innerHTML =
+          `
+            <strong style="color:#b42318">
+              ❌ Demographic details mismatch
+            </strong>
+          `;
+
 
       return;
     }
 
+
     aadhaarVerification = {
       status: 'matched',
-      provider: data.provider || 'authorized_api',
-      verifiedAt: new Date().toISOString(),
-      last4: aadhaar.slice(-4),
-      result: data.match_result || {}
+
+      provider:
+        data.provider ||
+        'authorized_api',
+
+      verifiedAt:
+        new Date()
+          .toISOString(),
+
+      last4:
+        aadhaar.slice(-4),
+
+      result:
+        data.match_result ||
+        {}
     };
 
-    $('aadhaarVerificationStatus').innerHTML =
-      '<strong style="color:#067647">✅ Aadhaar demographic details matched</strong>';
 
-    msg('Aadhaar details verified');
+    $('aadhaarVerificationStatus')
+      .innerHTML =
+        `
+          <strong style="color:#067647">
+            ✅ Aadhaar demographic details matched
+          </strong>
+        `;
+
 
   } catch (error) {
+
     console.error(error);
 
-    aadhaarVerification.status = 'unavailable';
 
-    $('aadhaarVerificationStatus').innerHTML =
-      `
-      <strong style="color:#b54708">
-        ⚠️ Verification API अभी connected नहीं है
-      </strong>
-      `;
+    aadhaarVerification.status =
+      'unavailable';
 
-    msg('Aadhaar verification API connection required');
+
+    $('aadhaarVerificationStatus')
+      .innerHTML =
+        `
+          <strong style="color:#b54708">
+            ⚠️ Authorized verification API अभी connected नहीं है
+          </strong>
+        `;
+
+
+    msg(
+      'Aadhaar API integration अभी बाकी है'
+    );
+
 
   } finally {
-    button.disabled = false;
-    button.textContent = 'Verify Aadhaar Details';
+
+    button.disabled =
+      false;
+
+
+    button.textContent =
+      'Verify Aadhaar Details';
   }
 }
 
 
 /* =========================================================
-   APPLICATION VALIDATION
+   FORM VALUES + VALIDATION
 ========================================================= */
 
 function getFormValues() {
   const result = {};
 
-  applicationFields.forEach(field => {
-    const element =
-      document.querySelector(`[name="${field.field_key}"]`);
 
-    if (!element) return;
+  applicationFields
+    .forEach(field => {
 
-    if (field.field_type === 'checkbox') {
-      result[field.field_key] = element.checked;
-    } else {
-      result[field.field_key] = element.value.trim();
-    }
-  });
+      const element =
+        document.querySelector(
+          `[name="${field.field_key}"]`
+        );
+
+
+      if (!element) return;
+
+
+      if (
+        field.field_type ===
+        'checkbox'
+      ) {
+
+        result[field.field_key] =
+          element.checked;
+
+      } else {
+
+        result[field.field_key] =
+          element.value.trim();
+
+      }
+    });
+
 
   return result;
 }
 
 
-function validateApplication(formValues) {
-  /*
-    Browser HTML required validation
-  */
-  if (!$('dynamicApplicationForm').checkValidity()) {
-    $('dynamicApplicationForm').reportValidity();
-    return false;
-  }
-
-  if (
-    formValues.mobile &&
-    !/^\d{10}$/.test(
-      formValues.mobile.replace(/\D/g, '')
-    )
-  ) {
-    showApplicationError('Mobile number 10 digit होना चाहिए।');
-    return false;
-  }
-
-  if (
-    formValues.pincode &&
-    !/^\d{6}$/.test(
-      formValues.pincode.replace(/\D/g, '')
-    )
-  ) {
-    showApplicationError('PIN Code 6 digit होना चाहिए।');
-    return false;
-  }
-
-  if (
-    isPANCorrection() &&
-    formValues.existing_pan &&
-    !/^[A-Za-z]{5}[0-9]{4}[A-Za-z]$/.test(
-      formValues.existing_pan
-    )
-  ) {
-    showApplicationError(
-      'Existing PAN format सही नहीं है। Example: ABCDE1234F'
-    );
-    return false;
-  }
-
-  /*
-    PAN Aadhaar verification mandatory
-  */
-  if (
-    isPANService(activeService) &&
-    aadhaarVerification.status !== 'matched'
-  ) {
-    showApplicationError(
-      'PAN application submit करने से पहले Aadhaar demographic verification आवश्यक है।'
-    );
-    return false;
-  }
-
-  /*
-    Mandatory documents
-  */
-  for (const doc of applicationDocuments) {
-    if (!isDocumentRequired(doc)) continue;
-
-    const input =
-      document.querySelector(
-        `[data-document-id="${doc.id}"]`
-      );
-
-    if (!input?.files?.length) {
-      showApplicationError(
-        `${doc.name} upload करना mandatory है।`
-      );
-
-      input?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-
-      return false;
-    }
-  }
-
-  return true;
-}
-
-
 function showApplicationError(text) {
-  const box = $('applicationError');
+  const box =
+    $('applicationError');
 
-  box.textContent = text;
-  box.style.display = 'block';
+
+  box.textContent =
+    text;
+
+
+  box.style.display =
+    'block';
+
 
   box.scrollIntoView({
     behavior: 'smooth',
@@ -1486,75 +2449,256 @@ function showApplicationError(text) {
 }
 
 
+function validateApplication(values) {
+  const form =
+    $('dynamicApplicationForm');
+
+
+  if (!form.checkValidity()) {
+
+    form.reportValidity();
+
+    return false;
+  }
+
+
+  if (
+    values.mobile &&
+    !/^\d{10}$/.test(
+      values.mobile
+        .replace(/\D/g, '')
+    )
+  ) {
+
+    showApplicationError(
+      'Mobile number 10 digit होना चाहिए।'
+    );
+
+    return false;
+  }
+
+
+  if (
+    values.pincode &&
+    !/^\d{6}$/.test(
+      values.pincode
+        .replace(/\D/g, '')
+    )
+  ) {
+
+    showApplicationError(
+      'PIN Code 6 digit होना चाहिए।'
+    );
+
+    return false;
+  }
+
+
+  if (
+    values.existing_pan &&
+    !/^[A-Za-z]{5}[0-9]{4}[A-Za-z]$/
+      .test(
+        values.existing_pan
+      )
+  ) {
+
+    showApplicationError(
+      'PAN format सही नहीं है। Example: ABCDE1234F'
+    );
+
+    return false;
+  }
+
+
+  const requiresVerification =
+    !!activeVariant
+      ?.requires_aadhaar_verification;
+
+
+  if (
+    requiresVerification &&
+    aadhaarVerification.status !==
+    'matched'
+  ) {
+
+    showApplicationError(
+      'Application submit करने से पहले Aadhaar verification आवश्यक है।'
+    );
+
+    return false;
+  }
+
+
+  for (
+    const doc of
+    applicationDocuments
+  ) {
+
+    if (!doc.required) {
+      continue;
+    }
+
+
+    const input =
+      document.querySelector(
+        `[data-document-id="${doc.id}"]`
+      );
+
+
+    if (!input?.files?.length) {
+
+      showApplicationError(
+        `${doc.name} upload करना mandatory है।`
+      );
+
+
+      input?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+
+
+      return false;
+    }
+  }
+
+
+  return true;
+}
+
+
 /* =========================================================
    SUBMIT APPLICATION
 ========================================================= */
 
-async function submitDynamicApplication(event) {
+async function submitDynamicApplication(
+  event
+) {
   event.preventDefault();
 
-  $('applicationError').style.display = 'none';
 
-  if (!user || !activeService) {
-    msg('Please login again');
+  $('applicationError')
+    .style.display =
+      'none';
+
+
+  if (
+    !user ||
+    !activeService
+  ) {
+
+    msg(
+      'Please login again'
+    );
+
     return;
   }
+
 
   const values =
     getFormValues();
 
-  if (!validateApplication(values)) {
+
+  if (
+    !validateApplication(values)
+  ) {
     return;
   }
+
 
   const submitBtn =
     $('submitDynamicApplication');
 
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Submitting...';
 
-  /*
-    Aadhaar raw number DB form_data में save नहीं करेंगे.
-    API verification के बाद केवल masked reference रखा जाएगा.
-  */
+  submitBtn.disabled =
+    true;
+
+
+  submitBtn.textContent =
+    'Submitting...';
+
+
   const safeFormData = {
     ...values
   };
 
-  if (safeFormData.aadhaar_number) {
-    delete safeFormData.aadhaar_number;
+
+  if (
+    safeFormData.aadhaar_number
+  ) {
+
+    delete safeFormData
+      .aadhaar_number;
+
 
     safeFormData.aadhaar_masked =
-      `XXXX-XXXX-${aadhaarVerification.last4 || 'XXXX'}`;
+      `XXXX-XXXX-${
+        aadhaarVerification.last4 ||
+        'XXXX'
+      }`;
   }
+
 
   const applicationId =
     crypto.randomUUID();
 
-  try {
-    /*
-      पहले draft application बनती है.
-      Documents successfully upload होने के बाद Pending होगी.
-    */
 
-    const { error: appError } =
+  try {
+    const amount =
+      activeVariant
+        ? Number(
+            activeVariant
+              .assistance_fee ||
+            0
+          )
+        : Number(
+            activeService.price ||
+            0
+          );
+
+
+    const mode =
+      activeVariant
+        ?.processing_mode ||
+      activeService
+        .processing_mode ||
+      'admin';
+
+
+    const {
+      error: appError
+    } =
       await sb
         .from('applications')
         .insert({
-          id: applicationId,
-          user_id: user.id,
-          service_id: activeService.id,
-          status: 'draft',
+
+          id:
+            applicationId,
+
+          user_id:
+            user.id,
+
+          service_id:
+            activeService.id,
+
+          service_variant_id:
+            activeVariant?.id ||
+            null,
+
+          status:
+            'draft',
+
           processing_mode:
-            activeService.processing_mode || 'admin',
+            mode,
 
           beneficiary_name:
-            values.full_name || null,
+            values.full_name ||
+            null,
 
-          form_data: safeFormData,
+          form_data:
+            safeFormData,
 
-          amount:
-            Number(activeService.price || 0),
+          amount,
 
           aadhaar_verification_status:
             aadhaarVerification.status,
@@ -1569,40 +2713,60 @@ async function submitDynamicApplication(event) {
             aadhaarVerification.last4,
 
           demographic_match_result:
-            aadhaarVerification.result || {}
+            aadhaarVerification.result ||
+            {}
         });
 
-    if (appError) throw appError;
+
+    if (appError) {
+      throw appError;
+    }
 
 
-    /*
-      SUPPORTING DOCUMENT UPLOAD
-    */
+    for (
+      const doc of
+      applicationDocuments
+    ) {
 
-    for (const doc of applicationDocuments) {
       const input =
         document.querySelector(
           `[data-document-id="${doc.id}"]`
         );
 
+
       const file =
         input?.files?.[0];
 
-      if (!file) continue;
+
+      if (!file) {
+        continue;
+      }
+
 
       const maxBytes =
-        Number(doc.max_size_mb || 5) *
+        Number(
+          doc.max_size_mb ||
+          1
+        ) *
         1024 *
         1024;
 
-      if (file.size > maxBytes) {
+
+      if (
+        file.size >
+        maxBytes
+      ) {
+
         throw new Error(
-          `${doc.name} ${doc.max_size_mb || 5} MB से बड़ा है।`
+          `${doc.name} file size maximum ${doc.max_size_mb || 1} MB होनी चाहिए।`
         );
       }
 
+
       const allowed =
-        Array.isArray(doc.allowed_types)
+        Array.isArray(
+          doc.allowed_types
+        )
           ? doc.allowed_types
           : [
               'application/pdf',
@@ -1610,90 +2774,153 @@ async function submitDynamicApplication(event) {
               'image/png'
             ];
 
+
       if (
         allowed.length &&
-        !allowed.includes(file.type)
+        !allowed.includes(
+          file.type
+        )
       ) {
+
         throw new Error(
           `${doc.name} का file type allowed नहीं है।`
         );
       }
 
+
       const path =
         `${user.id}/${applicationId}/${doc.id}/${Date.now()}-${safeFileName(file.name)}`;
 
-      const { error: uploadError } =
+
+      const {
+        error: uploadError
+      } =
         await sb.storage
-          .from('application-documents')
-          .upload(path, file, {
-            upsert: false,
-            contentType: file.type
-          });
+          .from(
+            'application-documents'
+          )
+          .upload(
+            path,
+            file,
+            {
+              upsert: false,
+              contentType:
+                file.type
+            }
+          );
 
-      if (uploadError) throw uploadError;
 
-      const { error: metadataError } =
+      if (uploadError) {
+        throw uploadError;
+      }
+
+
+      const {
+        error: metadataError
+      } =
         await sb
-          .from('application_documents')
+          .from(
+            'application_documents'
+          )
           .insert({
-            application_id: applicationId,
-            service_document_id: doc.id,
-            document_name: doc.name,
-            storage_path: path,
-            original_file_name: file.name,
-            mime_type: file.type,
-            file_size: file.size,
-            uploaded_by: user.id
+
+            application_id:
+              applicationId,
+
+            service_document_id:
+              doc.id,
+
+            document_name:
+              doc.name,
+
+            storage_path:
+              path,
+
+            original_file_name:
+              file.name,
+
+            mime_type:
+              file.type,
+
+            file_size:
+              file.size,
+
+            uploaded_by:
+              user.id
           });
 
-      if (metadataError) throw metadataError;
+
+      if (metadataError) {
+        throw metadataError;
+      }
     }
 
 
-    /*
-      FINAL SUBMIT
-    */
-
-    const { error: finalError } =
+    const {
+      error: finalError
+    } =
       await sb
         .from('applications')
         .update({
           status: 'pending'
         })
-        .eq('id', applicationId);
+        .eq(
+          'id',
+          applicationId
+        );
 
-    if (finalError) throw finalError;
+
+    if (finalError) {
+      throw finalError;
+    }
 
 
-    msg('Application submitted successfully');
+    msg(
+      'Application submitted successfully'
+    );
+
 
     closeApplicationForm();
 
+
     await loadCustomerActivity();
 
+
   } catch (error) {
+
     console.error(error);
+
 
     showApplicationError(
       error.message ||
       'Application submit नहीं हो सकी।'
     );
 
+
   } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Submit Application';
+
+    submitBtn.disabled =
+      false;
+
+
+    submitBtn.textContent =
+      'Submit Application';
   }
 }
 
 
 /* =========================================================
-   CUSTOMER APPLICATIONS + LEGACY ORDERS
+   CUSTOMER APPLICATIONS
 ========================================================= */
 
 async function loadCustomerActivity() {
   if (!user) return;
 
-  const [applicationsResult, legacyResult] =
+
+  const [
+    applicationsResult,
+    legacyResult
+  ] =
     await Promise.all([
 
       sb
@@ -1706,7 +2933,9 @@ async function loadCustomerActivity() {
           amount,
           submitted_at,
           external_reference_no,
+          service_variant_id,
           services(name),
+          service_variants(name,variant_key),
           application_outputs(
             id,
             output_type,
@@ -1716,9 +2945,21 @@ async function loadCustomerActivity() {
             reference_no
           )
         `)
-        .eq('user_id', user.id)
-        .neq('status', 'draft')
-        .order('submitted_at', { ascending: false }),
+        .eq(
+          'user_id',
+          user.id
+        )
+        .neq(
+          'status',
+          'draft'
+        )
+        .order(
+          'submitted_at',
+          {
+            ascending: false
+          }
+        ),
+
 
       sb
         .from('orders')
@@ -1730,62 +2971,112 @@ async function loadCustomerActivity() {
           created_at,
           services(name)
         `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+        .eq(
+          'user_id',
+          user.id
+        )
+        .order(
+          'created_at',
+          {
+            ascending: false
+          }
+        )
+
     ]);
 
 
-  if (applicationsResult.error) {
-    console.error(applicationsResult.error);
+  if (
+    applicationsResult.error
+  ) {
+
+    console.error(
+      applicationsResult.error
+    );
   }
 
-  if (legacyResult.error) {
-    console.error(legacyResult.error);
+
+  if (
+    legacyResult.error
+  ) {
+
+    console.error(
+      legacyResult.error
+    );
   }
 
 
   const applications =
-    applicationsResult.data || [];
+    applicationsResult.data ||
+    [];
+
 
   const legacy =
-    legacyResult.data || [];
+    legacyResult.data ||
+    [];
+
 
   const total =
     applications.length +
     legacy.length;
 
+
   const pending =
-    applications.filter(a =>
-      ['pending', 'processing', 'submitted']
-        .includes(a.status)
+    applications.filter(
+      application =>
+        [
+          'pending',
+          'processing',
+          'submitted'
+        ].includes(
+          application.status
+        )
     ).length +
 
-    legacy.filter(o =>
-      ['pending', 'processing']
-        .includes(o.status)
+    legacy.filter(
+      order =>
+        [
+          'pending',
+          'processing'
+        ].includes(
+          order.status
+        )
     ).length;
 
+
   const completed =
-    applications.filter(a =>
-      a.status === 'completed'
+    applications.filter(
+      application =>
+        application.status ===
+        'completed'
     ).length +
 
-    legacy.filter(o =>
-      o.status === 'completed'
+    legacy.filter(
+      order =>
+        order.status ===
+        'completed'
     ).length;
 
 
   if ($('orderCount')) {
-    $('orderCount').textContent = total;
+    $('orderCount')
+      .textContent =
+        total;
   }
+
 
   if ($('pendingCount')) {
-    $('pendingCount').textContent = pending;
+    $('pendingCount')
+      .textContent =
+        pending;
   }
 
+
   if ($('doneCount')) {
-    $('doneCount').textContent = completed;
+    $('doneCount')
+      .textContent =
+        completed;
   }
+
 
   renderCustomerApplications(
     applications,
@@ -1794,146 +3085,265 @@ async function loadCustomerActivity() {
 }
 
 
-function renderCustomerApplications(applications, legacy) {
-  const list = $('ordersList');
+/* =========================================================
+   CUSTOMER APPLICATION LIST
+========================================================= */
+
+function renderCustomerApplications(
+  applications,
+  legacy
+) {
+  const list =
+    $('ordersList');
+
 
   if (!list) return;
 
-  if (!applications.length && !legacy.length) {
+
+  if (
+    !applications.length &&
+    !legacy.length
+  ) {
+
     list.innerHTML =
       '<p>अभी कोई आवेदन नहीं है।</p>';
 
     return;
   }
 
-  const newApplicationHtml =
-    applications.map(app => {
 
-      const outputs =
-        app.application_outputs || [];
+  const newHtml =
+    applications
+      .map(application => {
 
-      return `
+        const outputs =
+          application
+            .application_outputs ||
+          [];
+
+
+        return `
+
+          <div class="service-row">
+
+            <div>
+
+              <strong>
+                ${esc(
+                  application
+                    .services
+                    ?.name ||
+                  'Application'
+                )}
+              </strong>
+
+
+              ${
+                application
+                  .service_variants
+                  ?.name
+                  ? `
+                    <small>
+                      ${esc(
+                        application
+                          .service_variants
+                          .name
+                      )}
+                    </small>
+                  `
+                  : ''
+              }
+
+
+              <small>
+                Application ID:
+                ${esc(
+                  application
+                    .application_no ||
+                  application.id
+                )}
+              </small>
+
+
+              ${
+                application
+                  .beneficiary_name
+                  ? `
+                    <small>
+                      Beneficiary:
+                      ${esc(
+                        application
+                          .beneficiary_name
+                      )}
+                    </small>
+                  `
+                  : ''
+              }
+
+
+              ${
+                Number(
+                  application.amount ||
+                  0
+                ) > 0
+                  ? `
+                    <small>
+                      Amount:
+                      ${money(
+                        application.amount
+                      )}
+                    </small>
+                  `
+                  : ''
+              }
+
+
+              ${
+                application
+                  .external_reference_no
+                  ? `
+                    <small>
+                      Reference:
+                      ${esc(
+                        application
+                          .external_reference_no
+                      )}
+                    </small>
+                  `
+                  : ''
+              }
+
+
+              ${
+                outputs
+                  .map(output => `
+
+                    <button
+                      type="button"
+                      class="btn secondary"
+                      style="margin-top:7px"
+                      onclick='window.downloadApplicationOutput(${JSON.stringify(output)})'
+                    >
+                      ⬇
+                      ${esc(
+                        output.title ||
+                        'Download Receipt'
+                      )}
+                    </button>
+
+                  `)
+                  .join('')
+              }
+
+            </div>
+
+
+            <span
+              class="status ${esc(application.status)}"
+            >
+              ${esc(application.status)}
+            </span>
+
+          </div>
+        `;
+
+      })
+      .join('');
+
+
+  const legacyHtml =
+    legacy
+      .map(order => `
+
         <div class="service-row">
 
           <div>
 
             <strong>
-              ${esc(app.services?.name || 'Application')}
+              ${esc(
+                order.services
+                  ?.name ||
+                'Service'
+              )}
             </strong>
 
+
             <small>
-              Application ID:
-              ${esc(app.application_no || app.id)}
+              ${esc(
+                new Date(
+                  order.created_at
+                )
+                  .toLocaleString(
+                    'en-IN'
+                  )
+              )}
             </small>
 
+
             ${
-              app.beneficiary_name
+              order.note
                 ? `
                   <small>
-                    Beneficiary:
-                    ${esc(app.beneficiary_name)}
+                    ${esc(order.note)}
                   </small>
                 `
                 : ''
             }
 
+
             ${
-              Number(app.amount || 0) > 0
+              Number(
+                order.amount ||
+                0
+              ) > 0
                 ? `
                   <small>
                     Amount:
-                    ${money(app.amount)}
+                    ${money(
+                      order.amount
+                    )}
                   </small>
                 `
                 : ''
-            }
-
-            ${
-              app.external_reference_no
-                ? `
-                  <small>
-                    Reference:
-                    ${esc(app.external_reference_no)}
-                  </small>
-                `
-                : ''
-            }
-
-            ${
-              outputs.map(output => `
-                <button
-                  type="button"
-                  class="btn secondary"
-                  style="margin-top:7px"
-                  onclick='window.downloadApplicationOutput(${JSON.stringify(output)})'
-                >
-                  ⬇ ${esc(output.title || 'Download Receipt')}
-                </button>
-              `).join('')
             }
 
           </div>
 
-          <span class="status ${esc(app.status)}">
-            ${esc(app.status)}
+
+          <span
+            class="status ${esc(order.status || 'pending')}"
+          >
+            ${esc(
+              order.status ||
+              'pending'
+            )}
           </span>
 
         </div>
-      `;
-    }).join('');
 
-
-  const legacyHtml =
-    legacy.map(order => `
-      <div class="service-row">
-
-        <div>
-
-          <strong>
-            ${esc(order.services?.name || 'Service')}
-          </strong>
-
-          <small>
-            ${esc(new Date(order.created_at).toLocaleString('en-IN'))}
-          </small>
-
-          ${
-            order.note
-              ? `<small>${esc(order.note)}</small>`
-              : ''
-          }
-
-          ${
-            Number(order.amount || 0) > 0
-              ? `<small>Amount: ${money(order.amount)}</small>`
-              : ''
-          }
-
-        </div>
-
-        <span class="status ${esc(order.status || 'pending')}">
-          ${esc(order.status || 'pending')}
-        </span>
-
-      </div>
-    `).join('');
+      `)
+      .join('');
 
 
   list.innerHTML =
-    newApplicationHtml +
+    newHtml +
     legacyHtml;
 }
 
 
 /* =========================================================
-   RECEIPT / OUTPUT DOWNLOAD
+   OUTPUT DOWNLOAD
 ========================================================= */
 
 window.downloadApplicationOutput =
   async output => {
 
     try {
-      if (output.external_url) {
+
+      if (
+        output.external_url
+      ) {
+
         window.open(
           output.external_url,
           '_blank',
@@ -1943,20 +3353,37 @@ window.downloadApplicationOutput =
         return;
       }
 
-      if (!output.storage_path) {
-        msg('Document file available नहीं है।');
+
+      if (
+        !output.storage_path
+      ) {
+
+        msg(
+          'Document file available नहीं है।'
+        );
+
         return;
       }
 
-      const { data, error } =
+
+      const {
+        data,
+        error
+      } =
         await sb.storage
-          .from('application-outputs')
+          .from(
+            'application-outputs'
+          )
           .createSignedUrl(
             output.storage_path,
             60
           );
 
-      if (error) throw error;
+
+      if (error) {
+        throw error;
+      }
+
 
       window.open(
         data.signedUrl,
@@ -1964,7 +3391,9 @@ window.downloadApplicationOutput =
         'noopener'
       );
 
+
     } catch (error) {
+
       msg(error.message);
     }
   };
