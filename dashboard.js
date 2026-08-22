@@ -3792,30 +3792,113 @@ async function submitDynamicApplication() {
       );
     }
 
-    const {
-      error: finalError
-    } =
-      await sb
-        .from('applications')
-        .update({
-          status: 'pending'
-        })
-        .eq(
-          'id',
-          applicationId
-        );
+/* =========================================================
+   WALLET PAYMENT + FINAL SUBMIT
+========================================================= */
 
-    if (finalError) {
-      throw finalError;
+const {
+  data: paymentResult,
+  error: paymentError
+} =
+  await sb.rpc(
+    'pay_application_from_wallet',
+    {
+      p_application_id:
+        applicationId
     }
+  );
 
-    msg(
-      'Application submitted successfully'
+
+if (paymentError) {
+
+  const paymentMessage =
+    paymentError.message || '';
+
+
+  if (
+    paymentMessage.includes(
+      'INSUFFICIENT_BALANCE'
+    )
+  ) {
+
+    await loadCustomerWallet();
+
+    showApplicationError(
+      `Wallet balance कम है। इस service के लिए ${money(amount)} चाहिए।`
     );
 
-    closeApplicationForm();
+    msg(
+      'Insufficient wallet balance'
+    );
 
-    await loadCustomerActivity();
+    setTimeout(
+      () => {
+
+        if (
+          typeof openCustomerWalletRecharge ===
+          'function'
+        ) {
+          openCustomerWalletRecharge();
+        }
+
+      },
+      500
+    );
+
+    return;
+  }
+
+
+  if (
+    paymentMessage.includes(
+      'WALLET_NOT_FOUND'
+    )
+  ) {
+    throw new Error(
+      'Wallet account नहीं मिला।'
+    );
+  }
+
+
+  if (
+    paymentMessage.includes(
+      'APPLICATION_ALREADY_PROCESSED'
+    )
+  ) {
+    throw new Error(
+      'यह application पहले ही submit हो चुकी है।'
+    );
+  }
+
+
+  throw paymentError;
+}
+
+
+/* Wallet refresh after successful payment */
+await loadCustomerWallet();
+
+
+if (
+  paymentResult?.paid
+) {
+
+  msg(
+    `Application submitted • ${money(paymentResult.amount)} wallet से paid`
+  );
+
+} else {
+
+  msg(
+    'Application submitted successfully'
+  );
+
+}
+
+
+closeApplicationForm();
+
+await loadCustomerActivity();
 
   } catch (error) {
     console.error(error);
