@@ -31,6 +31,28 @@ const usersWrap = $('usersWrap');
 const refreshBtn = $('refreshBtn');
 const logoutBtn = $('logoutBtn');
 const addServiceBtn = $('addServiceBtn');
+/* WALLET / PAYMENT DOM */
+
+const paymentUpiId = $('paymentUpiId');
+const paymentPayeeName = $('paymentPayeeName');
+const paymentMinimumAmount = $('paymentMinimumAmount');
+const paymentMethod = $('paymentMethod');
+
+const paymentQrFile = $('paymentQrFile');
+const paymentQrPreviewWrap = $('paymentQrPreviewWrap');
+const paymentQrPreview = $('paymentQrPreview');
+
+const paymentAdminFallback = $('paymentAdminFallback');
+const paymentAutoVerification = $('paymentAutoVerification');
+
+const savePaymentSettings = $('savePaymentSettings');
+const paymentMinSummary = $('paymentMinSummary');
+const paymentVerificationSummary = $('paymentVerificationSummary');
+
+const walletTopupsWrap = $('walletTopupsWrap');
+const refreshWalletTopups = $('refreshWalletTopups');
+
+const serviceChargesWrap = $('serviceChargesWrap');
 
 
 /* APPLICATION MODAL */
@@ -117,6 +139,8 @@ let currentOrders = [];
 let services = [];
 let users = [];
 
+let paymentSettings = null;
+let walletTopups = [];
 
 /* =========================================================
    HELPERS
@@ -2037,4 +2061,626 @@ window.addEventListener(
    START
 ========================================================= */
 
+/* =========================================================
+   WALLET / PAYMENT MODULE
+========================================================= */
+
+async function loadPaymentSettings() {
+  const { data, error } = await sb
+    .from('payment_settings')
+    .select('id,setting_key,setting_value,active,updated_at')
+    .eq('setting_key', 'wallet_topup')
+    .maybeSingle();
+
+  if (error) throw error;
+
+  paymentSettings = data || null;
+
+  const settings = paymentSettings?.setting_value || {};
+
+  if (paymentUpiId) {
+    paymentUpiId.value = settings.upi_id || '';
+  }
+
+  if (paymentPayeeName) {
+    paymentPayeeName.value =
+      settings.payee_name || 'SUNIL MULTI HUB';
+  }
+
+  if (paymentMinimumAmount) {
+    paymentMinimumAmount.value =
+      Number(settings.minimum_amount || 100);
+  }
+
+  if (paymentMethod) {
+    paymentMethod.value =
+      settings.payment_method || 'UPI_QR';
+  }
+
+  if (paymentAdminFallback) {
+    paymentAdminFallback.checked =
+      settings.admin_verification_fallback !== false;
+  }
+
+  if (paymentAutoVerification) {
+    paymentAutoVerification.checked =
+      settings.auto_verification === true;
+  }
+
+  if (paymentMinSummary) {
+    paymentMinSummary.textContent =
+      money(settings.minimum_amount || 100);
+  }
+
+  if (paymentVerificationSummary) {
+    paymentVerificationSummary.textContent =
+      settings.auto_verification
+        ? 'Automatic'
+        : 'Manual';
+  }
+
+  await showStoredPaymentQr(
+    settings.qr_storage_path || ''
+  );
+}
+
+
+async function showStoredPaymentQr(path) {
+  if (!paymentQrPreviewWrap || !paymentQrPreview) {
+    return;
+  }
+
+  paymentQrPreviewWrap.classList.remove('show');
+  paymentQrPreview.removeAttribute('src');
+
+  if (!path) return;
+
+  const { data, error } = await sb.storage
+    .from('payment-qr')
+    .createSignedUrl(path, 300);
+
+  if (error) {
+    console.warn(error.message);
+    return;
+  }
+
+  paymentQrPreview.src = data.signedUrl;
+  paymentQrPreviewWrap.classList.add('show');
+}
+
+
+function previewSelectedPaymentQr() {
+  const file = paymentQrFile?.files?.[0];
+
+  if (!file) return;
+
+  const allowed = [
+    'image/jpeg',
+    'image/png',
+    'image/webp'
+  ];
+
+  if (!allowed.includes(file.type)) {
+    paymentQrFile.value = '';
+    msg('QR के लिए JPG, PNG या WEBP चुनें');
+    return;
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    paymentQrFile.value = '';
+    msg('QR image maximum 2 MB होनी चाहिए');
+    return;
+  }
+
+  const url = URL.createObjectURL(file);
+
+  paymentQrPreview.src = url;
+  paymentQrPreviewWrap.classList.add('show');
+
+  paymentQrPreview.onload = () => {
+    URL.revokeObjectURL(url);
+  };
+}
+
+
+async function saveWalletPaymentSettings() {
+  const minimumAmount =
+    Number(paymentMinimumAmount?.value || 100);
+
+  if (
+    !Number.isFinite(minimumAmount) ||
+    minimumAmount < 100
+  ) {
+    msg('Minimum recharge ₹100 या अधिक रखें');
+    return;
+  }
+
+  savePaymentSettings.disabled = true;
+  savePaymentSettings.textContent = 'Saving...';
+
+  try {
+    const oldSettings =
+      paymentSettings?.setting_value || {};
+
+    let qrPath =
+      oldSettings.qr_storage_path || '';
+
+    const file =
+      paymentQrFile?.files?.[0];
+
+    if (file) {
+      const cleanName = safeFileName(file.name);
+
+      const extension =
+        cleanName.includes('.')
+          ? cleanName.split('.').pop().toLowerCase()
+          : 'png';
+
+      const newPath =
+        `wallet/upi-qr-${Date.now()}.${extension}`;
+
+      const { error: uploadError } =
+        await sb.storage
+          .from('payment-qr')
+          .upload(
+            newPath,
+            file,
+            {
+              upsert: false,
+              contentType: file.type
+            }
+          );
+
+      if (uploadError) throw uploadError;
+
+      const oldPath = qrPath;
+
+      qrPath = newPath;
+
+      if (oldPath) {
+        await sb.storage
+          .from('payment-qr')
+          .remove([oldPath]);
+      }
+    }
+
+    const settings = {
+      ...oldSettings,
+
+      minimum_amount:
+        minimumAmount,
+
+      currency:
+        'INR',
+
+      payment_method:
+        paymentMethod?.value || 'UPI_QR',
+
+      upi_id:
+        paymentUpiId?.value.trim() || '',
+
+      payee_name:
+        paymentPayeeName?.value.trim() ||
+        'SUNIL MULTI HUB',
+
+      qr_storage_path:
+        qrPath,
+
+      auto_verification:
+        oldSettings.auto_verification === true,
+
+      admin_verification_fallback:
+        paymentAdminFallback?.checked !== false
+    };
+
+    const { data, error } = await sb
+      .from('payment_settings')
+      .upsert(
+        {
+          setting_key: 'wallet_topup',
+          setting_value: settings,
+          active: true
+        },
+        {
+          onConflict: 'setting_key'
+        }
+      )
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    paymentSettings = data;
+
+    if (paymentQrFile) {
+      paymentQrFile.value = '';
+    }
+
+    await loadPaymentSettings();
+
+    msg('Payment settings saved');
+
+  } catch (error) {
+    console.error(error);
+    msg(error.message);
+
+  } finally {
+    savePaymentSettings.disabled = false;
+    savePaymentSettings.textContent =
+      'Save Payment Settings';
+  }
+}
+
+
+async function loadWalletTopups() {
+  const { data, error } = await sb
+    .from('wallet_topups')
+    .select(`
+      id,
+      user_id,
+      amount,
+      utr,
+      status,
+      verification_mode,
+      rejection_reason,
+      created_at
+    `)
+    .order('created_at', {
+      ascending: false
+    });
+
+  if (error) throw error;
+
+  walletTopups = data || [];
+
+  renderWalletTopups();
+}
+
+
+function topupCustomerName(topup) {
+  const customer =
+    users.find(
+      item =>
+        String(item.id) ===
+        String(topup.user_id)
+    );
+
+  return (
+    customer?.full_name ||
+    customer?.email ||
+    'Customer'
+  );
+}
+
+
+function renderWalletTopups() {
+  if (!walletTopupsWrap) return;
+
+  if (!walletTopups.length) {
+    walletTopupsWrap.innerHTML =
+      '<p>No wallet recharge requests.</p>';
+
+    return;
+  }
+
+  walletTopupsWrap.innerHTML =
+    walletTopups.map(topup => {
+
+      const canApprove = [
+        'submitted',
+        'verifying',
+        'verified'
+      ].includes(topup.status);
+
+      const canReject = [
+        'created',
+        'payment_pending',
+        'submitted',
+        'verifying',
+        'verified'
+      ].includes(topup.status);
+
+      return `
+        <article class="wallet-topup-card">
+
+          <div class="wallet-topup-head">
+
+            <div>
+
+              <strong>
+                ${esc(topupCustomerName(topup))}
+              </strong>
+
+              <div class="wallet-topup-meta">
+                ${esc(formatDate(topup.created_at))}
+              </div>
+
+              <div class="wallet-topup-meta">
+                UTR:
+                <strong>
+                  ${esc(topup.utr || 'Not submitted')}
+                </strong>
+              </div>
+
+            </div>
+
+            <div>
+
+              <div class="wallet-topup-amount">
+                ${money(topup.amount)}
+              </div>
+
+              <span class="status ${esc(topup.status)}">
+                ${esc(prettyKey(topup.status))}
+              </span>
+
+            </div>
+
+          </div>
+
+          <div class="row-actions" style="margin-top:14px">
+
+            ${
+              canApprove
+                ? `
+                  <button
+                    type="button"
+                    class="btn primary approve-wallet-topup"
+                    data-id="${esc(topup.id)}">
+
+                    Approve & Credit
+
+                  </button>
+                `
+                : ''
+            }
+
+            ${
+              canReject
+                ? `
+                  <button
+                    type="button"
+                    class="btn secondary reject-wallet-topup"
+                    data-id="${esc(topup.id)}">
+
+                    Reject
+
+                  </button>
+                `
+                : ''
+            }
+
+          </div>
+
+        </article>
+      `;
+    }).join('');
+
+  document
+    .querySelectorAll('.approve-wallet-topup')
+    .forEach(button => {
+
+      button.onclick =
+        () => approveWalletTopup(
+          button.dataset.id
+        );
+    });
+
+  document
+    .querySelectorAll('.reject-wallet-topup')
+    .forEach(button => {
+
+      button.onclick =
+        () => rejectWalletTopup(
+          button.dataset.id
+        );
+    });
+}
+
+
+async function approveWalletTopup(id) {
+  const topup =
+    walletTopups.find(
+      item =>
+        String(item.id) === String(id)
+    );
+
+  if (!topup) return;
+
+  if (!topup.utr) {
+    msg('UTR required');
+    return;
+  }
+
+  if (
+    !confirm(
+      `${money(topup.amount)} wallet में credit करें?`
+    )
+  ) {
+    return;
+  }
+
+  try {
+    const { data, error } = await sb.rpc(
+      'credit_verified_wallet_topup',
+      {
+        p_topup_id:
+          id,
+
+        p_verification_mode:
+          'manual',
+
+        p_provider_reference:
+          null
+      }
+    );
+
+    if (error) throw error;
+
+    msg(
+      data?.already_credited
+        ? 'Already credited'
+        : 'Wallet credited successfully'
+    );
+
+    await loadWalletTopups();
+
+  } catch (error) {
+    console.error(error);
+    msg(error.message);
+  }
+}
+
+
+async function rejectWalletTopup(id) {
+  const reason = prompt(
+    'Reject reason:',
+    'Payment could not be verified'
+  );
+
+  if (reason === null) return;
+
+  const { error } = await sb
+    .from('wallet_topups')
+    .update({
+      status: 'rejected',
+      verification_mode: 'manual',
+      rejection_reason:
+        reason.trim() ||
+        'Payment could not be verified'
+    })
+    .eq('id', id)
+    .neq('status', 'credited');
+
+  if (error) {
+    msg(error.message);
+    return;
+  }
+
+  msg('Recharge rejected');
+
+  await loadWalletTopups();
+}
+
+
+function renderServiceCharges() {
+  if (!serviceChargesWrap) return;
+
+  serviceChargesWrap.innerHTML =
+    services.map(service => `
+      <div class="service-charge-row">
+
+        <div>
+
+          <strong>
+            ${esc(service.icon || '🧩')}
+            ${esc(service.name)}
+          </strong>
+
+          <small>
+            ${service.active ? 'Active' : 'Inactive'}
+            •
+            ${esc(service.processing_mode || 'admin')}
+          </small>
+
+        </div>
+
+        <div class="row-actions">
+
+          <strong>
+            ${money(service.price)}
+          </strong>
+
+          <button
+            type="button"
+            class="btn secondary service-charge-edit"
+            data-id="${esc(service.id)}">
+
+            Edit
+
+          </button>
+
+        </div>
+
+      </div>
+    `).join('');
+
+  document
+    .querySelectorAll('.service-charge-edit')
+    .forEach(button => {
+
+      button.onclick =
+        () => openServiceEditor(
+          button.dataset.id
+        );
+    });
+}
+
+
+/* =========================================================
+   CONNECT WALLET MODULE TO EXISTING ADMIN
+========================================================= */
+
+if (savePaymentSettings) {
+  savePaymentSettings.onclick =
+    saveWalletPaymentSettings;
+}
+
+if (paymentQrFile) {
+  paymentQrFile.onchange =
+    previewSelectedPaymentQr;
+}
+
+if (refreshWalletTopups) {
+  refreshWalletTopups.onclick =
+    async () => {
+      await loadWalletTopups();
+      msg('Wallet recharge requests refreshed');
+    };
+}
+
+
+/*
+  Existing loadAll() के बाद wallet data load करें।
+  boot complete होने के बाद यह initial data लाएगा।
+*/
+
+window.addEventListener(
+  'load',
+  async () => {
+
+    try {
+
+      const {
+        data: { session }
+      } = await sb.auth.getSession();
+
+      if (!session) return;
+
+      const {
+        data: profile
+      } = await sb
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+      if (profile?.role !== 'admin') {
+        return;
+      }
+
+      await loadPaymentSettings();
+      await loadWalletTopups();
+
+      renderServiceCharges();
+
+    } catch (error) {
+
+      console.error(
+        'Wallet module:',
+        error
+      );
+    }
+  }
+);
 boot();
