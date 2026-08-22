@@ -1,41 +1,88 @@
-const toast = document.getElementById('toast');
+/* =========================================================
+   SUNIL MULTI HUB
+   CUSTOMER PORTAL + DYNAMIC APPLICATION SYSTEM
+========================================================= */
 
-let tm;
+const $ = id => document.getElementById(id);
+
+const toast = $('toast');
+
+let toastTimer = null;
 let user = null;
 let services = [];
 let activeService = null;
 
+let applicationFields = [];
+let applicationDocuments = [];
 
-/* =========================================
+let aadhaarVerification = {
+  status: 'not_checked',
+  provider: null,
+  verifiedAt: null,
+  last4: null,
+  result: {}
+};
+
+
+/* =========================================================
    HELPERS
-========================================= */
+========================================================= */
 
 function msg(text) {
-  if (!toast) return;
+  if (!toast) {
+    console.log(text);
+    return;
+  }
 
   toast.textContent = text;
   toast.classList.add('show');
 
-  clearTimeout(tm);
+  clearTimeout(toastTimer);
 
-  tm = setTimeout(() => {
+  toastTimer = setTimeout(() => {
     toast.classList.remove('show');
-  }, 2500);
+  }, 2800);
 }
 
+
 function esc(value = '') {
-  return String(value).replace(/[&<>"']/g, char => ({
+  return String(value).replace(/[&<>"']/g, c => ({
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
     '"': '&quot;',
     "'": '&#39;'
-  })[char]);
+  })[c]);
 }
+
 
 function money(value) {
   return '₹' + Number(value || 0).toLocaleString('en-IN');
 }
+
+
+function normalizeCategory(value) {
+  const v = String(value || '').trim().toLowerCase();
+
+  if (v === 'popular') return 'Popular';
+  if (v === 'government') return 'Government';
+  if (v === 'print') return 'Print';
+
+  return 'Other';
+}
+
+
+function safeFileName(name = 'file') {
+  return String(name)
+    .replace(/[^a-zA-Z0-9._-]/g, '_')
+    .slice(-100);
+}
+
+
+function isPANService(service) {
+  return String(service?.name || '').toLowerCase().includes('pan');
+}
+
 
 function makeClient() {
   const cfg = window.SMH_CONFIG || {};
@@ -55,61 +102,73 @@ function makeClient() {
   });
 }
 
+
 const sb = makeClient();
 
 
-/* =========================================
+/* =========================================================
    BOOT
-========================================= */
+========================================================= */
 
 async function boot() {
-  createServiceModal();
+  createServiceDetailsModal();
+  createApplicationModal();
 
-  const {
-    data: { session },
-    error
-  } = await sb.auth.getSession();
+  try {
+    const {
+      data: { session },
+      error
+    } = await sb.auth.getSession();
 
-  if (error) {
-    msg(error.message);
-    return;
+    if (error) throw error;
+
+    if (!session) {
+      location.replace('auth.html');
+      return;
+    }
+
+    user = session.user;
+
+    if ($('who')) {
+      $('who').textContent = user.email || 'Customer';
+    }
+
+    setupBasicActions();
+
+    await loadServices();
+    await loadCustomerActivity();
+
+  } catch (error) {
+    console.error(error);
+    msg(error.message || 'Portal loading failed');
   }
-
-  if (!session) {
-    location.replace('auth.html');
-    return;
-  }
-
-  user = session.user;
-
-  const who = document.getElementById('who');
-
-  if (who) {
-    who.textContent = user.email || 'Customer';
-  }
-
-  await loadServices();
-  await loadOrders();
 }
 
 
-/* =========================================
-   LOGOUT
-========================================= */
+function setupBasicActions() {
+  if ($('logoutBtn')) {
+    $('logoutBtn').onclick = async () => {
+      await sb.auth.signOut();
+      location.href = 'auth.html';
+    };
+  }
 
-const logoutBtn = document.getElementById('logoutBtn');
+  /*
+    पुराने generic form को अब service-specific form replace करेगा.
+  */
+  if ($('orderForm')) {
+    $('orderForm').onsubmit = event => {
+      event.preventDefault();
 
-if (logoutBtn) {
-  logoutBtn.onclick = async () => {
-    await sb.auth.signOut();
-    location.href = 'auth.html';
-  };
+      msg('ऊपर service चुनकर Apply Now दबाएँ।');
+    };
+  }
 }
 
 
-/* =========================================
-   LOAD SERVICES
-========================================= */
+/* =========================================================
+   SERVICES
+========================================================= */
 
 async function loadServices() {
   const { data, error } = await sb
@@ -124,102 +183,60 @@ async function loadServices() {
       category,
       icon,
       required_documents,
-      instructions
+      instructions,
+      processing_mode
     `)
     .eq('active', true)
     .order('sort_order', { ascending: true });
 
-  if (error) {
-    msg(error.message);
-    return;
-  }
+  if (error) throw error;
 
   services = data || [];
 
-  const serviceCount = document.getElementById('serviceCount');
-
-  if (serviceCount) {
-    serviceCount.textContent = services.length;
-  }
-
-  const select = document.getElementById('serviceSelect');
-
-  if (select) {
-    select.innerHTML =
-      '<option value="">Select service</option>' +
-      services.map(service => {
-        const price = Number(service.price || 0);
-
-        return `
-          <option value="${esc(service.id)}">
-            ${esc(service.name)}
-            ${price > 0 ? ' — ' + money(price) : ''}
-          </option>
-        `;
-      }).join('');
+  if ($('serviceCount')) {
+    $('serviceCount').textContent = services.length;
   }
 
   renderServiceSections();
 
-  const requestedService = localStorage.getItem('smh-selected-service');
+  const requested =
+    localStorage.getItem('smh-selected-service');
 
-  if (requestedService) {
+  if (requested) {
+    localStorage.removeItem('smh-selected-service');
+
     const match = services.find(
-      s =>
-        String(s.name).trim().toLowerCase() ===
-        requestedService.trim().toLowerCase()
+      service =>
+        String(service.name).trim().toLowerCase() ===
+        requested.trim().toLowerCase()
     );
 
     if (match) {
-      localStorage.removeItem('smh-selected-service');
       openServiceDetails(match.id);
     }
   }
 }
 
 
-/* =========================================
-   CATEGORY
-========================================= */
-
-function normalCategory(value) {
-  const category = String(value || 'Other').trim().toLowerCase();
-
-  if (category === 'popular') return 'Popular';
-  if (category === 'government') return 'Government';
-  if (category === 'print') return 'Print';
-
-  return 'Other';
-}
-
-function getGridByHeading(headingText) {
-  const sections = [...document.querySelectorAll('.portal-section')];
+function getGridByHeading(text) {
+  const sections =
+    [...document.querySelectorAll('.portal-section')];
 
   const section = sections.find(sec => {
     const heading = sec.querySelector('h2');
-
-    return heading && heading.textContent.includes(headingText);
+    return heading && heading.textContent.includes(text);
   });
 
   return section?.querySelector('.portal-service-grid');
 }
 
 
-/* =========================================
-   SERVICE CARD
-========================================= */
-
 function serviceCard(service) {
-  const price = Number(service.price || 0);
-
-  const description =
-    service.description || 'Online Service';
-
   return `
     <button
       type="button"
       class="portal-service-card"
-      onclick="openServiceDetails('${esc(service.id)}')"
+      onclick="window.openServiceDetails('${esc(service.id)}')"
     >
       <span class="portal-service-icon">
         ${esc(service.icon || '🧩')}
@@ -230,19 +247,19 @@ function serviceCard(service) {
       </strong>
 
       <small>
-        ${esc(description)}
+        ${esc(service.description || 'Online Service')}
       </small>
 
       ${
-        price > 0
+        Number(service.price || 0) > 0
           ? `
             <span style="
               margin-top:7px;
-              font-weight:800;
-              color:#2855cc;
               font-size:13px;
+              font-weight:800;
+              color:#2855cc
             ">
-              ${money(price)}
+              ${money(service.price)}
             </span>
           `
           : ''
@@ -252,125 +269,91 @@ function serviceCard(service) {
 }
 
 
-/* =========================================
-   TOOL CARDS
-========================================= */
-
-function printToolCards() {
-  return `
-    <a class="portal-service-card" href="tools.html#passport">
-      <span class="portal-service-icon">📸</span>
-      <strong>Passport Photo</strong>
-      <small>Photo Maker</small>
-    </a>
-
-    <a class="portal-service-card" href="tools.html#jpg-pdf">
-      <span class="portal-service-icon">📄</span>
-      <strong>JPG → PDF</strong>
-      <small>Online Tool</small>
-    </a>
-
-    <a class="portal-service-card" href="tools.html#merge-pdf">
-      <span class="portal-service-icon">🧩</span>
-      <strong>Merge PDF</strong>
-      <small>PDF Tool</small>
-    </a>
-
-    <a class="portal-service-card" href="tools.html#resize">
-      <span class="portal-service-icon">🖼️</span>
-      <strong>Photo Resize</strong>
-      <small>Resize / Compress</small>
-    </a>
-  `;
-}
-
-function otherToolCards() {
-  return `
-    <a class="portal-service-card" href="tools.html">
-      <span class="portal-service-icon">🧰</span>
-      <strong>All Online Tools</strong>
-      <small>Open Toolkit</small>
-    </a>
-  `;
-}
-
-
-/* =========================================
-   RENDER SECTIONS
-========================================= */
-
 function renderServiceSections() {
   const popularGrid = getGridByHeading('लोकप्रिय सेवाएँ');
   const governmentGrid = getGridByHeading('सरकारी एवं नागरिक सेवाएँ');
   const printGrid = getGridByHeading('प्रिंट और दस्तावेज़ सेवाएँ');
   const otherGrid = getGridByHeading('अन्य सेवाएँ');
 
-  const popular = services.filter(
-    s => normalCategory(s.category) === 'Popular'
-  );
-
-  const government = services.filter(
-    s => normalCategory(s.category) === 'Government'
-  );
-
-  const print = services.filter(
-    s => normalCategory(s.category) === 'Print'
-  );
-
-  const other = services.filter(
-    s => normalCategory(s.category) === 'Other'
-  );
+  const byCategory = category =>
+    services.filter(
+      s => normalizeCategory(s.category) === category
+    );
 
   if (popularGrid) {
     popularGrid.innerHTML =
-      popular.length
-        ? popular.map(serviceCard).join('')
-        : '<p>No services available.</p>';
+      byCategory('Popular').map(serviceCard).join('') ||
+      '<p>No services available.</p>';
   }
 
   if (governmentGrid) {
     governmentGrid.innerHTML =
-      government.length
-        ? government.map(serviceCard).join('')
-        : '<p>No services available.</p>';
+      byCategory('Government').map(serviceCard).join('') ||
+      '<p>No services available.</p>';
   }
 
   if (printGrid) {
     printGrid.innerHTML =
-      print.map(serviceCard).join('') +
-      printToolCards();
+      byCategory('Print').map(serviceCard).join('') +
+
+      `
+      <a class="portal-service-card" href="tools.html#passport">
+        <span class="portal-service-icon">📸</span>
+        <strong>Passport Photo</strong>
+        <small>Photo Maker</small>
+      </a>
+
+      <a class="portal-service-card" href="tools.html#jpg-pdf">
+        <span class="portal-service-icon">📄</span>
+        <strong>JPG → PDF</strong>
+        <small>Online Tool</small>
+      </a>
+
+      <a class="portal-service-card" href="tools.html#merge-pdf">
+        <span class="portal-service-icon">🧩</span>
+        <strong>Merge PDF</strong>
+        <small>PDF Tool</small>
+      </a>
+      `;
   }
 
   if (otherGrid) {
     otherGrid.innerHTML =
-      other.map(serviceCard).join('') +
-      otherToolCards();
+      byCategory('Other').map(serviceCard).join('') +
+
+      `
+      <a class="portal-service-card" href="tools.html">
+        <span class="portal-service-icon">🧰</span>
+        <strong>All Online Tools</strong>
+        <small>Open Toolkit</small>
+      </a>
+      `;
   }
 }
 
 
-/* =========================================
+/* =========================================================
    SERVICE DETAILS MODAL
-========================================= */
+========================================================= */
 
-function createServiceModal() {
-  if (document.getElementById('serviceDetailsModal')) return;
+function createServiceDetailsModal() {
+  if ($('serviceDetailsModal')) return;
 
-  const modal = document.createElement('div');
+  const wrapper = document.createElement('div');
 
-  modal.id = 'serviceDetailsModal';
+  wrapper.id = 'serviceDetailsModal';
 
-  modal.innerHTML = `
+  wrapper.innerHTML = `
     <div
       id="serviceDetailsBackdrop"
       style="
+        display:none;
         position:fixed;
         inset:0;
-        background:rgba(10,20,40,.55);
-        z-index:9998;
-        display:none;
-      "
-    ></div>
+        background:rgba(8,18,38,.60);
+        z-index:9998
+      ">
+    </div>
 
     <div
       id="serviceDetailsBox"
@@ -380,591 +363,48 @@ function createServiceModal() {
         bottom:0;
         transform:translateX(-50%) translateY(110%);
         width:min(620px,100%);
-        max-height:88vh;
+        max-height:90vh;
         overflow:auto;
+        padding:22px;
         background:#fff;
         z-index:9999;
         border-radius:26px 26px 0 0;
-        padding:22px;
         box-shadow:0 -20px 60px rgba(0,0,0,.25);
-        transition:.25s ease;
-      "
-    >
+        transition:.25s ease
+      ">
+
       <div style="
         display:flex;
         justify-content:space-between;
-        align-items:flex-start;
         gap:14px;
+        align-items:flex-start
       ">
-        <div style="
-          display:flex;
-          gap:13px;
-          align-items:center;
-        ">
+
+        <div style="display:flex;gap:12px;align-items:center">
+
           <div
             id="serviceModalIcon"
             style="
               width:58px;
               height:58px;
               border-radius:18px;
-              background:#eef3ff;
               display:grid;
               place-items:center;
-              font-size:29px;
-            "
-          >
+              background:#eef3ff;
+              font-size:29px
+            ">
             🧩
           </div>
 
           <div>
             <small
               id="serviceModalCategory"
-              style="
-                display:block;
-                color:#2855cc;
-                font-weight:800;
-                margin-bottom:3px;
-              "
-            >
+              style="font-weight:800;color:#2855cc">
               SERVICE
             </small>
 
             <h2
               id="serviceModalName"
-              style="margin:0;font-size:23px"
-            >
-              Service
-            </h2>
-          </div>
-        </div>
-
-        <button
-          id="serviceModalClose"
-          type="button"
-          style="
-            border:0;
-            background:#f1f4f8;
-            width:40px;
-            height:40px;
-            border-radius:50%;
-            font-size:20px;
-            cursor:pointer;
-          "
-        >
-          ×
-        </button>
-      </div>
-
-      <p
-        id="serviceModalDescription"
-        style="
-          color:#667085;
-          line-height:1.65;
-          margin:18px 0;
-        "
-      ></p>
-
-      <div
-        id="serviceModalPriceBox"
-        style="
-          background:#edf3ff;
-          border-radius:16px;
-          padding:15px;
-          margin-bottom:16px;
-        "
-      >
-        <small style="
-          display:block;
-          color:#667085;
-          margin-bottom:3px;
-        ">
-          Service Price
-        </small>
-
-        <strong
-          id="serviceModalPrice"
-          style="
-            font-size:25px;
-            color:#2855cc;
-          "
-        >
-          ₹0
-        </strong>
-      </div>
-
-      <div
-        id="serviceDocumentsWrap"
-        style="
-          border:1px solid #e4e9f1;
-          border-radius:16px;
-          padding:16px;
-          margin-bottom:15px;
-        "
-      >
-        <h3 style="margin:0 0 10px">
-          📄 आवश्यक दस्तावेज़
-        </h3>
-
-        <div
-          id="serviceModalDocuments"
-          style="
-            color:#566174;
-            line-height:1.8;
-          "
-        ></div>
-      </div>
-
-      <div
-        id="serviceInstructionsWrap"
-        style="
-          border:1px solid #e4e9f1;
-          border-radius:16px;
-          padding:16px;
-          margin-bottom:18px;
-        "
-      >
-        <h3 style="margin:0 0 10px">
-          ℹ️ जरूरी जानकारी
-        </h3>
-
-        <div
-          id="serviceModalInstructions"
-          style="
-            color:#566174;
-            line-height:1.7;
-          "
-        ></div>
-      </div>
-
-      <button
-        id="serviceApplyBtn"
-        type="button"
-        class="btn primary"
-        style="
-          width:100%;
-          min-height:50px;
-          font-size:16px;
-        "
-      >
-        Apply Now
-      </button>
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-
-  document.getElementById('serviceModalClose')
-    .onclick = closeServiceDetails;
-
-  document.getElementById('serviceDetailsBackdrop')
-    .onclick = closeServiceDetails;
-
-  document.getElementById('serviceApplyBtn')
-    .onclick = applySelectedService;
-}
-
-function textLines(value) {
-  const text = String(value || '').trim();
-
-  if (!text) {
-    return '<p style="margin:0">इस service के लिए दस्तावेज़ की जानकारी उपलब्ध नहीं है।</p>';
-  }
-
-  return text
-    .split(/\n+/)
-    .filter(Boolean)
-    .map(line => `
-      <div style="
-        display:flex;
-        gap:8px;
-        margin:6px 0;
-      ">
-        <span>✓</span>
-        <span>${esc(line.trim())}</span>
-      </div>
-    `)
-    .join('');
-}
-
-function openServiceDetails(id) {
-  const service = services.find(
-    s => String(s.id) === String(id)
-  );
-
-  if (!service) {
-    msg('Service उपलब्ध नहीं है');
-    return;
-  }
-
-  activeService = service;
-
-  document.getElementById('serviceModalIcon').textContent =
-    service.icon || '🧩';
-
-  document.getElementById('serviceModalCategory').textContent =
-    normalCategory(service.category);
-
-  document.getElementById('serviceModalName').textContent =
-    service.name;
-
-  document.getElementById('serviceModalDescription').textContent =
-    service.description || 'Online service assistance';
-
-  const price = Number(service.price || 0);
-
-  const priceBox = document.getElementById('serviceModalPriceBox');
-
-  if (price > 0) {
-    priceBox.style.display = 'block';
-    document.getElementById('serviceModalPrice').textContent =
-      money(price);
-  } else {
-    priceBox.style.display = 'none';
-  }
-
-  document.getElementById('serviceModalDocuments').innerHTML =
-    textLines(service.required_documents);
-
-  document.getElementById('serviceModalInstructions').innerHTML =
-    service.instructions
-      ? esc(service.instructions).replace(/\n/g, '<br>')
-      : 'आवेदन से पहले सभी जानकारी और दस्तावेज़ जाँच लें।';
-
-  document.getElementById('serviceDetailsBackdrop').style.display =
-    'block';
-
-  requestAnimationFrame(() => {
-    document.getElementById('serviceDetailsBox').style.transform =
-      'translateX(-50%) translateY(0)';
-  });
-
-  document.body.style.overflow = 'hidden';
-}
-
-function closeServiceDetails() {
-  const box = document.getElementById('serviceDetailsBox');
-  const backdrop = document.getElementById('serviceDetailsBackdrop');
-
-  if (!box || !backdrop) return;
-
-  box.style.transform =
-    'translateX(-50%) translateY(110%)';
-
-  setTimeout(() => {
-    backdrop.style.display = 'none';
-  }, 220);
-
-  document.body.style.overflow = '';
-}
-
-function applySelectedService() {
-  if (!activeService) return;
-
-  const select = document.getElementById('serviceSelect');
-
-  if (!select) return;
-
-  select.value = activeService.id;
-
-  const selectedName = activeService.name;
-
-  closeServiceDetails();
-
-  setTimeout(() => {
-    document
-      .getElementById('requestSection')
-      ?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-
-    msg(`${selectedName} selected`);
-  }, 250);
-}
-
-
-/* =========================================
-   OLD COMPATIBILITY
-========================================= */
-
-function selectServiceById(id) {
-  openServiceDetails(id);
-}
-
-function selectServiceByName(name) {
-  const service = services.find(
-    s =>
-      String(s.name).trim().toLowerCase() ===
-      String(name).trim().toLowerCase()
-  );
-
-  if (!service) {
-    msg('यह service अभी available नहीं है');
-    return;
-  }
-
-  openServiceDetails(service.id);
-}
-
-
-/* =========================================
-   LOAD ORDERS
-========================================= */
-
-async function loadOrders() {
-  if (!user) return;
-
-  const { data, error } = await sb
-    .from('orders')
-    .select(`
-      id,
-      user_id,
-      service_id,
-      status,
-      note,
-      amount,
-      created_at,
-      services(name)
-    `)
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    msg(error.message);
-    return;
-  }
-
-  const rows = data || [];
-
-  const orderCount = document.getElementById('orderCount');
-  const pendingCount = document.getElementById('pendingCount');
-  const doneCount = document.getElementById('doneCount');
-
-  if (orderCount) {
-    orderCount.textContent = rows.length;
-  }
-
-  if (pendingCount) {
-    pendingCount.textContent = rows.filter(
-      order =>
-        order.status === 'pending' ||
-        order.status === 'processing'
-    ).length;
-  }
-
-  if (doneCount) {
-    doneCount.textContent = rows.filter(
-      order => order.status === 'completed'
-    ).length;
-  }
-
-  const ordersList = document.getElementById('ordersList');
-
-  if (!ordersList) return;
-
-  if (!rows.length) {
-    ordersList.innerHTML =
-      '<p>अभी कोई आवेदन नहीं है।</p>';
-    return;
-  }
-
-  ordersList.innerHTML = rows.map(order => {
-    const serviceName =
-      order.services?.name || 'Service';
-
-    const status =
-      order.status || 'pending';
-
-    const date =
-      new Date(order.created_at)
-        .toLocaleString('en-IN');
-
-    const amount =
-      Number(order.amount || 0);
-
-    return `
-      <div class="service-row">
-
-        <div>
-          <strong>
-            ${esc(serviceName)}
-          </strong>
-
-          <small>
-            ${esc(date)}
-          </small>
-
-          ${
-            order.note
-              ? `<small>${esc(order.note)}</small>`
-              : ''
-          }
-
-          ${
-            amount > 0
-              ? `<small>Amount: ${money(amount)}</small>`
-              : ''
-          }
-        </div>
-
-        <span class="status ${esc(status)}">
-          ${esc(status)}
-        </span>
-
-      </div>
-    `;
-  }).join('');
-}
-
-
-/* =========================================
-   SUBMIT ORDER
-========================================= */
-
-const orderForm =
-  document.getElementById('orderForm');
-
-if (orderForm) {
-  orderForm.onsubmit = async event => {
-    event.preventDefault();
-
-    if (!user) {
-      msg('Please login again');
-      return;
-    }
-
-    const serviceSelect =
-      document.getElementById('serviceSelect');
-
-    const noteInput =
-      document.getElementById('orderNote');
-
-    const serviceId =
-      serviceSelect?.value;
-
-    if (!serviceId) {
-      msg('Service चुनें');
-      return;
-    }
-
-    const selectedService =
-      services.find(
-        s => String(s.id) === String(serviceId)
-      );
-
-    if (!selectedService) {
-      msg('Invalid service');
-      return;
-    }
-
-    const note =
-      noteInput?.value?.trim() || '';
-
-    const submitButton =
-      orderForm.querySelector(
-        'button[type="submit"]'
-      );
-
-    if (submitButton) {
-      submitButton.disabled = true;
-      submitButton.textContent =
-        'Submitting...';
-    }
-
-    const { error } = await sb
-      .from('orders')
-      .insert({
-        user_id: user.id,
-        service_id: selectedService.id,
-        note,
-        status: 'pending'
-      });
-
-    if (submitButton) {
-      submitButton.disabled = false;
-      submitButton.textContent =
-        'Submit Request';
-    }
-
-    if (error) {
-      msg(error.message);
-      return;
-    }
-
-    if (noteInput) {
-      noteInput.value = '';
-    }
-
-    if (serviceSelect) {
-      serviceSelect.value = '';
-    }
-
-    msg(
-      `${selectedService.name} request submitted`
-    );
-
-    await loadOrders();
-  };
-}
-
-
-/* =========================================
-   START
-========================================= */
-/* =========================================
-   SERVICE DETAILS POPUP FIX
-========================================= */
-
-function createServiceModal() {
-  if (document.getElementById('serviceDetailsModal')) return;
-
-  const wrap = document.createElement('div');
-  wrap.id = 'serviceDetailsModal';
-
-  wrap.innerHTML = `
-    <div id="serviceDetailsBackdrop"
-      style="display:none;position:fixed;inset:0;background:rgba(8,18,38,.58);z-index:9998;">
-    </div>
-
-    <div id="serviceDetailsBox"
-      style="
-        position:fixed;
-        left:50%;
-        bottom:0;
-        width:min(620px,100%);
-        max-height:88vh;
-        overflow:auto;
-        background:#fff;
-        z-index:9999;
-        border-radius:26px 26px 0 0;
-        padding:22px;
-        box-shadow:0 -20px 60px rgba(0,0,0,.25);
-        transform:translateX(-50%) translateY(110%);
-        transition:.25s ease;
-      ">
-
-      <div style="display:flex;justify-content:space-between;gap:15px;align-items:flex-start">
-
-        <div style="display:flex;gap:12px;align-items:center">
-
-          <div id="serviceModalIcon"
-            style="
-              width:58px;
-              height:58px;
-              border-radius:18px;
-              background:#eef3ff;
-              display:grid;
-              place-items:center;
-              font-size:29px;
-            ">🧩</div>
-
-          <div>
-            <small id="serviceModalCategory"
-              style="color:#2855cc;font-weight:800">
-              SERVICE
-            </small>
-
-            <h2 id="serviceModalName"
               style="margin:4px 0 0">
               Service
             </h2>
@@ -972,93 +412,116 @@ function createServiceModal() {
 
         </div>
 
-        <button type="button" id="serviceModalClose"
+        <button
+          type="button"
+          id="serviceModalClose"
           style="
             width:40px;
             height:40px;
             border:0;
             border-radius:50%;
             background:#f1f4f8;
-            font-size:22px;
-          ">×</button>
+            font-size:22px
+          ">
+          ×
+        </button>
 
       </div>
 
-      <p id="serviceModalDescription"
-        style="color:#667085;line-height:1.6;margin:18px 0">
+      <p
+        id="serviceModalDescription"
+        style="
+          color:#667085;
+          line-height:1.6;
+          margin:18px 0
+        ">
       </p>
 
-      <div id="serviceModalPriceBox"
+      <div
+        id="serviceModalPriceBox"
         style="
           background:#edf3ff;
           padding:15px;
           border-radius:16px;
-          margin-bottom:15px;
+          margin-bottom:15px
         ">
 
-        <small style="color:#667085">
-          Service Price
-        </small>
+        <small>Service Price</small>
 
-        <strong id="serviceModalPrice"
+        <strong
+          id="serviceModalPrice"
           style="
             display:block;
             font-size:26px;
-            color:#2855cc;
-            margin-top:3px;
-          ">₹0</strong>
+            color:#2855cc
+          ">
+          ₹0
+        </strong>
+
       </div>
 
       <div style="
         border:1px solid #e4e9f1;
         border-radius:16px;
         padding:16px;
-        margin-bottom:14px;
+        margin-bottom:14px
       ">
+
         <h3 style="margin:0 0 10px">
           📄 आवश्यक दस्तावेज़
         </h3>
 
-        <div id="serviceModalDocuments"
+        <div
+          id="serviceModalDocuments"
           style="color:#566174;line-height:1.8">
         </div>
+
       </div>
 
       <div style="
         border:1px solid #e4e9f1;
         border-radius:16px;
         padding:16px;
-        margin-bottom:18px;
+        margin-bottom:18px
       ">
+
         <h3 style="margin:0 0 10px">
           ℹ️ जरूरी जानकारी
         </h3>
 
-        <div id="serviceModalInstructions"
+        <div
+          id="serviceModalInstructions"
           style="color:#566174;line-height:1.7">
         </div>
+
       </div>
 
-      <button type="button"
+      <button
+        type="button"
         id="serviceApplyBtn"
         class="btn primary"
-        style="width:100%;min-height:52px;font-size:16px">
+        style="width:100%;min-height:52px">
         Apply Now
       </button>
 
     </div>
   `;
 
-  document.body.appendChild(wrap);
+  document.body.appendChild(wrapper);
 
-  document.getElementById('serviceModalClose').onclick =
+  $('serviceModalClose').onclick =
     closeServiceDetails;
 
-  document.getElementById('serviceDetailsBackdrop').onclick =
+  $('serviceDetailsBackdrop').onclick =
     closeServiceDetails;
 
-  document.getElementById('serviceApplyBtn').onclick =
-    applySelectedService;
+  $('serviceApplyBtn').onclick =
+    () => {
+      if (activeService) {
+        closeServiceDetails();
+        setTimeout(() => openApplicationForm(activeService.id), 220);
+      }
+    };
 }
 
 
@@ -1066,7 +529,7 @@ function documentList(text) {
   const value = String(text || '').trim();
 
   if (!value) {
-    return 'इस सेवा के लिए दस्तावेज़ की जानकारी उपलब्ध नहीं है।';
+    return 'Document list application form में दिखाई जाएगी।';
   }
 
   return value
@@ -1083,8 +546,6 @@ function documentList(text) {
 
 
 function openServiceDetails(id) {
-  createServiceModal();
-
   const service = services.find(
     s => String(s.id) === String(id)
   );
@@ -1096,44 +557,36 @@ function openServiceDetails(id) {
 
   activeService = service;
 
-  document.getElementById('serviceModalIcon').textContent =
+  $('serviceModalIcon').textContent =
     service.icon || '🧩';
 
-  document.getElementById('serviceModalCategory').textContent =
-    service.category || 'Service';
+  $('serviceModalCategory').textContent =
+    normalizeCategory(service.category);
 
-  document.getElementById('serviceModalName').textContent =
+  $('serviceModalName').textContent =
     service.name;
 
-  document.getElementById('serviceModalDescription').textContent =
+  $('serviceModalDescription').textContent =
     service.description || '';
 
-  const price = Number(service.price || 0);
-
-  const priceBox =
-    document.getElementById('serviceModalPriceBox');
-
-  if (price > 0) {
-    priceBox.style.display = 'block';
-
-    document.getElementById('serviceModalPrice').textContent =
-      money(price);
+  if (Number(service.price || 0) > 0) {
+    $('serviceModalPriceBox').style.display = 'block';
+    $('serviceModalPrice').textContent = money(service.price);
   } else {
-    priceBox.style.display = 'none';
+    $('serviceModalPriceBox').style.display = 'none';
   }
 
-  document.getElementById('serviceModalDocuments').innerHTML =
+  $('serviceModalDocuments').innerHTML =
     documentList(service.required_documents);
 
-  document.getElementById('serviceModalInstructions').textContent =
+  $('serviceModalInstructions').textContent =
     service.instructions ||
     'आवेदन से पहले सभी जानकारी और दस्तावेज़ जाँच लें।';
 
-  document.getElementById('serviceDetailsBackdrop').style.display =
-    'block';
+  $('serviceDetailsBackdrop').style.display = 'block';
 
   requestAnimationFrame(() => {
-    document.getElementById('serviceDetailsBox').style.transform =
+    $('serviceDetailsBox').style.transform =
       'translateX(-50%) translateY(0)';
   });
 
@@ -1142,67 +595,1383 @@ function openServiceDetails(id) {
 
 
 function closeServiceDetails() {
-  const box = document.getElementById('serviceDetailsBox');
-  const backdrop = document.getElementById('serviceDetailsBackdrop');
+  if (!$('serviceDetailsBox')) return;
 
-  if (!box || !backdrop) return;
-
-  box.style.transform =
+  $('serviceDetailsBox').style.transform =
     'translateX(-50%) translateY(110%)';
 
   setTimeout(() => {
-    backdrop.style.display = 'none';
+    if ($('serviceDetailsBackdrop')) {
+      $('serviceDetailsBackdrop').style.display = 'none';
+    }
   }, 220);
 
   document.body.style.overflow = '';
 }
 
 
-function applySelectedService() {
-  if (!activeService) return;
+window.openServiceDetails = openServiceDetails;
 
-  const select = document.getElementById('serviceSelect');
+window.selectServiceById = openServiceDetails;
 
-  if (select) {
-    select.value = activeService.id;
-  }
-
-  const name = activeService.name;
-
-  closeServiceDetails();
-
-  setTimeout(() => {
-    document.getElementById('requestSection')
-      ?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-
-    msg(name + ' selected');
-  }, 250);
-}
-
-
-/* Existing service cards को popup से connect करें */
-
-window.selectServiceById = function(id) {
-  openServiceDetails(id);
-};
-
-window.selectServiceByName = function(name) {
+window.selectServiceByName = name => {
   const service = services.find(
     s =>
       String(s.name).trim().toLowerCase() ===
       String(name).trim().toLowerCase()
   );
 
-  if (!service) {
-    msg('यह service अभी available नहीं है');
+  if (service) {
+    openServiceDetails(service.id);
+  }
+};
+
+
+/* =========================================================
+   APPLICATION MODAL
+========================================================= */
+
+function createApplicationModal() {
+  if ($('dynamicApplicationModal')) return;
+
+  const wrapper = document.createElement('div');
+
+  wrapper.id = 'dynamicApplicationModal';
+
+  wrapper.innerHTML = `
+    <div
+      id="applicationBackdrop"
+      style="
+        display:none;
+        position:fixed;
+        inset:0;
+        background:rgba(8,18,38,.65);
+        z-index:10000
+      ">
+    </div>
+
+    <div
+      id="applicationBox"
+      style="
+        position:fixed;
+        left:50%;
+        bottom:0;
+        width:min(720px,100%);
+        max-height:94vh;
+        overflow:auto;
+        transform:translateX(-50%) translateY(110%);
+        background:#fff;
+        z-index:10001;
+        border-radius:26px 26px 0 0;
+        padding:22px;
+        box-shadow:0 -20px 60px rgba(0,0,0,.28);
+        transition:.25s ease
+      ">
+
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:14px
+      ">
+
+        <div>
+          <small style="font-weight:800;color:#2855cc">
+            APPLICATION
+          </small>
+
+          <h2
+            id="applicationServiceName"
+            style="margin:4px 0">
+            Service Application
+          </h2>
+
+          <p
+            id="applicationServicePrice"
+            style="margin:0;color:#667085">
+          </p>
+        </div>
+
+        <button
+          type="button"
+          id="applicationClose"
+          style="
+            width:42px;
+            height:42px;
+            border:0;
+            border-radius:50%;
+            background:#f2f4f7;
+            font-size:22px
+          ">
+          ×
+        </button>
+
+      </div>
+
+      <form id="dynamicApplicationForm">
+
+        <div
+          id="beneficiaryFields"
+          style="margin-top:20px">
+        </div>
+
+        <div
+          id="aadhaarVerificationSection"
+          style="display:none;margin-top:20px">
+        </div>
+
+        <div
+          id="supportingDocumentsSection"
+          style="margin-top:22px">
+        </div>
+
+        <div
+          id="applicationError"
+          style="
+            display:none;
+            margin-top:15px;
+            padding:12px;
+            border-radius:12px;
+            background:#fff1f1;
+            color:#a12626
+          ">
+        </div>
+
+        <button
+          type="submit"
+          id="submitDynamicApplication"
+          class="btn primary"
+          style="
+            width:100%;
+            min-height:54px;
+            margin-top:20px
+          ">
+          Submit Application
+        </button>
+
+      </form>
+
+    </div>
+  `;
+
+  document.body.appendChild(wrapper);
+
+  $('applicationClose').onclick =
+    closeApplicationForm;
+
+  $('applicationBackdrop').onclick =
+    closeApplicationForm;
+
+  $('dynamicApplicationForm').onsubmit =
+    submitDynamicApplication;
+}
+
+
+async function openApplicationForm(serviceId) {
+  const service = services.find(
+    s => String(s.id) === String(serviceId)
+  );
+
+  if (!service) return;
+
+  activeService = service;
+
+  aadhaarVerification = {
+    status: 'not_checked',
+    provider: null,
+    verifiedAt: null,
+    last4: null,
+    result: {}
+  };
+
+  $('applicationServiceName').textContent =
+    service.name;
+
+  $('applicationServicePrice').textContent =
+    Number(service.price || 0) > 0
+      ? `Service Price: ${money(service.price)}`
+      : '';
+
+  $('beneficiaryFields').innerHTML =
+    '<p>Form loading...</p>';
+
+  $('supportingDocumentsSection').innerHTML = '';
+
+  try {
+    const [fieldsResult, docsResult] = await Promise.all([
+      sb
+        .from('service_fields')
+        .select('*')
+        .eq('service_id', service.id)
+        .eq('active', true)
+        .order('sort_order'),
+
+      sb
+        .from('service_documents')
+        .select('*')
+        .eq('service_id', service.id)
+        .eq('active', true)
+        .order('sort_order')
+    ]);
+
+    if (fieldsResult.error) throw fieldsResult.error;
+    if (docsResult.error) throw docsResult.error;
+
+    applicationFields =
+      fieldsResult.data || [];
+
+    applicationDocuments =
+      docsResult.data || [];
+
+    renderBeneficiaryFields();
+    renderSupportingDocuments();
+    renderAadhaarVerification();
+
+    $('applicationBackdrop').style.display = 'block';
+
+    requestAnimationFrame(() => {
+      $('applicationBox').style.transform =
+        'translateX(-50%) translateY(0)';
+    });
+
+    document.body.style.overflow = 'hidden';
+
+  } catch (error) {
+    msg(error.message);
+  }
+}
+
+
+function closeApplicationForm() {
+  if (!$('applicationBox')) return;
+
+  $('applicationBox').style.transform =
+    'translateX(-50%) translateY(110%)';
+
+  setTimeout(() => {
+    $('applicationBackdrop').style.display = 'none';
+  }, 220);
+
+  document.body.style.overflow = '';
+}
+
+
+/* =========================================================
+   FIELD RENDERER
+========================================================= */
+
+function renderBeneficiaryFields() {
+  if (!applicationFields.length) {
+    $('beneficiaryFields').innerHTML = `
+      <div style="
+        padding:15px;
+        background:#fff7e8;
+        border-radius:14px
+      ">
+        इस service का beneficiary form अभी Admin द्वारा configure नहीं किया गया है।
+      </div>
+    `;
     return;
   }
 
-  openServiceDetails(service.id);
-};
+  $('beneficiaryFields').innerHTML = `
+    <h3>👤 Beneficiary Details</h3>
 
-window.openServiceDetails = openServiceDetails;
+    ${applicationFields.map(field => renderField(field)).join('')}
+  `;
+
+  const applicationType =
+    document.querySelector('[name="application_type"]');
+
+  if (applicationType) {
+    applicationType.addEventListener(
+      'change',
+      applyConditionalPANRules
+    );
+
+    applyConditionalPANRules();
+  }
+
+  /*
+    Aadhaar data बदलते ही previous verification invalid होगा.
+  */
+  [
+    'full_name',
+    'aadhaar_number',
+    'date_of_birth',
+    'gender'
+  ].forEach(key => {
+    const element =
+      document.querySelector(`[name="${key}"]`);
+
+    if (element) {
+      element.addEventListener('input', resetAadhaarVerification);
+      element.addEventListener('change', resetAadhaarVerification);
+    }
+  });
+}
+
+
+function renderField(field) {
+  const requiredMark =
+    field.required
+      ? '<span style="color:#d92d20">*</span>'
+      : '';
+
+  const requiredAttribute =
+    field.required
+      ? 'required'
+      : '';
+
+  const common = `
+    id="field_${esc(field.field_key)}"
+    name="${esc(field.field_key)}"
+    ${requiredAttribute}
+  `;
+
+  let input = '';
+
+  if (field.field_type === 'textarea') {
+    input = `
+      <textarea
+        ${common}
+        rows="3"
+        placeholder="${esc(field.placeholder || '')}"
+        style="${fieldInputStyle()}"></textarea>
+    `;
+
+  } else if (
+    field.field_type === 'select' ||
+    field.field_type === 'radio'
+  ) {
+    const options =
+      Array.isArray(field.options)
+        ? field.options
+        : [];
+
+    input = `
+      <select
+        ${common}
+        style="${fieldInputStyle()}">
+
+        <option value="">
+          Select
+        </option>
+
+        ${options.map(option => `
+          <option value="${esc(option)}">
+            ${esc(option)}
+          </option>
+        `).join('')}
+
+      </select>
+    `;
+
+  } else if (field.field_type === 'checkbox') {
+    input = `
+      <label style="display:flex;gap:9px;align-items:flex-start">
+        <input
+          type="checkbox"
+          name="${esc(field.field_key)}"
+          ${requiredAttribute}
+          style="margin-top:4px"
+        >
+        <span>${esc(field.label)}</span>
+      </label>
+    `;
+
+  } else {
+    input = `
+      <input
+        ${common}
+        type="${esc(field.field_type || 'text')}"
+        placeholder="${esc(field.placeholder || '')}"
+        ${field.min_length ? `minlength="${field.min_length}"` : ''}
+        ${field.max_length ? `maxlength="${field.max_length}"` : ''}
+        style="${fieldInputStyle()}"
+      >
+    `;
+  }
+
+  return `
+    <label
+      data-field-wrap="${esc(field.field_key)}"
+      style="
+        display:block;
+        margin:14px 0;
+        font-size:13px;
+        font-weight:700
+      ">
+
+      ${
+        field.field_type !== 'checkbox'
+          ? `${esc(field.label)} ${requiredMark}`
+          : ''
+      }
+
+      ${input}
+
+      ${
+        field.help_text
+          ? `
+            <small style="
+              display:block;
+              color:#667085;
+              margin-top:5px;
+              line-height:1.4
+            ">
+              ${esc(field.help_text)}
+            </small>
+          `
+          : ''
+      }
+
+    </label>
+  `;
+}
+
+
+function fieldInputStyle() {
+  return `
+    width:100%;
+    box-sizing:border-box;
+    margin-top:7px;
+    padding:13px;
+    border:1px solid #d8e0eb;
+    border-radius:12px;
+    font:inherit;
+    background:#fff
+  `;
+}
+
+
+/* =========================================================
+   PAN CONDITIONAL RULES
+========================================================= */
+
+function getApplicationType() {
+  return String(
+    document.querySelector('[name="application_type"]')?.value || ''
+  ).toLowerCase();
+}
+
+
+function isPANCorrection() {
+  return getApplicationType().includes('correction');
+}
+
+
+function applyConditionalPANRules() {
+  const existingPAN =
+    document.querySelector('[name="existing_pan"]');
+
+  const wrapper =
+    document.querySelector('[data-field-wrap="existing_pan"]');
+
+  if (!existingPAN || !wrapper) return;
+
+  if (isPANCorrection()) {
+    wrapper.style.display = 'block';
+    existingPAN.required = true;
+
+  } else {
+    wrapper.style.display = 'none';
+    existingPAN.required = false;
+    existingPAN.value = '';
+  }
+
+  renderSupportingDocuments();
+}
+
+
+/* =========================================================
+   DOCUMENT RENDERER
+========================================================= */
+
+function isDocumentRequired(doc) {
+  if (
+    doc.document_key === 'existing_pan_card' &&
+    isPANCorrection()
+  ) {
+    return true;
+  }
+
+  return !!doc.required;
+}
+
+
+function renderSupportingDocuments() {
+  if (!applicationDocuments.length) {
+    $('supportingDocumentsSection').innerHTML = '';
+    return;
+  }
+
+  $('supportingDocumentsSection').innerHTML = `
+    <h3>📎 Supporting Documents</h3>
+
+    <p style="color:#667085;font-size:13px">
+      * वाले documents upload करना अनिवार्य है।
+    </p>
+
+    ${applicationDocuments.map(doc => {
+      const required = isDocumentRequired(doc);
+
+      const accept =
+        Array.isArray(doc.allowed_types)
+          ? doc.allowed_types.join(',')
+          : 'application/pdf,image/jpeg,image/png';
+
+      return `
+        <label style="
+          display:block;
+          border:1px solid #e4e9f1;
+          border-radius:14px;
+          padding:14px;
+          margin:12px 0
+        ">
+
+          <strong>
+            ${esc(doc.name)}
+            ${
+              required
+                ? '<span style="color:#d92d20">*</span>'
+                : '<small style="color:#667085"> (Optional)</small>'
+            }
+          </strong>
+
+          ${
+            doc.instructions
+              ? `
+                <small style="
+                  display:block;
+                  color:#667085;
+                  margin:5px 0 10px
+                ">
+                  ${esc(doc.instructions)}
+                </small>
+              `
+              : ''
+          }
+
+          <input
+            type="file"
+            name="document_${esc(doc.id)}"
+            data-document-id="${esc(doc.id)}"
+            data-required="${required}"
+            accept="${esc(accept)}"
+            style="display:block;width:100%;margin-top:9px"
+          >
+
+          <small style="display:block;color:#667085;margin-top:6px">
+            Maximum ${Number(doc.max_size_mb || 5)} MB
+          </small>
+
+        </label>
+      `;
+    }).join('')}
+  `;
+}
+
+
+/* =========================================================
+   AADHAAR DEMOGRAPHIC VERIFICATION
+========================================================= */
+
+function renderAadhaarVerification() {
+  const required =
+    isPANService(activeService) &&
+    applicationFields.some(f => f.field_key === 'aadhaar_number');
+
+  if (!required) {
+    $('aadhaarVerificationSection').style.display = 'none';
+    return;
+  }
+
+  $('aadhaarVerificationSection').style.display = 'block';
+
+  $('aadhaarVerificationSection').innerHTML = `
+    <div style="
+      padding:16px;
+      border:1px solid #dce5ff;
+      border-radius:16px;
+      background:#f6f8ff
+    ">
+
+      <h3 style="margin-top:0">
+        🔐 Aadhaar Demographic Verification
+      </h3>
+
+      <p style="
+        color:#667085;
+        font-size:13px;
+        line-height:1.5
+      ">
+        PAN application submit करने से पहले Name, DOB और Gender
+        Aadhaar authentication provider से match होना जरूरी है।
+      </p>
+
+      <div
+        id="aadhaarVerificationStatus"
+        style="
+          padding:10px 12px;
+          background:#fff;
+          border-radius:10px;
+          margin-bottom:12px
+        ">
+        Status: Not Verified
+      </div>
+
+      <button
+        type="button"
+        class="btn secondary"
+        id="verifyAadhaarBtn"
+        style="width:100%">
+        Verify Aadhaar Details
+      </button>
+
+    </div>
+  `;
+
+  $('verifyAadhaarBtn').onclick =
+    verifyAadhaarDetails;
+}
+
+
+function resetAadhaarVerification() {
+  if (aadhaarVerification.status === 'not_checked') return;
+
+  aadhaarVerification = {
+    status: 'not_checked',
+    provider: null,
+    verifiedAt: null,
+    last4: null,
+    result: {}
+  };
+
+  if ($('aadhaarVerificationStatus')) {
+    $('aadhaarVerificationStatus').textContent =
+      'Status: Details changed — Verify again';
+  }
+}
+
+
+async function verifyAadhaarDetails() {
+  const name =
+    document.querySelector('[name="full_name"]')?.value.trim();
+
+  const aadhaar =
+    document.querySelector('[name="aadhaar_number"]')?.value
+      .replace(/\D/g, '');
+
+  const dob =
+    document.querySelector('[name="date_of_birth"]')?.value;
+
+  const gender =
+    document.querySelector('[name="gender"]')?.value;
+
+  if (!name || !aadhaar || !dob || !gender) {
+    msg('Name, Aadhaar, DOB और Gender पहले भरें।');
+    return;
+  }
+
+  if (!/^\d{12}$/.test(aadhaar)) {
+    msg('Aadhaar number 12 digit होना चाहिए।');
+    return;
+  }
+
+  const button = $('verifyAadhaarBtn');
+
+  button.disabled = true;
+  button.textContent = 'Verifying...';
+
+  $('aadhaarVerificationStatus').textContent =
+    'Status: Verification in progress...';
+
+  aadhaarVerification.status = 'pending';
+
+  try {
+    /*
+      IMPORTANT:
+      यह real backend hook है.
+      Supabase Edge Function का नाम:
+      verify-aadhaar-demographic
+
+      इसमें authorized Aadhaar/API provider integrate होगा.
+      Browser से UIDAI को direct call नहीं किया जाएगा.
+    */
+
+    const { data, error } = await sb.functions.invoke(
+      'verify-aadhaar-demographic',
+      {
+        body: {
+          aadhaar_number: aadhaar,
+          name,
+          date_of_birth: dob,
+          gender
+        }
+      }
+    );
+
+    if (error) throw error;
+
+    if (!data?.matched) {
+      aadhaarVerification = {
+        status: 'mismatch',
+        provider: data?.provider || null,
+        verifiedAt: null,
+        last4: aadhaar.slice(-4),
+        result: data || {}
+      };
+
+      $('aadhaarVerificationStatus').innerHTML =
+        '<strong style="color:#b42318">❌ Demographic details mismatch</strong>';
+
+      msg('Aadhaar details match नहीं हुईं।');
+
+      return;
+    }
+
+    aadhaarVerification = {
+      status: 'matched',
+      provider: data.provider || 'authorized_api',
+      verifiedAt: new Date().toISOString(),
+      last4: aadhaar.slice(-4),
+      result: data.match_result || {}
+    };
+
+    $('aadhaarVerificationStatus').innerHTML =
+      '<strong style="color:#067647">✅ Aadhaar demographic details matched</strong>';
+
+    msg('Aadhaar details verified');
+
+  } catch (error) {
+    console.error(error);
+
+    aadhaarVerification.status = 'unavailable';
+
+    $('aadhaarVerificationStatus').innerHTML =
+      `
+      <strong style="color:#b54708">
+        ⚠️ Verification API अभी connected नहीं है
+      </strong>
+      `;
+
+    msg('Aadhaar verification API connection required');
+
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Verify Aadhaar Details';
+  }
+}
+
+
+/* =========================================================
+   APPLICATION VALIDATION
+========================================================= */
+
+function getFormValues() {
+  const result = {};
+
+  applicationFields.forEach(field => {
+    const element =
+      document.querySelector(`[name="${field.field_key}"]`);
+
+    if (!element) return;
+
+    if (field.field_type === 'checkbox') {
+      result[field.field_key] = element.checked;
+    } else {
+      result[field.field_key] = element.value.trim();
+    }
+  });
+
+  return result;
+}
+
+
+function validateApplication(formValues) {
+  /*
+    Browser HTML required validation
+  */
+  if (!$('dynamicApplicationForm').checkValidity()) {
+    $('dynamicApplicationForm').reportValidity();
+    return false;
+  }
+
+  if (
+    formValues.mobile &&
+    !/^\d{10}$/.test(
+      formValues.mobile.replace(/\D/g, '')
+    )
+  ) {
+    showApplicationError('Mobile number 10 digit होना चाहिए।');
+    return false;
+  }
+
+  if (
+    formValues.pincode &&
+    !/^\d{6}$/.test(
+      formValues.pincode.replace(/\D/g, '')
+    )
+  ) {
+    showApplicationError('PIN Code 6 digit होना चाहिए।');
+    return false;
+  }
+
+  if (
+    isPANCorrection() &&
+    formValues.existing_pan &&
+    !/^[A-Za-z]{5}[0-9]{4}[A-Za-z]$/.test(
+      formValues.existing_pan
+    )
+  ) {
+    showApplicationError(
+      'Existing PAN format सही नहीं है। Example: ABCDE1234F'
+    );
+    return false;
+  }
+
+  /*
+    PAN Aadhaar verification mandatory
+  */
+  if (
+    isPANService(activeService) &&
+    aadhaarVerification.status !== 'matched'
+  ) {
+    showApplicationError(
+      'PAN application submit करने से पहले Aadhaar demographic verification आवश्यक है।'
+    );
+    return false;
+  }
+
+  /*
+    Mandatory documents
+  */
+  for (const doc of applicationDocuments) {
+    if (!isDocumentRequired(doc)) continue;
+
+    const input =
+      document.querySelector(
+        `[data-document-id="${doc.id}"]`
+      );
+
+    if (!input?.files?.length) {
+      showApplicationError(
+        `${doc.name} upload करना mandatory है।`
+      );
+
+      input?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
+function showApplicationError(text) {
+  const box = $('applicationError');
+
+  box.textContent = text;
+  box.style.display = 'block';
+
+  box.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center'
+  });
+}
+
+
+/* =========================================================
+   SUBMIT APPLICATION
+========================================================= */
+
+async function submitDynamicApplication(event) {
+  event.preventDefault();
+
+  $('applicationError').style.display = 'none';
+
+  if (!user || !activeService) {
+    msg('Please login again');
+    return;
+  }
+
+  const values =
+    getFormValues();
+
+  if (!validateApplication(values)) {
+    return;
+  }
+
+  const submitBtn =
+    $('submitDynamicApplication');
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting...';
+
+  /*
+    Aadhaar raw number DB form_data में save नहीं करेंगे.
+    API verification के बाद केवल masked reference रखा जाएगा.
+  */
+  const safeFormData = {
+    ...values
+  };
+
+  if (safeFormData.aadhaar_number) {
+    delete safeFormData.aadhaar_number;
+
+    safeFormData.aadhaar_masked =
+      `XXXX-XXXX-${aadhaarVerification.last4 || 'XXXX'}`;
+  }
+
+  const applicationId =
+    crypto.randomUUID();
+
+  try {
+    /*
+      पहले draft application बनती है.
+      Documents successfully upload होने के बाद Pending होगी.
+    */
+
+    const { error: appError } =
+      await sb
+        .from('applications')
+        .insert({
+          id: applicationId,
+          user_id: user.id,
+          service_id: activeService.id,
+          status: 'draft',
+          processing_mode:
+            activeService.processing_mode || 'admin',
+
+          beneficiary_name:
+            values.full_name || null,
+
+          form_data: safeFormData,
+
+          amount:
+            Number(activeService.price || 0),
+
+          aadhaar_verification_status:
+            aadhaarVerification.status,
+
+          aadhaar_verification_provider:
+            aadhaarVerification.provider,
+
+          aadhaar_verified_at:
+            aadhaarVerification.verifiedAt,
+
+          aadhaar_last4:
+            aadhaarVerification.last4,
+
+          demographic_match_result:
+            aadhaarVerification.result || {}
+        });
+
+    if (appError) throw appError;
+
+
+    /*
+      SUPPORTING DOCUMENT UPLOAD
+    */
+
+    for (const doc of applicationDocuments) {
+      const input =
+        document.querySelector(
+          `[data-document-id="${doc.id}"]`
+        );
+
+      const file =
+        input?.files?.[0];
+
+      if (!file) continue;
+
+      const maxBytes =
+        Number(doc.max_size_mb || 5) *
+        1024 *
+        1024;
+
+      if (file.size > maxBytes) {
+        throw new Error(
+          `${doc.name} ${doc.max_size_mb || 5} MB से बड़ा है।`
+        );
+      }
+
+      const allowed =
+        Array.isArray(doc.allowed_types)
+          ? doc.allowed_types
+          : [
+              'application/pdf',
+              'image/jpeg',
+              'image/png'
+            ];
+
+      if (
+        allowed.length &&
+        !allowed.includes(file.type)
+      ) {
+        throw new Error(
+          `${doc.name} का file type allowed नहीं है।`
+        );
+      }
+
+      const path =
+        `${user.id}/${applicationId}/${doc.id}/${Date.now()}-${safeFileName(file.name)}`;
+
+      const { error: uploadError } =
+        await sb.storage
+          .from('application-documents')
+          .upload(path, file, {
+            upsert: false,
+            contentType: file.type
+          });
+
+      if (uploadError) throw uploadError;
+
+      const { error: metadataError } =
+        await sb
+          .from('application_documents')
+          .insert({
+            application_id: applicationId,
+            service_document_id: doc.id,
+            document_name: doc.name,
+            storage_path: path,
+            original_file_name: file.name,
+            mime_type: file.type,
+            file_size: file.size,
+            uploaded_by: user.id
+          });
+
+      if (metadataError) throw metadataError;
+    }
+
+
+    /*
+      FINAL SUBMIT
+    */
+
+    const { error: finalError } =
+      await sb
+        .from('applications')
+        .update({
+          status: 'pending'
+        })
+        .eq('id', applicationId);
+
+    if (finalError) throw finalError;
+
+
+    msg('Application submitted successfully');
+
+    closeApplicationForm();
+
+    await loadCustomerActivity();
+
+  } catch (error) {
+    console.error(error);
+
+    showApplicationError(
+      error.message ||
+      'Application submit नहीं हो सकी।'
+    );
+
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Application';
+  }
+}
+
+
+/* =========================================================
+   CUSTOMER APPLICATIONS + LEGACY ORDERS
+========================================================= */
+
+async function loadCustomerActivity() {
+  if (!user) return;
+
+  const [applicationsResult, legacyResult] =
+    await Promise.all([
+
+      sb
+        .from('applications')
+        .select(`
+          id,
+          application_no,
+          status,
+          beneficiary_name,
+          amount,
+          submitted_at,
+          external_reference_no,
+          services(name),
+          application_outputs(
+            id,
+            output_type,
+            title,
+            storage_path,
+            external_url,
+            reference_no
+          )
+        `)
+        .eq('user_id', user.id)
+        .neq('status', 'draft')
+        .order('submitted_at', { ascending: false }),
+
+      sb
+        .from('orders')
+        .select(`
+          id,
+          status,
+          note,
+          amount,
+          created_at,
+          services(name)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+    ]);
+
+
+  if (applicationsResult.error) {
+    console.error(applicationsResult.error);
+  }
+
+  if (legacyResult.error) {
+    console.error(legacyResult.error);
+  }
+
+
+  const applications =
+    applicationsResult.data || [];
+
+  const legacy =
+    legacyResult.data || [];
+
+  const total =
+    applications.length +
+    legacy.length;
+
+  const pending =
+    applications.filter(a =>
+      ['pending', 'processing', 'submitted']
+        .includes(a.status)
+    ).length +
+
+    legacy.filter(o =>
+      ['pending', 'processing']
+        .includes(o.status)
+    ).length;
+
+  const completed =
+    applications.filter(a =>
+      a.status === 'completed'
+    ).length +
+
+    legacy.filter(o =>
+      o.status === 'completed'
+    ).length;
+
+
+  if ($('orderCount')) {
+    $('orderCount').textContent = total;
+  }
+
+  if ($('pendingCount')) {
+    $('pendingCount').textContent = pending;
+  }
+
+  if ($('doneCount')) {
+    $('doneCount').textContent = completed;
+  }
+
+  renderCustomerApplications(
+    applications,
+    legacy
+  );
+}
+
+
+function renderCustomerApplications(applications, legacy) {
+  const list = $('ordersList');
+
+  if (!list) return;
+
+  if (!applications.length && !legacy.length) {
+    list.innerHTML =
+      '<p>अभी कोई आवेदन नहीं है।</p>';
+
+    return;
+  }
+
+  const newApplicationHtml =
+    applications.map(app => {
+
+      const outputs =
+        app.application_outputs || [];
+
+      return `
+        <div class="service-row">
+
+          <div>
+
+            <strong>
+              ${esc(app.services?.name || 'Application')}
+            </strong>
+
+            <small>
+              Application ID:
+              ${esc(app.application_no || app.id)}
+            </small>
+
+            ${
+              app.beneficiary_name
+                ? `
+                  <small>
+                    Beneficiary:
+                    ${esc(app.beneficiary_name)}
+                  </small>
+                `
+                : ''
+            }
+
+            ${
+              Number(app.amount || 0) > 0
+                ? `
+                  <small>
+                    Amount:
+                    ${money(app.amount)}
+                  </small>
+                `
+                : ''
+            }
+
+            ${
+              app.external_reference_no
+                ? `
+                  <small>
+                    Reference:
+                    ${esc(app.external_reference_no)}
+                  </small>
+                `
+                : ''
+            }
+
+            ${
+              outputs.map(output => `
+                <button
+                  type="button"
+                  class="btn secondary"
+                  style="margin-top:7px"
+                  onclick='window.downloadApplicationOutput(${JSON.stringify(output)})'
+                >
+                  ⬇ ${esc(output.title || 'Download Receipt')}
+                </button>
+              `).join('')
+            }
+
+          </div>
+
+          <span class="status ${esc(app.status)}">
+            ${esc(app.status)}
+          </span>
+
+        </div>
+      `;
+    }).join('');
+
+
+  const legacyHtml =
+    legacy.map(order => `
+      <div class="service-row">
+
+        <div>
+
+          <strong>
+            ${esc(order.services?.name || 'Service')}
+          </strong>
+
+          <small>
+            ${esc(new Date(order.created_at).toLocaleString('en-IN'))}
+          </small>
+
+          ${
+            order.note
+              ? `<small>${esc(order.note)}</small>`
+              : ''
+          }
+
+          ${
+            Number(order.amount || 0) > 0
+              ? `<small>Amount: ${money(order.amount)}</small>`
+              : ''
+          }
+
+        </div>
+
+        <span class="status ${esc(order.status || 'pending')}">
+          ${esc(order.status || 'pending')}
+        </span>
+
+      </div>
+    `).join('');
+
+
+  list.innerHTML =
+    newApplicationHtml +
+    legacyHtml;
+}
+
+
+/* =========================================================
+   RECEIPT / OUTPUT DOWNLOAD
+========================================================= */
+
+window.downloadApplicationOutput =
+  async output => {
+
+    try {
+      if (output.external_url) {
+        window.open(
+          output.external_url,
+          '_blank',
+          'noopener'
+        );
+
+        return;
+      }
+
+      if (!output.storage_path) {
+        msg('Document file available नहीं है।');
+        return;
+      }
+
+      const { data, error } =
+        await sb.storage
+          .from('application-outputs')
+          .createSignedUrl(
+            output.storage_path,
+            60
+          );
+
+      if (error) throw error;
+
+      window.open(
+        data.signedUrl,
+        '_blank',
+        'noopener'
+      );
+
+    } catch (error) {
+      msg(error.message);
+    }
+  };
+
+
+/* =========================================================
+   START
+========================================================= */
+
 boot();
