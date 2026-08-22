@@ -3,54 +3,468 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SUNIL MULTI HUB — My Dashboard</title>
+  <meta name="theme-color" content="#1557d6">
+  <title>SUNIL MULTI HUB — Customer Portal</title>
+
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="phase2.css">
 </head>
-<body>
-<header class="site-header">
-  <div class="container nav">
+
+<body class="customer-portal">
+
+<header class="portal-header">
+  <div class="container portal-nav">
     <a href="index.html" class="brand">
       <span class="brand-mark">SM</span>
-      <span><strong>SUNIL MULTI HUB</strong><small>Customer Dashboard</small></span>
+      <span>
+        <strong>SUNIL MULTI HUB</strong>
+        <small>Digital Service Portal</small>
+      </span>
     </a>
-    <button id="logoutBtn" class="btn secondary">Logout</button>
+
+    <div class="portal-header-actions">
+      <a href="tools.html" class="portal-icon-btn">
+        🧰 <span>Tools</span>
+      </a>
+
+      <button id="logoutBtn" class="portal-icon-btn">
+        🚪 <span>Logout</span>
+      </button>
+    </div>
   </div>
 </header>
 
-<main class="admin-page">
-<div class="container">
-  <section class="admin-head">
-    <div><span class="eyebrow">CUSTOMER</span><h1>My Dashboard</h1><p id="who"></p></div>
-    <a class="btn primary" href="tools.html">Open Tools</a>
+<main>
+
+  <section class="portal-hero">
+    <div class="container">
+      <div class="portal-banner">
+
+        <div class="portal-banner-copy">
+          <span class="portal-badge">SUNIL MULTI HUB</span>
+
+          <h1>
+            आपकी सभी डिजिटल सेवाएँ
+            <span>एक ही पोर्टल पर</span>
+          </h1>
+
+          <p>
+            सरकारी सेवाएँ, ऑनलाइन फॉर्म, कार्ड प्रिंट,
+            दस्तावेज़, मोबाइल, वाहन और डिजिटल टूल्स।
+          </p>
+
+          <div class="portal-user">
+            <span>👤</span>
+            <div>
+              <small>Logged in as</small>
+              <strong id="who">Customer</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="portal-banner-art">
+          <div class="banner-art-card">📄</div>
+          <div class="banner-art-card">🪪</div>
+          <div class="banner-art-card">📱</div>
+          <div class="banner-art-card">🚗</div>
+        </div>
+
+      </div>
+    </div>
   </section>
 
-  <div class="stat-grid">
-    <article><span>My Orders</span><strong id="orderCount">0</strong></article>
-    <article><span>Pending</span><strong id="pendingCount">0</strong></article>
-    <article><span>Completed</span><strong id="doneCount">0</strong></article>
-    <article><span>Services</span><strong id="serviceCount">0</strong></article>
-  </div>
 
-  <section class="admin-card">
-    <h2>New Service Request</h2>
-    <form id="orderForm" class="order-form">
-      <label>Service<select id="serviceSelect" required></select></label>
-      <label>Note<textarea id="orderNote" rows="3" placeholder="काम की जानकारी"></textarea></label>
-      <button class="btn primary" type="submit">Submit Request</button>
-    </form>
+  <section class="portal-section compact-section">
+    <div class="container">
+      <div class="portal-stat-grid">
+
+        <article>
+          <span>📦</span>
+          <div>
+            <small>My Orders</small>
+            <strong id="orderCount">0</strong>
+          </div>
+        </article>
+
+        <article>
+          <span>⏳</span>
+          <div>
+            <small>Pending</small>
+            <strong id="pendingCount">0</strong>
+          </div>
+        </article>
+
+        <article>
+          <span>✅</span>
+          <div>
+            <small>Completed</small>
+            <strong id="doneCount">0</strong>
+          </div>
+        </article>
+
+        <article>
+          <span>🧩</span>
+          <div>
+            <small>Services</small>
+            <strong id="serviceCount">0</strong>
+          </div>
+        </article>
+
+      </div>
+    </div>
   </section>
 
-  <section class="admin-card">
-    <h2>My Orders</h2>
-    <div id="ordersList"></div>
+
+  <section class="portal-section">
+    <div class="container">
+
+      <div class="portal-section-head">
+        <div>
+          <span>⭐ Popular Services</span>
+          <h2>लोकप्रिय सेवाएँ</h2>
+        </div>
+        <small>एक क्लिक में सेवा चुनें</small>
+      </div>
+
+      <div class="portal-service-grid">
+
+        <button class="portal-service-card" onclick="selectServiceByName('आधार सेवाएँ')">
+          <span class="portal-service-icon">🪪</span>
+          <strong>आधार सेवाएँ</strong>
+          <small>Aadhaar Services</small>
+        </button>
+
+        <button class="portal-service-card" onclick="selectServiceByName('PAN कार्ड सेवाएँ')">
+          <span class="portal-service-icon">💳</span>
+          <strong>PAN कार्ड</strong>
+          <small>PAN Services</small>
+        </button>
+
+        <button class="portal-service-card" onclick="selectServiceByName('वोटर ID सेवाएँ')">
+          <span class="portal-service-icon">🗳️</span>
+          <strong>वोटर ID</strong>
+          <small>Voter Services</small>
+        </button>
+
+        <button class="portal-service-card" onclick="selectServiceByName('पासपोर्ट सेवाएँ')">
+          <span class="portal-service-icon">🛂</span>
+          <strong>पासपोर्ट</strong>
+          <small>Passport Services</small>
+        </button>
+
+        <button class="portal-service-card" onclick="selectServiceByName('आयुष्मान कार्ड')">
+          <span class="portal-service-icon">🏥</span>
+          <strong>आयुष्मान कार्ड</strong>
+          <small>Health Card</small>
+        </button>
+
+        <button class="portal-service-card" onclick="selectServiceByName('सरकारी नौकरी')">
+          <span class="portal-service-icon">💼</span>
+          <strong>सरकारी नौकरी</strong>
+          <small>Jobs & Forms</small>
+        </button>
+
+      </div>
+    </div>
   </section>
-</div>
+
+
+  <section class="portal-section portal-soft">
+    <div class="container">
+
+      <div class="portal-section-head">
+        <div>
+          <span>🏛 Government Services</span>
+          <h2>सरकारी एवं नागरिक सेवाएँ</h2>
+        </div>
+      </div>
+
+      <div class="portal-service-grid">
+
+        <button class="portal-service-card" onclick="selectServiceByName('आय • जाति • निवास प्रमाण पत्र')">
+          <span class="portal-service-icon">📑</span>
+          <strong>आय • जाति • निवास</strong>
+          <small>Certificates</small>
+        </button>
+
+        <button class="portal-service-card" onclick="selectServiceByName('जीवन प्रमाण पत्र • पेंशन फार्म')">
+          <span class="portal-service-icon">👴</span>
+          <strong>जीवन प्रमाण • पेंशन</strong>
+          <small>Pension Services</small>
+        </button>
+
+        <button class="portal-service-card" onclick="selectServiceByName('राशन कार्ड • श्रम कार्ड')">
+          <span class="portal-service-icon">👷</span>
+          <strong>राशन • श्रम कार्ड</strong>
+          <small>Public Services</small>
+        </button>
+
+        <button class="portal-service-card" onclick="selectServiceByName('उद्यम / MSME रजिस्ट्रेशन')">
+          <span class="portal-service-icon">🏢</span>
+          <strong>Udyam / MSME</strong>
+          <small>Business Registration</small>
+        </button>
+
+      </div>
+    </div>
+  </section>
+
+
+  <section class="portal-section">
+    <div class="container">
+
+      <div class="portal-section-head">
+        <div>
+          <span>🖨 Print & Document</span>
+          <h2>प्रिंट और दस्तावेज़ सेवाएँ</h2>
+        </div>
+      </div>
+
+      <div class="portal-service-grid">
+
+        <button class="portal-service-card" onclick="selectServiceByName('आधार • PAN • वोटर ID प्रिंट')">
+          <span class="portal-service-icon">🪪</span>
+          <strong>ID Card Print</strong>
+          <small>Aadhaar • PAN • Voter</small>
+        </button>
+
+        <button class="portal-service-card" onclick="selectServiceByName('प्रिंट • फोटोकॉपी • लेमिनेशन')">
+          <span class="portal-service-icon">🖨️</span>
+          <strong>Print / Photocopy</strong>
+          <small>Lamination Service</small>
+        </button>
+
+        <a class="portal-service-card" href="tools.html#passport">
+          <span class="portal-service-icon">📸</span>
+          <strong>Passport Photo</strong>
+          <small>Photo Maker</small>
+        </a>
+
+        <a class="portal-service-card" href="tools.html#jpg-pdf">
+          <span class="portal-service-icon">📄</span>
+          <strong>JPG → PDF</strong>
+          <small>Online Tool</small>
+        </a>
+
+        <a class="portal-service-card" href="tools.html#merge-pdf">
+          <span class="portal-service-icon">🧩</span>
+          <strong>Merge PDF</strong>
+          <small>PDF Tool</small>
+        </a>
+
+        <a class="portal-service-card" href="tools.html#resize">
+          <span class="portal-service-icon">🖼️</span>
+          <strong>Photo Resize</strong>
+          <small>Resize / Compress</small>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+
+  <section class="portal-section portal-soft">
+    <div class="container">
+
+      <div class="portal-section-head">
+        <div>
+          <span>🛍 Other Services</span>
+          <h2>अन्य सेवाएँ</h2>
+        </div>
+      </div>
+
+      <div class="portal-service-grid">
+
+        <button class="portal-service-card" onclick="selectServiceByName('मोबाइल सेल्स • रिपेयरिंग')">
+          <span class="portal-service-icon">📱</span>
+          <strong>मोबाइल सेल्स</strong>
+          <small>Repairing & Accessories</small>
+        </button>
+
+        <button class="portal-service-card" onclick="selectServiceByName('RD Service / Device Setup')">
+          <span class="portal-service-icon">🖐️</span>
+          <strong>RD Service</strong>
+          <small>Device Setup</small>
+        </button>
+
+        <button class="portal-service-card" onclick="selectServiceByName('वाहन सेवाएँ')">
+          <span class="portal-service-icon">🚘</span>
+          <strong>वाहन सेवाएँ</strong>
+          <small>Insurance • Pollution • HSRP</small>
+        </button>
+
+        <a class="portal-service-card" href="tools.html">
+          <span class="portal-service-icon">🧰</span>
+          <strong>All Online Tools</strong>
+          <small>Open Toolkit</small>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+
+  <section class="portal-section" id="requestSection">
+    <div class="container">
+
+      <div class="portal-request-card">
+
+        <div class="portal-section-head">
+          <div>
+            <span>📝 Apply Service</span>
+            <h2>नई सेवा के लिए आवेदन</h2>
+          </div>
+        </div>
+
+        <form id="orderForm" class="portal-order-form">
+
+          <label>
+            <span>Service</span>
+            <select id="serviceSelect" required></select>
+          </label>
+
+          <label>
+            <span>काम की जानकारी</span>
+            <textarea
+              id="orderNote"
+              rows="4"
+              placeholder="अपनी आवश्यकता या दस्तावेज़ की जानकारी लिखें..."
+            ></textarea>
+          </label>
+
+          <button class="btn primary portal-submit-btn" type="submit">
+            Submit Request
+          </button>
+
+        </form>
+
+      </div>
+    </div>
+  </section>
+
+
+  <section class="portal-section portal-soft">
+    <div class="container">
+
+      <div class="portal-orders-card">
+
+        <div class="portal-section-head">
+          <div>
+            <span>📦 Order Tracking</span>
+            <h2>मेरे आवेदन / ऑर्डर</h2>
+          </div>
+        </div>
+
+        <div id="ordersList">
+          <p>Loading orders...</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <section class="portal-section">
+    <div class="container">
+
+      <div class="portal-section-head">
+        <div>
+          <span>🔗 Quick Access</span>
+          <h2>महत्वपूर्ण लिंक</h2>
+        </div>
+      </div>
+
+      <div class="portal-link-grid">
+
+        <a href="index.html">
+          🏠
+          <span>Home</span>
+        </a>
+
+        <a href="tools.html">
+          🧰
+          <span>Online Tools</span>
+        </a>
+
+        <a href="#requestSection">
+          📝
+          <span>Apply Service</span>
+        </a>
+
+        <a href="#ordersList">
+          📦
+          <span>Track Orders</span>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+
+  <section class="portal-section portal-soft">
+    <div class="container">
+
+      <div class="portal-faq">
+
+        <div class="portal-section-head">
+          <div>
+            <span>❓ Help</span>
+            <h2>Frequently Asked Questions</h2>
+          </div>
+        </div>
+
+        <details>
+          <summary>Service request कैसे करें?</summary>
+          <p>
+            ऊपर किसी service icon पर क्लिक करें।
+            Service automatically select होगी।
+            फिर अपनी जानकारी भरकर Submit Request करें।
+          </p>
+        </details>
+
+        <details>
+          <summary>अपने आवेदन का status कहाँ देखें?</summary>
+          <p>
+            इसी portal के “मेरे आवेदन / ऑर्डर”
+            section में Pending या Completed status दिखाई देगा।
+          </p>
+        </details>
+
+        <details>
+          <summary>क्या mobile पर portal चलेगा?</summary>
+          <p>
+            हाँ, portal mobile, tablet और desktop
+            तीनों के लिए responsive बनाया गया है।
+          </p>
+        </details>
+
+      </div>
+    </div>
+  </section>
+
 </main>
 
+
+<footer class="portal-footer">
+  <div class="container">
+    <strong>SUNIL MULTI HUB</strong>
+
+    <p>
+      Digital • Print • Mobile • Vehicle Services
+    </p>
+
+    <small>
+      © 2026 SUNIL MULTI HUB
+    </small>
+  </div>
+</footer>
+
+
 <div class="toast" id="toast"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="dashboard.js"></script>
+
 </body>
 </html>
