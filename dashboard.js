@@ -5800,9 +5800,14 @@ function setupAadhaarPanLookupButton() {
   `;
 
 
-  aadhaarInput
-    .closest('.dynamic-field')
-    ?.after(wrapper);
+  const aadhaarFieldWrap =
+  document.querySelector(
+    '[data-field-wrap="aadhaar_number"]'
+  );
+
+if (aadhaarFieldWrap) {
+  aadhaarFieldWrap.after(wrapper);
+}
 
 
   const fetchBtn =
