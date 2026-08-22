@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#1557d6">
+
   <title>SUNIL MULTI HUB — Admin</title>
 
   <link rel="stylesheet" href="style.css">
@@ -14,9 +15,10 @@
       padding-top:24px;
     }
 
-    .dashboard-actions{
+    .dashboard-actions,
+    .row-actions{
       display:flex;
-      gap:10px;
+      gap:8px;
       flex-wrap:wrap;
     }
 
@@ -76,6 +78,17 @@
       color:#2855cc;
     }
 
+    .service-admin-meta{
+      display:block;
+      color:#667085;
+      margin-top:5px;
+      line-height:1.5;
+    }
+
+    /* =========================
+       MODALS
+    ========================= */
+
     .admin-modal-backdrop{
       position:fixed;
       inset:0;
@@ -91,8 +104,8 @@
     }
 
     .admin-modal{
-      width:min(620px,100%);
-      max-height:90vh;
+      width:min(650px,100%);
+      max-height:92vh;
       overflow:auto;
       background:#fff;
       border-radius:26px 26px 0 0;
@@ -112,14 +125,20 @@
       margin:0;
     }
 
+    .admin-modal-head p{
+      margin:6px 0 0;
+      color:#667085;
+    }
+
     .admin-modal-close{
-      width:40px;
-      height:40px;
+      width:42px;
+      height:42px;
       border:0;
       border-radius:50%;
       background:#f2f4f7;
-      font-size:22px;
+      font-size:23px;
       cursor:pointer;
+      flex:0 0 auto;
     }
 
     .admin-field{
@@ -133,17 +152,25 @@
     .admin-field select,
     .admin-field textarea{
       width:100%;
+      box-sizing:border-box;
       margin-top:7px;
       padding:13px;
       border:1px solid #d8e0eb;
       border-radius:12px;
       font:inherit;
       background:#fff;
+      color:#172033;
     }
 
     .admin-field textarea{
-      min-height:100px;
+      min-height:110px;
       resize:vertical;
+    }
+
+    .admin-form-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
     }
 
     .admin-modal-actions{
@@ -158,6 +185,7 @@
     }
 
     @media(max-width:760px){
+
       .admin-head{
         margin-bottom:18px;
       }
@@ -178,12 +206,6 @@
         grid-template-columns:1fr;
       }
 
-      .row-actions{
-        display:flex;
-        flex-wrap:wrap;
-        gap:7px;
-      }
-
       .admin-order-top{
         flex-direction:column;
       }
@@ -191,25 +213,38 @@
       .admin-order-bottom{
         align-items:flex-start;
       }
+
+      .admin-form-grid{
+        grid-template-columns:1fr;
+      }
     }
   </style>
 </head>
 
 <body>
 
+
+<!-- =========================
+     HEADER
+========================= -->
+
 <header class="site-header">
   <div class="container nav">
 
     <a href="index.html" class="brand">
+
       <span class="brand-mark">SM</span>
 
       <span>
         <strong>SUNIL MULTI HUB</strong>
         <small>Admin Panel</small>
       </span>
+
     </a>
 
-    <button id="logoutBtn" class="btn secondary">
+    <button
+      id="logoutBtn"
+      class="btn secondary">
       Logout
     </button>
 
@@ -217,29 +252,48 @@
 </header>
 
 
+<!-- =========================
+     MAIN
+========================= -->
+
 <main class="admin-page">
+
   <div class="container">
 
     <section class="admin-head">
 
       <div>
+
         <span class="eyebrow">ADMIN</span>
+
         <h1>Admin Dashboard</h1>
-        <p id="loggedIn">Checking admin access…</p>
+
+        <p id="loggedIn">
+          Checking admin access…
+        </p>
+
       </div>
 
       <div class="dashboard-actions">
-        <a class="btn primary" href="tools.html">
+
+        <a
+          class="btn primary"
+          href="tools.html">
           Open Tools
         </a>
 
-        <button class="btn secondary" id="refreshBtn">
+        <button
+          class="btn secondary"
+          id="refreshBtn">
           Refresh Data
         </button>
+
       </div>
 
     </section>
 
+
+    <!-- STATS -->
 
     <div class="stat-grid">
 
@@ -266,34 +320,55 @@
     </div>
 
 
+    <!-- ORDERS -->
+
     <section class="admin-card">
 
       <div class="card-head">
+
         <div>
+
           <h2>📦 Orders</h2>
-          <p>Customer requests, payment amount और status manage करें।</p>
+
+          <p>
+            Customer requests, payment amount और status manage करें।
+          </p>
+
         </div>
+
       </div>
 
-      <div id="ordersWrap" class="admin-orders-grid">
+      <div
+        id="ordersWrap"
+        class="admin-orders-grid">
+
         <p>Loading orders...</p>
+
       </div>
 
     </section>
 
 
+    <!-- SERVICES -->
+
     <section class="admin-card">
 
       <div class="card-head">
 
         <div>
+
           <h2>🧩 Services</h2>
+
           <p>
             Name, price, icon, category, documents और instructions manage करें।
           </p>
+
         </div>
 
-        <button class="btn primary" id="addServiceBtn">
+        <button
+          type="button"
+          class="btn primary"
+          id="addServiceBtn">
           + Add Service
         </button>
 
@@ -304,6 +379,8 @@
     </section>
 
 
+    <!-- USERS -->
+
     <section class="admin-card">
 
       <h2>👥 Users</h2>
@@ -313,14 +390,22 @@
     </section>
 
 
+    <!-- API -->
+
     <section class="admin-card">
 
       <h2>🔌 API / Database Status</h2>
 
       <p>
-        <span id="apiBadge" class="status pending">
+
+        <span
+          id="apiBadge"
+          class="status pending">
+
           Checking…
+
         </span>
+
       </p>
 
       <small id="apiText">
@@ -329,22 +414,36 @@
 
     </section>
 
+
   </div>
+
 </main>
 
 
-<!-- ORDER EDIT MODAL -->
+<!-- =========================================================
+     ORDER EDIT MODAL
+========================================================= -->
 
-<div class="admin-modal-backdrop" id="orderEditModal">
+<div
+  class="admin-modal-backdrop"
+  id="orderEditModal">
 
   <div class="admin-modal">
 
     <div class="admin-modal-head">
 
       <div>
-        <span class="eyebrow">ORDER</span>
-        <h2 id="editOrderService">Service Request</h2>
+
+        <span class="eyebrow">
+          ORDER
+        </span>
+
+        <h2 id="editOrderService">
+          Service Request
+        </h2>
+
         <p id="editOrderCustomer"></p>
+
       </div>
 
       <button
@@ -357,22 +456,40 @@
     </div>
 
 
-    <input type="hidden" id="editOrderId">
+    <input
+      type="hidden"
+      id="editOrderId">
 
 
     <label class="admin-field">
+
       Status
 
       <select id="editOrderStatus">
-        <option value="pending">Pending</option>
-        <option value="processing">Processing</option>
-        <option value="completed">Completed</option>
-        <option value="cancelled">Cancelled</option>
+
+        <option value="pending">
+          Pending
+        </option>
+
+        <option value="processing">
+          Processing
+        </option>
+
+        <option value="completed">
+          Completed
+        </option>
+
+        <option value="cancelled">
+          Cancelled
+        </option>
+
       </select>
+
     </label>
 
 
     <label class="admin-field">
+
       Amount ₹
 
       <input
@@ -381,16 +498,18 @@
         min="0"
         step="0.01"
         placeholder="0">
+
     </label>
 
 
     <label class="admin-field">
+
       Customer Note
 
       <textarea
         id="editOrderNote"
-        readonly>
-      </textarea>
+        readonly></textarea>
+
     </label>
 
 
@@ -400,14 +519,19 @@
         type="button"
         class="btn secondary"
         id="cancelOrderEdit">
+
         Cancel
+
       </button>
+
 
       <button
         type="button"
         class="btn primary"
         id="saveOrderEdit">
+
         Save Changes
+
       </button>
 
     </div>
@@ -417,12 +541,239 @@
 </div>
 
 
-<div class="toast" id="toast"></div>
+<!-- =========================================================
+     SERVICE EDIT / ADD MODAL
+========================================================= -->
 
+<div
+  class="admin-modal-backdrop"
+  id="serviceEditModal">
+
+  <div class="admin-modal">
+
+    <div class="admin-modal-head">
+
+      <div>
+
+        <span class="eyebrow">
+          SERVICE
+        </span>
+
+        <h2 id="serviceModalHeading">
+          Edit Service
+        </h2>
+
+        <p>
+          Customer Portal की पूरी service details manage करें।
+        </p>
+
+      </div>
+
+      <button
+        type="button"
+        class="admin-modal-close"
+        id="closeServiceModal">
+        ×
+      </button>
+
+    </div>
+
+
+    <input
+      type="hidden"
+      id="editServiceId">
+
+
+    <label class="admin-field">
+
+      Service Name
+
+      <input
+        id="editServiceName"
+        type="text"
+        placeholder="Service name">
+
+    </label>
+
+
+    <div class="admin-form-grid">
+
+
+      <label class="admin-field">
+
+        Price ₹
+
+        <input
+          id="editServicePrice"
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="0">
+
+      </label>
+
+
+      <label class="admin-field">
+
+        Icon / Emoji
+
+        <input
+          id="editServiceIcon"
+          type="text"
+          placeholder="🧩">
+
+      </label>
+
+
+      <label class="admin-field">
+
+        Category
+
+        <select id="editServiceCategory">
+
+          <option value="Popular">
+            Popular
+          </option>
+
+          <option value="Government">
+            Government
+          </option>
+
+          <option value="Print">
+            Print
+          </option>
+
+          <option value="Other">
+            Other
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <label class="admin-field">
+
+        Sort Order
+
+        <input
+          id="editServiceSort"
+          type="number"
+          min="0"
+          placeholder="10">
+
+      </label>
+
+
+    </div>
+
+
+    <label class="admin-field">
+
+      Short Description
+
+      <textarea
+        id="editServiceDescription"
+        placeholder="Service के बारे में छोटी जानकारी"></textarea>
+
+    </label>
+
+
+    <label class="admin-field">
+
+      Required Documents
+
+      <textarea
+        id="editServiceDocuments"
+        placeholder="हर document नई line में लिखें
+
+आधार कार्ड
+फोटो
+मोबाइल नंबर"></textarea>
+
+    </label>
+
+
+    <label class="admin-field">
+
+      Important Instructions
+
+      <textarea
+        id="editServiceInstructions"
+        placeholder="Customer के लिए जरूरी जानकारी"></textarea>
+
+    </label>
+
+
+    <label class="admin-field">
+
+      Status
+
+      <select id="editServiceActive">
+
+        <option value="true">
+          Active
+        </option>
+
+        <option value="false">
+          Inactive
+        </option>
+
+      </select>
+
+    </label>
+
+
+    <div class="admin-modal-actions">
+
+
+      <button
+        type="button"
+        class="btn secondary"
+        id="cancelServiceEdit">
+
+        Cancel
+
+      </button>
+
+
+      <button
+        type="button"
+        class="btn primary"
+        id="saveServiceEdit">
+
+        Save Service
+
+      </button>
+
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     TOAST
+========================= -->
+
+<div
+  class="toast"
+  id="toast">
+</div>
+
+
+<!-- =========================
+     SCRIPTS
+========================= -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="config.js"></script>
+
 <script src="admin.js"></script>
+
 
 </body>
 </html>
