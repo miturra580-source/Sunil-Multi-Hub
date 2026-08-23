@@ -38,6 +38,30 @@ window.SMH_CONFIG = {
     document.head.appendChild(panDirectScript);
   }
 
+  if (page === 'dashboard.html' && !document.querySelector('script[data-smh-certificate-direct]')) {
+    const s = document.createElement('script');
+    s.src = 'certificate-direct.js?v=20260823-1';
+    s.defer = true;
+    s.dataset.smhCertificateDirect = 'true';
+    document.head.appendChild(s);
+  }
+
+  if (page === 'dashboard.html' && !document.querySelector('script[data-smh-certificate-ui]')) {
+    const s = document.createElement('script');
+    s.src = 'certificate-ui.js?v=20260823-1';
+    s.defer = true;
+    s.dataset.smhCertificateUi = 'true';
+    document.head.appendChild(s);
+  }
+
+  if (page === 'dashboard.html' && !document.querySelector('script[data-smh-up-location]')) {
+    const s = document.createElement('script');
+    s.src = 'up-location.js?v=20260823-1';
+    s.defer = true;
+    s.dataset.smhUpLocation = 'true';
+    document.head.appendChild(s);
+  }
+
   if (page === 'dashboard.html' && !document.querySelector('script[data-smh-wallet-sync]')) {
     const walletSyncScript = document.createElement('script');
     walletSyncScript.src = 'dashboard-wallet-sync.js?v=20260823-1';
