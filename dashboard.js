@@ -5177,7 +5177,219 @@ async function loadCustomerWalletHistory() {
   }
 
 }
+/* =========================================================
+   WALLET TRANSACTION HISTORY
+========================================================= */
 
+const refreshWalletTransactionsBtn =
+  document.getElementById(
+    'refreshWalletTransactionsBtn'
+  );
+
+const walletTransactionHistory =
+  document.getElementById(
+    'walletTransactionHistory'
+  );
+
+
+async function loadWalletTransactions() {
+
+  if (
+    !user ||
+    !walletTransactionHistory
+  ) {
+    return;
+  }
+
+  walletTransactionHistory.innerHTML =
+    '<div class="wallet-history-empty">Loading transactions...</div>';
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from('wallet_transactions')
+        .select(`
+          id,
+          user_id,
+          wallet_id,
+          transaction_type,
+          amount,
+          balance_before,
+          balance_after,
+          reference_type,
+          reference_id,
+          description,
+          status,
+          created_at
+        `)
+        .eq(
+          'user_id',
+          user.id
+        )
+        .order(
+          'created_at',
+          {
+            ascending: false
+          }
+        )
+        .limit(50);
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    const rows =
+      data || [];
+
+
+    if (!rows.length) {
+
+      walletTransactionHistory.innerHTML =
+        '<div class="wallet-history-empty">अभी कोई wallet transaction नहीं है।</div>';
+
+      return;
+    }
+
+
+    walletTransactionHistory.innerHTML =
+      rows.map(item => {
+
+        const type =
+          String(
+            item.transaction_type ||
+            ''
+          ).toLowerCase();
+
+        const isDebit =
+          type === 'debit';
+
+        const sign =
+          isDebit
+            ? '-'
+            : '+';
+
+        const title =
+          item.description ||
+          (
+            isDebit
+              ? 'Service Payment'
+              : 'Wallet Credit'
+          );
+
+        const status =
+          String(
+            item.status ||
+            'completed'
+          );
+
+        const statusLabel =
+          status
+            .replace(/_/g, ' ')
+            .replace(
+              /\b\w/g,
+              c => c.toUpperCase()
+            );
+
+        return `
+          <div class="wallet-history-item">
+
+            <div>
+
+              <strong
+                style="
+                  color:${isDebit ? '#b42318' : '#067647'};
+                  font-size:16px;
+                "
+              >
+                ${sign}${walletMoney(item.amount)}
+              </strong>
+
+              <small
+                style="
+                  font-weight:700;
+                  color:#344054;
+                "
+              >
+                ${esc(title)}
+              </small>
+
+              <small>
+                Balance:
+                ${walletMoney(item.balance_before)}
+                →
+                ${walletMoney(item.balance_after)}
+              </small>
+
+              ${
+                item.reference_type
+                  ? `
+                    <small>
+                      Ref:
+                      ${esc(item.reference_type)}
+                    </small>
+                  `
+                  : ''
+              }
+
+              <small>
+                ${new Date(
+                  item.created_at
+                ).toLocaleString('en-IN')}
+              </small>
+
+            </div>
+
+            <span
+              class="status ${esc(status)}"
+            >
+              ${esc(statusLabel)}
+            </span>
+
+          </div>
+        `;
+
+      }).join('');
+
+
+  } catch (error) {
+
+    console.error(
+      'Wallet transactions error:',
+      error
+    );
+
+    walletTransactionHistory.innerHTML =
+      `
+        <div class="wallet-history-empty">
+          ${esc(
+            error.message ||
+            'Transaction history load failed'
+          )}
+        </div>
+      `;
+  }
+
+}
+
+
+if (refreshWalletTransactionsBtn) {
+
+  refreshWalletTransactionsBtn.onclick =
+    async () => {
+
+      await loadWalletTransactions();
+
+      msg(
+        'Wallet transactions refreshed'
+      );
+    };
+}
 
 /* =========================================================
    OPEN / CLOSE RECHARGE MODAL
@@ -5492,6 +5704,7 @@ async function submitCustomerWalletRecharge(
 
 
     await loadCustomerWalletHistory();
+     await loadWalletTransactions();
 
 
   } catch (error) {
@@ -5569,16 +5782,7 @@ function setupCustomerWalletEvents() {
 
   if (refreshWalletBtn) {
 
-    refreshWalletBtn.onclick =
-      async () => {
-
-        await loadCustomerWallet();
-
-        msg(
-          'Wallet balance refreshed'
-        );
-
-      };
+V
 
   }
 
