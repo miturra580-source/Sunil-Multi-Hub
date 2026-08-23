@@ -26,19 +26,20 @@
         padding:14px!important;border:1px solid #e3e8ef!important;border-radius:16px!important;background:#fafcff!important;
       }
       #applicationBox.smh-edistrict-app #supportingDocumentsSection [data-document-wrap]{
-        display:grid!important;grid-template-columns:minmax(0,1fr) minmax(170px,230px)!important;
-        align-items:center!important;gap:10px!important;padding:9px 0!important;margin:0!important;border-bottom:1px solid #edf0f4!important;
+        display:none!important;
       }
-      #applicationBox.smh-edistrict-app #supportingDocumentsSection [data-document-wrap]:last-child{border-bottom:0!important}
-      #applicationBox.smh-edistrict-app #supportingDocumentsSection input[type=file]{
-        width:100%!important;max-width:230px!important;padding:7px!important;margin:0!important;font-size:12px!important;
-        border:1px solid #d7dee8!important;border-radius:10px!important;background:#fff!important;
+      #applicationBox.smh-edistrict-app #supportingDocumentsSection > h1,
+      #applicationBox.smh-edistrict-app #supportingDocumentsSection > h2,
+      #applicationBox.smh-edistrict-app #supportingDocumentsSection > h3,
+      #applicationBox.smh-edistrict-app #supportingDocumentsSection > h4,
+      #applicationBox.smh-edistrict-app #supportingDocumentsSection > p{
+        display:none!important;
       }
-      #applicationBox.smh-edistrict-app .smh-file-note{font-size:11px;color:#667085;margin-top:8px;line-height:1.4}
-      @media(max-width:560px){
-        #applicationBox.smh-edistrict-app #supportingDocumentsSection [data-document-wrap]{grid-template-columns:1fr!important;gap:6px!important}
-        #applicationBox.smh-edistrict-app #supportingDocumentsSection input[type=file]{max-width:none!important}
+      #applicationBox.smh-edistrict-app #supportingDocumentsSection .smh-doc-picker,
+      #applicationBox.smh-edistrict-app #supportingDocumentsSection .smh-upload-quality-warning{
+        display:block!important;
       }
+      #applicationBox.smh-edistrict-app .smh-file-note{display:none!important}
     `;
     document.head.appendChild(style);
   }
@@ -80,12 +81,12 @@
     if (applicant) applicant.placeholder = '';
 
     const section = document.getElementById('supportingDocumentsSection');
-    if (section && !section.querySelector('.smh-file-note')) {
-      const note = document.createElement('div');
-      note.className = 'smh-file-note';
-      note.textContent = 'केवल JPG/PNG • अधिकतम 100 KB प्रति दस्तावेज़';
-      const h = section.querySelector('h3');
-      if (h) h.insertAdjacentElement('afterend', note); else section.prepend(note);
+    if (section) {
+      section.querySelectorAll('[data-document-wrap]').forEach(el => el.style.setProperty('display','none','important'));
+      [...section.children].forEach(el => {
+        if (el.classList?.contains('smh-doc-picker') || el.classList?.contains('smh-upload-quality-warning')) return;
+        if (/^H[1-6]$/.test(el.tagName) || el.tagName === 'P') el.style.setProperty('display','none','important');
+      });
     }
 
     document.querySelectorAll('#supportingDocumentsSection input[type="file"]').forEach(input => {
