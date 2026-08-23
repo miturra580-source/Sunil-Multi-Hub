@@ -47,19 +47,11 @@
     });
   }
 
-  function addWorkflowNote(){
-    if(!isRationForm()) return;
-    const form=document.getElementById('dynamicApplicationForm');
-    if(!form||form.querySelector('.smh-ration-workflow-note')) return;
-    const note=document.createElement('div');
-    note.className='smh-ration-workflow-note';
-    note.style.cssText='margin:12px 0 4px;padding:11px 13px;border:1px solid #cfe0ff;border-radius:12px;background:#f7faff;color:#475467;font-size:12px;line-height:1.5';
-    note.innerHTML='<strong style="color:#1f4dbd">Admin-assisted NFSA workflow</strong><br>Form submit होने के बाद Admin official UP NFSA portal पर आवेदन करेगा और प्राप्त Application/Reference Number यहाँ update करेगा।';
-    const fields=document.getElementById('beneficiaryFields');
-    fields?.before(note);
+  function removeWorkflowNote(){
+    document.querySelectorAll('.smh-ration-workflow-note').forEach(el=>el.remove());
   }
 
-  function enhance(){addVariantGroup();addFormSections();addWorkflowNote();}
+  function enhance(){addVariantGroup();addFormSections();removeWorkflowNote();}
   const start=()=>{enhance();new MutationObserver(()=>requestAnimationFrame(enhance)).observe(document.body,{childList:true,subtree:true});};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
