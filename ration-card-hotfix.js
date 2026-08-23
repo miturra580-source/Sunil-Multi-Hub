@@ -4,22 +4,11 @@
   let rebuilding=false;
   function isRation(){const s=document.getElementById('applicationServiceName')?.textContent||'';const v=document.getElementById('applicationVariantName')?.textContent||'';return RATION_RE.test(s+' '+v);}
   function repairEmptyStepper(){
-    if(rebuilding||!isRation())return false;
-    const form=document.getElementById('dynamicApplicationForm'),root=document.getElementById('beneficiaryFields');
-    if(!form||!root||form.dataset.rationV3!=='1')return false;
-    const basic=form.querySelector('.smh-ration-pane[data-step="0"] .smh-pane-body');
-    const basicFields=basic?.querySelectorAll('[data-field-wrap]').length||0;
-    const loadedFields=root.querySelectorAll('[data-field-wrap]').length;
-    if(basicFields===0&&loadedFields>0){
-      rebuilding=true;
-      form.querySelectorAll('.smh-ration-pane,.smh-ration-nav').forEach(el=>el.remove());
-      document.querySelectorAll('.smh-ration-banner,.smh-ration-steps').forEach(el=>el.remove());
-      root.style.display='';delete form.dataset.rationV3;
-      document.getElementById('applicationBox')?.classList.remove('smh-ration-form');
-      setTimeout(()=>{rebuilding=false;document.body.appendChild(document.createComment('smh-ration-rebuild'));},40);
-      return true;
-    }
-    return false;
+    if(rebuilding||!isRation())return false;const form=document.getElementById('dynamicApplicationForm'),root=document.getElementById('beneficiaryFields');if(!form||!root||form.dataset.rationV3!=='1')return false;
+    const panes=[...form.querySelectorAll('.smh-ration-pane')],total=panes.reduce((n,p)=>n+p.querySelectorAll('[data-field-wrap]').length,0);if(total>0)return false;
+    rebuilding=true;panes.forEach(x=>x.remove());form.querySelectorAll('.smh-ration-nav').forEach(x=>x.remove());document.querySelectorAll('.smh-ration-banner,.smh-ration-steps').forEach(x=>x.remove());root.innerHTML='';root.style.display='';delete form.dataset.rationV3;document.getElementById('applicationBox')?.classList.remove('smh-ration-form');
+    try{if(typeof renderBeneficiaryFields==='function')renderBeneficiaryFields();if(typeof renderSupportingDocuments==='function')renderSupportingDocuments();}catch(e){console.warn('ration recovery render',e)}
+    setTimeout(()=>{rebuilding=false;document.body.appendChild(document.createComment('smh-ration-rebuild'));},80);return true;
   }
   function validFile(input){const f=input.files?.[0];if(!f)return true;const ok=['image/jpeg','image/png'].includes(f.type)||/\.(jpe?g|png)$/i.test(f.name||'');if(!ok){alert('केवल JPG/JPEG/PNG फाइल चुनें।');input.value='';return false;}if(f.size>MAX){alert('फाइल 100 KB से अधिक नहीं हो सकती।');input.value='';return false;}return true;}
   function makeFallbackAttachments(pane){let box=pane.querySelector('#smhRationFixedAttachments');if(box)return box;box=document.createElement('div');box.id='smhRationFixedAttachments';box.innerHTML=`<div class="smh-attach-note">तीनों दस्तावेज़ अनिवार्य हैं • JPG/JPEG/PNG • अधिकतम 100 KB प्रति फाइल</div><div class="smh-fixed-doc"><strong>मुखिया की फोटो *</strong><input name="ration_head_photo" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" required><small>अधिकतम 100 KB</small></div><div class="smh-fixed-doc"><strong>मुखिया का Aadhaar Card *</strong><input name="ration_head_aadhaar" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" required><small>अधिकतम 100 KB</small></div><div class="smh-fixed-doc"><strong>Bank Passbook *</strong><input name="ration_bank_passbook" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" required><small>अधिकतम 100 KB</small></div>`;pane.prepend(box);box.querySelectorAll('input[type=file]').forEach(i=>i.addEventListener('change',()=>validFile(i)));return box;}
