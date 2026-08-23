@@ -1,0 +1,82 @@
+(() => {
+  const RATION_RE = /राशन\s*कार्ड|पात्र\s*गृहस्थी|अन्त्योदय|अंत्योदय|ration/i;
+  const RESIDENCE_RE = /निवास\s*प्रमाण|residence/i;
+
+  function ensureStyle() {
+    if (document.getElementById('smhRationDividerStyle')) return;
+    const style = document.createElement('style');
+    style.id = 'smhRationDividerStyle';
+    style.textContent = `
+      #variantCards .smh-ration-divider{
+        grid-column:1 / -1;
+        display:flex;
+        align-items:center;
+        gap:12px;
+        margin:4px 0 2px;
+        color:#315b1f;
+        font-weight:800;
+        font-size:14px;
+        letter-spacing:.2px;
+      }
+      #variantCards .smh-ration-divider::before,
+      #variantCards .smh-ration-divider::after{
+        content:'';
+        height:1px;
+        flex:1;
+        background:#cdddbf;
+      }
+      #variantCards .smh-ration-divider span{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        padding:7px 12px;
+        border-radius:999px;
+        background:#f3f8ee;
+        border:1px solid #dbe8d0;
+        white-space:nowrap;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function cardTitle(card) {
+    return (card?.querySelector('strong')?.textContent || card?.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function applyDivider() {
+    const grid = document.getElementById('variantCards');
+    if (!grid) return;
+
+    const heading = (document.getElementById('variantServiceName')?.textContent || '').toLowerCase();
+    if (!heading.includes('edistrict')) return;
+
+    grid.querySelectorAll('.smh-ration-divider').forEach(el => el.remove());
+
+    const cards = [...grid.children].filter(el => !el.classList.contains('smh-ration-divider'));
+    if (!cards.length) return;
+
+    const rationCard = cards.find(card => RATION_RE.test(cardTitle(card)));
+    if (!rationCard) return;
+
+    const residenceIndex = cards.findIndex(card => RESIDENCE_RE.test(cardTitle(card)));
+    const rationIndex = cards.indexOf(rationCard);
+    if (residenceIndex < 0 || rationIndex <= residenceIndex) return;
+
+    ensureStyle();
+    const divider = document.createElement('div');
+    divider.className = 'smh-ration-divider';
+    divider.setAttribute('aria-label', 'Ration Card services');
+    divider.innerHTML = '<span>🌾 राशन कार्ड</span>';
+    grid.insertBefore(divider, rationCard);
+  }
+
+  function start() {
+    applyDivider();
+    const grid = document.getElementById('variantCards');
+    if (grid) new MutationObserver(() => requestAnimationFrame(applyDivider)).observe(grid, { childList:true, subtree:true });
+    new MutationObserver(() => requestAnimationFrame(applyDivider)).observe(document.body, { childList:true, subtree:true });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once:true });
+  else start();
+})();
