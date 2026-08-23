@@ -62,6 +62,14 @@ window.SMH_CONFIG = {
     document.head.appendChild(guardScript);
   }
 
+  if (page === 'dashboard.html' && !document.querySelector('script[data-smh-stat-links]')) {
+    const statLinksScript = document.createElement('script');
+    statLinksScript.src = 'dashboard-stat-links.js?v=20260823-1';
+    statLinksScript.defer = true;
+    statLinksScript.dataset.smhStatLinks = 'true';
+    document.head.appendChild(statLinksScript);
+  }
+
   if (page === 'wallet.html' && !document.querySelector('script[data-smh-wallet-compact]')) {
     const walletScript = document.createElement('script');
     walletScript.src = 'wallet-compact.js?v=20260823-1';
