@@ -1,0 +1,2550 @@
+<!doctype html>
+<html lang="hi">
+
+<head>
+
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  >
+
+  <meta
+    name="theme-color"
+    content="#1557d6"
+  >
+
+  <title>
+    My Wallet — SUNIL MULTI HUB
+  </title>
+
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
+  <link
+    rel="stylesheet"
+    href="phase2.css"
+  >
+
+
+  <style>
+
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      background:#f5f7fb;
+      color:#172033;
+    }
+
+    .wallet-page{
+      min-height:100vh;
+      padding-bottom:50px;
+    }
+
+
+    /* HEADER */
+
+    .wallet-topbar{
+      position:sticky;
+      top:0;
+      z-index:100;
+      background:#fff;
+      border-bottom:1px solid #e7eaf0;
+    }
+
+    .wallet-nav{
+      max-width:1100px;
+      margin:auto;
+      min-height:68px;
+      padding:10px 18px;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+    }
+
+    .wallet-brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      text-decoration:none;
+      color:#172033;
+    }
+
+    .wallet-brand-mark{
+      width:44px;
+      height:44px;
+      display:grid;
+      place-items:center;
+      border-radius:14px;
+      background:#1557d6;
+      color:#fff;
+      font-weight:900;
+    }
+
+    .wallet-brand strong{
+      display:block;
+    }
+
+    .wallet-brand small{
+      display:block;
+      color:#667085;
+      margin-top:2px;
+    }
+
+    .wallet-nav-actions{
+      display:flex;
+      gap:8px;
+    }
+
+    .top-action{
+      min-height:42px;
+      padding:0 14px;
+      border-radius:12px;
+      border:1px solid #dce2ec;
+      background:#fff;
+      cursor:pointer;
+      text-decoration:none;
+      color:#344054;
+      font:inherit;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+
+    /* PAGE */
+
+    .wallet-container{
+      max-width:1100px;
+      margin:auto;
+      padding:24px 18px;
+    }
+
+    .wallet-page-heading{
+      margin-bottom:20px;
+    }
+
+    .wallet-page-heading span{
+      display:block;
+      color:#2855cc;
+      font-weight:900;
+      font-size:13px;
+      letter-spacing:.5px;
+    }
+
+    .wallet-page-heading h1{
+      margin:5px 0;
+      font-size:30px;
+    }
+
+    .wallet-page-heading p{
+      margin:0;
+      color:#667085;
+    }
+
+
+    /* MAIN WALLET CARD */
+
+    .main-wallet-card{
+      position:relative;
+      overflow:hidden;
+      padding:26px;
+      border-radius:28px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #0d5fe8 0%,
+          #3e4fe9 56%,
+          #7045f5 100%
+        );
+
+      color:#fff;
+
+      box-shadow:
+        0 20px 55px
+        rgba(42,72,194,.22);
+    }
+
+    .main-wallet-card::after{
+      content:"";
+      position:absolute;
+      width:230px;
+      height:230px;
+      right:-90px;
+      top:-105px;
+      border-radius:50%;
+      background:rgba(255,255,255,.10);
+    }
+
+    .wallet-card-top{
+      position:relative;
+      z-index:2;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:15px;
+    }
+
+    .wallet-card-top small{
+      display:block;
+      opacity:.85;
+      font-weight:800;
+      letter-spacing:.5px;
+    }
+
+    .wallet-card-top h2{
+      margin:5px 0 0;
+      color:#fff;
+    }
+
+    .wallet-icon{
+      font-size:38px;
+    }
+
+    .wallet-balance-wrap{
+      position:relative;
+      z-index:2;
+      margin-top:28px;
+    }
+
+    .wallet-balance-wrap small{
+      display:block;
+      opacity:.82;
+    }
+
+    #walletBalance{
+      display:block;
+      margin-top:5px;
+      font-size:42px;
+      line-height:1;
+    }
+
+    .wallet-meta{
+      position:relative;
+      z-index:2;
+      margin-top:20px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .wallet-meta span{
+      padding:8px 11px;
+      border-radius:999px;
+      background:rgba(255,255,255,.14);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .wallet-main-actions{
+      position:relative;
+      z-index:2;
+      display:grid;
+      grid-template-columns:
+        repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:22px;
+    }
+
+    .wallet-main-actions button{
+      min-height:52px;
+      border-radius:15px;
+      border:0;
+      cursor:pointer;
+      font:inherit;
+      font-weight:900;
+    }
+
+    .wallet-add-btn{
+      background:#fff;
+      color:#2452cc;
+    }
+
+    .wallet-refresh-btn{
+      background:rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.28) !important;
+      color:#fff;
+    }
+
+
+    /* SUMMARY */
+
+    .wallet-summary-grid{
+      display:grid;
+      grid-template-columns:
+        repeat(3,minmax(0,1fr));
+      gap:13px;
+      margin-top:18px;
+    }
+
+    .summary-card{
+      padding:18px;
+      background:#fff;
+      border:1px solid #e5e9f0;
+      border-radius:20px;
+    }
+
+    .summary-card small{
+      display:block;
+      color:#667085;
+    }
+
+    .summary-card strong{
+      display:block;
+      margin-top:7px;
+      font-size:23px;
+    }
+
+
+    /* TABS */
+
+    .wallet-panel{
+      margin-top:20px;
+      background:#fff;
+      border:1px solid #e5e9f0;
+      border-radius:24px;
+      overflow:hidden;
+    }
+
+    .wallet-tabs{
+      display:flex;
+      gap:8px;
+      overflow:auto;
+      padding:14px;
+      border-bottom:1px solid #edf0f4;
+    }
+
+    .wallet-tab{
+      flex:0 0 auto;
+      padding:10px 14px;
+      border:1px solid #dfe4ec;
+      border-radius:12px;
+      background:#fff;
+      cursor:pointer;
+      font:inherit;
+      font-weight:800;
+      color:#475467;
+    }
+
+    .wallet-tab.active{
+      background:#1557d6;
+      border-color:#1557d6;
+      color:#fff;
+    }
+
+    .wallet-panel-head{
+      padding:18px 20px 5px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .wallet-panel-head h3{
+      margin:0;
+    }
+
+    .small-refresh{
+      border:1px solid #dce2ec;
+      border-radius:11px;
+      background:#fff;
+      padding:8px 12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    .wallet-list{
+      padding:8px 20px 20px;
+    }
+
+    .wallet-empty{
+      padding:20px;
+      text-align:center;
+      color:#667085;
+      background:#f7f9fc;
+      border-radius:15px;
+    }
+
+    .transaction-row{
+      display:flex;
+      justify-content:space-between;
+      gap:15px;
+      padding:16px 0;
+      border-bottom:1px solid #edf0f4;
+    }
+
+    .transaction-row:last-child{
+      border-bottom:0;
+    }
+
+    .transaction-main{
+      min-width:0;
+    }
+
+    .transaction-title{
+      display:block;
+      font-weight:800;
+    }
+
+    .transaction-meta{
+      display:block;
+      margin-top:5px;
+      color:#667085;
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .transaction-amount{
+      text-align:right;
+      flex:0 0 auto;
+    }
+
+    .transaction-amount strong{
+      display:block;
+      font-size:17px;
+    }
+
+    .amount-debit{
+      color:#b42318;
+    }
+
+    .amount-credit{
+      color:#067647;
+    }
+
+    .status-pill{
+      display:inline-block;
+      margin-top:5px;
+      padding:5px 8px;
+      border-radius:999px;
+      background:#f2f4f7;
+      font-size:11px;
+      font-weight:800;
+      color:#475467;
+    }
+
+
+    /* RECHARGE MODAL */
+
+    .wallet-modal-backdrop{
+      position:fixed;
+      inset:0;
+      display:none;
+      justify-content:center;
+      align-items:flex-end;
+      background:rgba(7,16,35,.68);
+      z-index:20000;
+    }
+
+    .wallet-modal-backdrop.show{
+      display:flex;
+    }
+
+    .wallet-modal{
+      width:min(650px,100%);
+      max-height:94vh;
+      overflow:auto;
+      background:#fff;
+      padding:22px;
+      border-radius:28px 28px 0 0;
+      box-shadow:
+        0 -20px 70px
+        rgba(0,0,0,.28);
+    }
+
+    .wallet-modal-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:15px;
+    }
+
+    .wallet-modal-head small{
+      display:block;
+      color:#2855cc;
+      font-weight:900;
+    }
+
+    .wallet-modal-head h2{
+      margin:4px 0;
+    }
+
+    .wallet-modal-head p{
+      margin:0;
+      color:#667085;
+      line-height:1.5;
+    }
+
+    .modal-close{
+      width:44px;
+      height:44px;
+      border:0;
+      border-radius:50%;
+      background:#f1f4f8;
+      cursor:pointer;
+      font-size:22px;
+    }
+
+    .payment-info{
+      margin-top:18px;
+      padding:16px;
+      border:1px solid #e3e8ef;
+      background:#fafbfe;
+      border-radius:18px;
+    }
+
+    .payment-grid{
+      display:grid;
+      grid-template-columns:
+        repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+
+    .payment-item{
+      padding:12px;
+      border:1px solid #e5e9f0;
+      border-radius:13px;
+      background:#fff;
+    }
+
+    .payment-item small{
+      display:block;
+      color:#667085;
+    }
+
+    .payment-item strong{
+      display:block;
+      margin-top:5px;
+      word-break:break-word;
+    }
+
+    .qr-box{
+      margin-top:13px;
+      padding:15px;
+      text-align:center;
+      background:#fff;
+      border:1px solid #e5e9f0;
+      border-radius:15px;
+    }
+
+    #walletQrImage{
+      display:none;
+      width:100%;
+      max-width:260px;
+      margin:auto;
+      border-radius:13px;
+    }
+
+    #walletQrEmpty{
+      color:#667085;
+      padding:16px;
+    }
+
+    .wallet-form label{
+      display:block;
+      margin-top:15px;
+      font-size:13px;
+      font-weight:800;
+    }
+
+    .wallet-form input,
+    .wallet-form select{
+      width:100%;
+      margin-top:7px;
+      padding:13px;
+      border:1px solid #d8e0ea;
+      border-radius:12px;
+      font:inherit;
+      background:#fff;
+    }
+
+    .wallet-form small{
+      display:block;
+      margin-top:5px;
+      color:#667085;
+      font-weight:500;
+    }
+
+    .wallet-note{
+      margin-top:15px;
+      padding:12px;
+      border-radius:12px;
+      background:#fff7e7;
+      color:#72520a;
+      font-size:13px;
+      line-height:1.5;
+    }
+
+    .submit-recharge{
+      width:100%;
+      min-height:54px;
+      margin-top:16px;
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:30px;
+      transform:
+        translateX(-50%)
+        translateY(30px);
+      background:#172033;
+      color:#fff;
+      padding:12px 18px;
+      border-radius:12px;
+      opacity:0;
+      pointer-events:none;
+      transition:.2s;
+      z-index:30000;
+    }
+
+    .toast.show{
+      opacity:1;
+      transform:
+        translateX(-50%)
+        translateY(0);
+    }
+
+
+    @media(max-width:700px){
+
+      .wallet-page-heading h1{
+        font-size:25px;
+      }
+
+      .wallet-summary-grid{
+        grid-template-columns:1fr;
+      }
+
+      .wallet-main-actions{
+        grid-template-columns:1fr;
+      }
+
+      .payment-grid{
+        grid-template-columns:1fr;
+      }
+
+      .transaction-row{
+        align-items:flex-start;
+      }
+
+      #walletBalance{
+        font-size:36px;
+      }
+
+      .wallet-nav{
+        padding:9px 12px;
+      }
+
+      .wallet-brand small{
+        display:none;
+      }
+
+      .wallet-container{
+        padding:18px 12px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+<div class="wallet-page">
+
+
+  <!-- HEADER -->
+
+  <header class="wallet-topbar">
+
+    <div class="wallet-nav">
+
+      <a
+        class="wallet-brand"
+        href="dashboard.html"
+      >
+
+        <span class="wallet-brand-mark">
+          SM
+        </span>
+
+        <span>
+
+          <strong>
+            SUNIL MULTI HUB
+          </strong>
+
+          <small>
+            Digital Service Portal
+          </small>
+
+        </span>
+
+      </a>
+
+
+      <div class="wallet-nav-actions">
+
+        <a
+          class="top-action"
+          href="dashboard.html"
+        >
+          ← Dashboard
+        </a>
+
+        <button
+          type="button"
+          class="top-action"
+          id="logoutBtn"
+        >
+          Logout
+        </button>
+
+      </div>
+
+    </div>
+
+  </header>
+
+
+
+  <main class="wallet-container">
+
+
+    <!-- HEADING -->
+
+    <div class="wallet-page-heading">
+
+      <span>
+        💰 MY WALLET
+      </span>
+
+      <h1>
+        Wallet & Payments
+      </h1>
+
+      <p>
+        Recharge, service payments और सभी transactions एक ही जगह देखें।
+      </p>
+
+    </div>
+
+
+
+    <!-- MAIN CARD -->
+
+    <section class="main-wallet-card">
+
+      <div class="wallet-card-top">
+
+        <div>
+
+          <small>
+            SUNIL MULTI HUB WALLET
+          </small>
+
+          <h2>
+            Digital Wallet
+          </h2>
+
+        </div>
+
+        <div class="wallet-icon">
+          💳
+        </div>
+
+      </div>
+
+
+      <div class="wallet-balance-wrap">
+
+        <small>
+          Available Balance
+        </small>
+
+        <strong id="walletBalance">
+          ₹0.00
+        </strong>
+
+      </div>
+
+
+      <div class="wallet-meta">
+
+        <span id="walletCurrency">
+          INR
+        </span>
+
+        <span id="walletStatus">
+          Loading
+        </span>
+
+        <span id="walletUpdatedAt">
+          Updated now
+        </span>
+
+      </div>
+
+
+      <div class="wallet-main-actions">
+
+        <button
+          type="button"
+          class="wallet-add-btn"
+          id="openRechargeBtn"
+        >
+          ➕ Add Money
+        </button>
+
+        <button
+          type="button"
+          class="wallet-refresh-btn"
+          id="refreshWalletBtn"
+        >
+          🔄 Refresh Wallet
+        </button>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- SUMMARY -->
+
+    <section class="wallet-summary-grid">
+
+      <article class="summary-card">
+
+        <small>
+          Total Recharge
+        </small>
+
+        <strong id="totalRecharge">
+          ₹0.00
+        </strong>
+
+      </article>
+
+
+      <article class="summary-card">
+
+        <small>
+          Total Deduction
+        </small>
+
+        <strong id="totalDeduction">
+          ₹0.00
+        </strong>
+
+      </article>
+
+
+      <article class="summary-card">
+
+        <small>
+          Transactions
+        </small>
+
+        <strong id="totalTransactions">
+          0
+        </strong>
+
+      </article>
+
+    </section>
+
+
+
+    <!-- WALLET ACTIVITY -->
+
+    <section class="wallet-panel">
+
+
+      <div class="wallet-tabs">
+
+        <button
+          type="button"
+          class="wallet-tab active"
+          data-tab="all"
+        >
+          All Transactions
+        </button>
+
+        <button
+          type="button"
+          class="wallet-tab"
+          data-tab="deductions"
+        >
+          Deductions
+        </button>
+
+        <button
+          type="button"
+          class="wallet-tab"
+          data-tab="recharges"
+        >
+          Recharge History
+        </button>
+
+      </div>
+
+
+      <div class="wallet-panel-head">
+
+        <h3 id="activityTitle">
+          All Transactions
+        </h3>
+
+        <button
+          type="button"
+          class="small-refresh"
+          id="refreshActivityBtn"
+        >
+          Refresh
+        </button>
+
+      </div>
+
+
+      <div
+        class="wallet-list"
+        id="walletActivityList"
+      >
+
+        <div class="wallet-empty">
+          Wallet history loading...
+        </div>
+
+      </div>
+
+    </section>
+
+
+  </main>
+
+</div>
+
+
+
+<!-- RECHARGE MODAL -->
+
+<div
+  class="wallet-modal-backdrop"
+  id="rechargeModal"
+>
+
+  <div class="wallet-modal">
+
+
+    <div class="wallet-modal-head">
+
+      <div>
+
+        <small>
+          WALLET RECHARGE
+        </small>
+
+        <h2>
+          Add Money
+        </h2>
+
+        <p>
+          UPI QR से payment करें और UTR / Transaction ID submit करें।
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="modal-close"
+        id="closeRechargeBtn"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+
+    <div class="payment-info">
+
+
+      <div class="payment-grid">
+
+
+        <div class="payment-item">
+
+          <small>
+            UPI ID
+          </small>
+
+          <strong id="walletUpiId">
+            Loading...
+          </strong>
+
+        </div>
+
+
+        <div class="payment-item">
+
+          <small>
+            Payee Name
+          </small>
+
+          <strong id="walletPayeeName">
+            SUNIL MULTI HUB
+          </strong>
+
+        </div>
+
+
+        <div class="payment-item">
+
+          <small>
+            Minimum Recharge
+          </small>
+
+          <strong id="walletMinimum">
+            ₹100.00
+          </strong>
+
+        </div>
+
+
+        <div class="payment-item">
+
+          <small>
+            Payment Method
+          </small>
+
+          <strong id="walletPaymentMethodText">
+            UPI QR
+          </strong>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="qr-box">
+
+        <img
+          id="walletQrImage"
+          alt="SUNIL MULTI HUB UPI QR"
+        >
+
+        <div id="walletQrEmpty">
+          QR Code loading...
+        </div>
+
+      </div>
+
+
+    </div>
+
+
+
+    <form
+      class="wallet-form"
+      id="rechargeForm"
+    >
+
+
+      <label>
+
+        Recharge Amount ₹
+
+        <input
+          type="number"
+          id="rechargeAmount"
+          min="100"
+          step="1"
+          required
+        >
+
+        <small id="minimumHelp">
+          Minimum recharge ₹100
+        </small>
+
+      </label>
+
+
+      <label>
+
+        Payment Method
+
+        <select
+          id="paymentMethod"
+          required
+        >
+
+          <option value="upi_qr">
+            UPI QR
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <label>
+
+        UTR / Transaction ID
+
+        <input
+          type="text"
+          id="utr"
+          maxlength="80"
+          autocomplete="off"
+          required
+        >
+
+        <small>
+          UPI app में payment complete होने के बाद दिखने वाला UTR भरें।
+        </small>
+
+      </label>
+
+
+      <label>
+
+        Payment Reference
+
+        <input
+          type="text"
+          id="paymentReference"
+          maxlength="120"
+          autocomplete="off"
+          placeholder="Optional"
+        >
+
+      </label>
+
+
+      <div class="wallet-note">
+
+        ⚠️ गलत UTR submit न करें।
+        Recharge request admin verification के बाद approve होगी और उसके बाद wallet balance credit होगा।
+
+      </div>
+
+
+      <button
+        type="submit"
+        class="btn primary submit-recharge"
+        id="submitRechargeBtn"
+      >
+        Submit Recharge Request
+      </button>
+
+
+    </form>
+
+  </div>
+
+</div>
+
+
+
+<div
+  class="toast"
+  id="toast"
+></div>
+
+
+
+<script
+  src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+></script>
+
+<script src="config.js"></script>
+
+
+<script>
+
+  /* =========================================================
+     HELPERS
+  ========================================================= */
+
+  const $ =
+    id =>
+      document.getElementById(id);
+
+
+  const toast =
+    $('toast');
+
+
+  let toastTimer = null;
+
+  let user = null;
+
+  let wallet = null;
+
+  let transactions = [];
+
+  let topups = [];
+
+  let currentTab =
+    'all';
+
+
+  let walletSettings = {
+    minimum_amount: 100,
+    currency: 'INR',
+    payment_method: 'UPI_QR',
+    upi_id: '',
+    payee_name: 'SUNIL MULTI HUB',
+    qr_storage_path: ''
+  };
+
+
+  function msg(text) {
+
+    if (!toast) {
+      return;
+    }
+
+    toast.textContent =
+      text;
+
+    toast.classList.add(
+      'show'
+    );
+
+    clearTimeout(
+      toastTimer
+    );
+
+    toastTimer =
+      setTimeout(
+        () => {
+          toast.classList.remove(
+            'show'
+          );
+        },
+        2800
+      );
+  }
+
+
+  function esc(value = '') {
+
+    return String(value)
+      .replace(
+        /[&<>"']/g,
+        c => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[c]
+      );
+  }
+
+
+  function money(value) {
+
+    return '₹' +
+      Number(
+        value || 0
+      ).toLocaleString(
+        'en-IN',
+        {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }
+      );
+  }
+
+
+  function formatDate(value) {
+
+    if (!value) {
+      return '';
+    }
+
+    return new Date(
+      value
+    ).toLocaleString(
+      'en-IN'
+    );
+  }
+
+
+  function makeClient() {
+
+    const cfg =
+      window.SMH_CONFIG || {};
+
+    const url =
+      cfg.supabaseUrl;
+
+    const key =
+      cfg.supabaseAnonKey ||
+      cfg.supabaseKey;
+
+    if (
+      !url ||
+      !key
+    ) {
+      throw new Error(
+        'Supabase config missing'
+      );
+    }
+
+    return window.supabase
+      .createClient(
+        url,
+        key,
+        {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true
+          }
+        }
+      );
+  }
+
+
+  const sb =
+    makeClient();
+
+
+
+  /* =========================================================
+     LOAD WALLET
+  ========================================================= */
+
+  async function loadWallet() {
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from('wallets')
+        .select(`
+          id,
+          user_id,
+          balance,
+          currency,
+          created_at,
+          updated_at
+        `)
+        .eq(
+          'user_id',
+          user.id
+        )
+        .maybeSingle();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    wallet =
+      data || null;
+
+
+    const balance =
+      Number(
+        wallet?.balance || 0
+      );
+
+
+    $('walletBalance')
+      .textContent =
+        money(balance);
+
+
+    $('walletCurrency')
+      .textContent =
+        wallet?.currency ||
+        'INR';
+
+
+    $('walletStatus')
+      .textContent =
+        wallet
+          ? 'Active'
+          : 'Not Available';
+
+
+    $('walletUpdatedAt')
+      .textContent =
+        wallet?.updated_at
+          ? 'Updated ' +
+            formatDate(
+              wallet.updated_at
+            )
+          : 'Updated now';
+
+  }
+
+
+
+  /* =========================================================
+     PAYMENT SETTINGS
+  ========================================================= */
+
+  async function loadWalletSettings() {
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from(
+          'payment_settings'
+        )
+        .select(`
+          setting_key,
+          setting_value,
+          active
+        `)
+        .eq(
+          'setting_key',
+          'wallet_topup'
+        )
+        .eq(
+          'active',
+          true
+        )
+        .maybeSingle();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    if (
+      data?.setting_value
+    ) {
+
+      walletSettings = {
+        ...walletSettings,
+        ...data.setting_value
+      };
+
+    }
+
+
+    const minimum =
+      Number(
+        walletSettings
+          .minimum_amount ||
+        100
+      );
+
+
+    $('walletUpiId')
+      .textContent =
+        walletSettings
+          .upi_id ||
+        'Not configured';
+
+
+    $('walletPayeeName')
+      .textContent =
+        walletSettings
+          .payee_name ||
+        'SUNIL MULTI HUB';
+
+
+    $('walletMinimum')
+      .textContent =
+        money(minimum);
+
+
+    $('minimumHelp')
+      .textContent =
+        'Minimum recharge ' +
+        money(minimum);
+
+
+    $('rechargeAmount')
+      .min =
+        String(
+          minimum
+        );
+
+
+    if (
+      !$('rechargeAmount')
+        .value
+    ) {
+
+      $('rechargeAmount')
+        .value =
+          String(
+            minimum
+          );
+    }
+
+
+    $('walletPaymentMethodText')
+      .textContent =
+        'UPI QR';
+
+
+    await loadQr();
+
+  }
+
+
+
+  /* =========================================================
+     QR
+  ========================================================= */
+
+  async function loadQr() {
+
+    const path =
+      walletSettings
+        .qr_storage_path ||
+      '';
+
+
+    $('walletQrImage')
+      .style.display =
+        'none';
+
+
+    $('walletQrEmpty')
+      .style.display =
+        'block';
+
+
+    if (!path) {
+
+      $('walletQrEmpty')
+        .textContent =
+          'UPI QR अभी उपलब्ध नहीं है।';
+
+      return;
+    }
+
+
+    const {
+      data,
+      error
+    } =
+      await sb.storage
+        .from(
+          'payment-qr'
+        )
+        .createSignedUrl(
+          path,
+          600
+        );
+
+
+    if (
+      error ||
+      !data?.signedUrl
+    ) {
+
+      $('walletQrEmpty')
+        .textContent =
+          'QR Code load नहीं हो पाया।';
+
+      return;
+    }
+
+
+    $('walletQrImage')
+      .src =
+        data.signedUrl;
+
+
+    $('walletQrImage')
+      .style.display =
+        'block';
+
+
+    $('walletQrEmpty')
+      .style.display =
+        'none';
+
+  }
+
+
+
+  /* =========================================================
+     WALLET TRANSACTIONS
+  ========================================================= */
+
+  async function loadTransactions() {
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from(
+          'wallet_transactions'
+        )
+        .select(`
+          id,
+          user_id,
+          wallet_id,
+          transaction_type,
+          amount,
+          balance_before,
+          balance_after,
+          reference_type,
+          reference_id,
+          description,
+          status,
+          created_at
+        `)
+        .eq(
+          'user_id',
+          user.id
+        )
+        .order(
+          'created_at',
+          {
+            ascending: false
+          }
+        )
+        .limit(100);
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    transactions =
+      data || [];
+
+  }
+
+
+
+  /* =========================================================
+     RECHARGE HISTORY
+  ========================================================= */
+
+  async function loadTopups() {
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from(
+          'wallet_topups'
+        )
+        .select(`
+          id,
+          user_id,
+          wallet_id,
+          amount,
+          payment_method,
+          utr,
+          payment_reference,
+          provider_reference,
+          status,
+          verification_mode,
+          rejection_reason,
+          created_at,
+          updated_at
+        `)
+        .eq(
+          'user_id',
+          user.id
+        )
+        .order(
+          'created_at',
+          {
+            ascending: false
+          }
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    topups =
+      data || [];
+
+  }
+
+
+
+  /* =========================================================
+     SUMMARY
+  ========================================================= */
+
+  function renderSummary() {
+
+    const credited =
+      transactions
+        .filter(
+          item =>
+            String(
+              item.transaction_type
+            ).toLowerCase() ===
+            'credit'
+        )
+        .reduce(
+          (
+            total,
+            item
+          ) =>
+            total +
+            Number(
+              item.amount || 0
+            ),
+          0
+        );
+
+
+    const debited =
+      transactions
+        .filter(
+          item =>
+            String(
+              item.transaction_type
+            ).toLowerCase() ===
+            'debit'
+        )
+        .reduce(
+          (
+            total,
+            item
+          ) =>
+            total +
+            Number(
+              item.amount || 0
+            ),
+          0
+        );
+
+
+    $('totalRecharge')
+      .textContent =
+        money(
+          credited
+        );
+
+
+    $('totalDeduction')
+      .textContent =
+        money(
+          debited
+        );
+
+
+    $('totalTransactions')
+      .textContent =
+        transactions.length;
+
+  }
+
+
+
+  /* =========================================================
+     RENDER TRANSACTIONS
+  ========================================================= */
+
+  function transactionHtml(
+    item
+  ) {
+
+    const type =
+      String(
+        item.transaction_type ||
+        ''
+      ).toLowerCase();
+
+
+    const debit =
+      type ===
+      'debit';
+
+
+    const sign =
+      debit
+        ? '-'
+        : '+';
+
+
+    const title =
+      item.description ||
+      (
+        debit
+          ? 'Service Payment'
+          : 'Wallet Credit'
+      );
+
+
+    return `
+      <div class="transaction-row">
+
+        <div class="transaction-main">
+
+          <span class="transaction-title">
+            ${esc(title)}
+          </span>
+
+          <span class="transaction-meta">
+
+            Balance:
+            ${money(item.balance_before)}
+            →
+            ${money(item.balance_after)}
+
+          </span>
+
+          ${
+            item.reference_type
+              ? `
+                <span class="transaction-meta">
+                  Reference:
+                  ${esc(item.reference_type)}
+                </span>
+              `
+              : ''
+          }
+
+          <span class="transaction-meta">
+            ${esc(
+              formatDate(
+                item.created_at
+              )
+            )}
+          </span>
+
+        </div>
+
+
+        <div class="transaction-amount">
+
+          <strong class="${
+            debit
+              ? 'amount-debit'
+              : 'amount-credit'
+          }">
+
+            ${sign}${money(item.amount)}
+
+          </strong>
+
+          <span class="status-pill">
+            ${esc(
+              String(
+                item.status ||
+                'completed'
+              )
+                .replace(
+                  /_/g,
+                  ' '
+                )
+            )}
+          </span>
+
+        </div>
+
+      </div>
+    `;
+
+  }
+
+
+
+  function topupHtml(
+    item
+  ) {
+
+    const status =
+      String(
+        item.status ||
+        'submitted'
+      );
+
+
+    return `
+      <div class="transaction-row">
+
+        <div class="transaction-main">
+
+          <span class="transaction-title">
+            Wallet Recharge
+          </span>
+
+          <span class="transaction-meta">
+            UTR:
+            ${esc(
+              item.utr ||
+              'Not submitted'
+            )}
+          </span>
+
+          <span class="transaction-meta">
+            ${esc(
+              formatDate(
+                item.created_at
+              )
+            )}
+          </span>
+
+          ${
+            item.rejection_reason
+              ? `
+                <span
+                  class="transaction-meta"
+                  style="color:#b42318"
+                >
+                  Reason:
+                  ${esc(
+                    item.rejection_reason
+                  )}
+                </span>
+              `
+              : ''
+          }
+
+        </div>
+
+
+        <div class="transaction-amount">
+
+          <strong class="amount-credit">
+            ${money(item.amount)}
+          </strong>
+
+          <span class="status-pill">
+            ${esc(
+              status.replace(
+                /_/g,
+                ' '
+              )
+            )}
+          </span>
+
+        </div>
+
+      </div>
+    `;
+
+  }
+
+
+
+  function renderActivity() {
+
+    const list =
+      $('walletActivityList');
+
+
+    if (
+      currentTab ===
+      'recharges'
+    ) {
+
+      $('activityTitle')
+        .textContent =
+          'Recharge History';
+
+
+      if (!topups.length) {
+
+        list.innerHTML =
+          `
+            <div class="wallet-empty">
+              अभी कोई recharge request नहीं है।
+            </div>
+          `;
+
+        return;
+      }
+
+
+      list.innerHTML =
+        topups
+          .map(
+            topupHtml
+          )
+          .join('');
+
+      return;
+    }
+
+
+    let rows =
+      transactions;
+
+
+    if (
+      currentTab ===
+      'deductions'
+    ) {
+
+      $('activityTitle')
+        .textContent =
+          'Deduction History';
+
+
+      rows =
+        transactions.filter(
+          item =>
+            String(
+              item.transaction_type
+            ).toLowerCase() ===
+            'debit'
+        );
+
+    } else {
+
+      $('activityTitle')
+        .textContent =
+          'All Transactions';
+
+    }
+
+
+    if (!rows.length) {
+
+      list.innerHTML =
+        `
+          <div class="wallet-empty">
+            कोई transaction उपलब्ध नहीं है।
+          </div>
+        `;
+
+      return;
+    }
+
+
+    list.innerHTML =
+      rows
+        .map(
+          transactionHtml
+        )
+        .join('');
+
+  }
+
+
+
+  /* =========================================================
+     REFRESH ALL
+  ========================================================= */
+
+  async function refreshAll() {
+
+    $('walletActivityList')
+      .innerHTML =
+        `
+          <div class="wallet-empty">
+            Wallet history loading...
+          </div>
+        `;
+
+
+    await Promise.all([
+      loadWallet(),
+      loadTransactions(),
+      loadTopups()
+    ]);
+
+
+    renderSummary();
+
+    renderActivity();
+
+  }
+
+
+
+  /* =========================================================
+     RECHARGE MODAL
+  ========================================================= */
+
+  function openRecharge() {
+
+    $('rechargeModal')
+      .classList.add(
+        'show'
+      );
+
+    document.body
+      .style.overflow =
+        'hidden';
+
+  }
+
+
+  function closeRecharge() {
+
+    $('rechargeModal')
+      .classList.remove(
+        'show'
+      );
+
+    document.body
+      .style.overflow =
+        '';
+
+  }
+
+
+
+  /* =========================================================
+     SUBMIT RECHARGE
+  ========================================================= */
+
+  async function submitRecharge(
+    event
+  ) {
+
+    event.preventDefault();
+
+
+    if (
+      !user ||
+      !wallet
+    ) {
+
+      msg(
+        'Wallet account नहीं मिला'
+      );
+
+      return;
+    }
+
+
+    const minimum =
+      Number(
+        walletSettings
+          .minimum_amount ||
+        100
+      );
+
+
+    const amount =
+      Number(
+        $('rechargeAmount')
+          .value ||
+        0
+      );
+
+
+    const utr =
+      $('utr')
+        .value
+        .trim();
+
+
+    const paymentReference =
+      $('paymentReference')
+        .value
+        .trim();
+
+
+    if (
+      !Number.isFinite(
+        amount
+      ) ||
+      amount < minimum
+    ) {
+
+      msg(
+        `Minimum recharge ${money(minimum)} है`
+      );
+
+      return;
+    }
+
+
+    if (!utr) {
+
+      msg(
+        'UTR / Transaction ID भरें'
+      );
+
+      return;
+    }
+
+
+    const button =
+      $('submitRechargeBtn');
+
+
+    button.disabled =
+      true;
+
+
+    button.textContent =
+      'Submitting...';
+
+
+    try {
+
+      const {
+        error
+      } =
+        await sb
+          .from(
+            'wallet_topups'
+          )
+          .insert({
+
+            user_id:
+              user.id,
+
+            wallet_id:
+              wallet.id,
+
+            amount,
+
+            payment_method:
+              'upi_qr',
+
+            utr,
+
+            payment_reference:
+              paymentReference ||
+              null,
+
+            status:
+              'submitted'
+
+          });
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      msg(
+        'Recharge request submitted'
+      );
+
+
+      $('utr').value =
+        '';
+
+
+      $('paymentReference')
+        .value =
+          '';
+
+
+      closeRecharge();
+
+
+      await loadTopups();
+
+      currentTab =
+        'recharges';
+
+      setActiveTab();
+
+      renderActivity();
+
+
+    } catch (error) {
+
+      console.error(
+        error
+      );
+
+      msg(
+        error.message ||
+        'Recharge request submit नहीं हुई'
+      );
+
+    } finally {
+
+      button.disabled =
+        false;
+
+      button.textContent =
+        'Submit Recharge Request';
+
+    }
+
+  }
+
+
+
+  /* =========================================================
+     TABS
+  ========================================================= */
+
+  function setActiveTab() {
+
+    document
+      .querySelectorAll(
+        '.wallet-tab'
+      )
+      .forEach(
+        button => {
+
+          button
+            .classList
+            .toggle(
+              'active',
+              button.dataset.tab ===
+              currentTab
+            );
+
+        }
+      );
+
+  }
+
+
+  document
+    .querySelectorAll(
+      '.wallet-tab'
+    )
+    .forEach(
+      button => {
+
+        button.onclick =
+          () => {
+
+            currentTab =
+              button.dataset.tab;
+
+            setActiveTab();
+
+            renderActivity();
+
+          };
+
+      }
+    );
+
+
+
+  /* =========================================================
+     BUTTON ACTIONS
+  ========================================================= */
+
+  $('openRechargeBtn')
+    .onclick =
+      openRecharge;
+
+
+  $('closeRechargeBtn')
+    .onclick =
+      closeRecharge;
+
+
+  $('rechargeModal')
+    .onclick =
+      event => {
+
+        if (
+          event.target ===
+          $('rechargeModal')
+        ) {
+
+          closeRecharge();
+
+        }
+
+      };
+
+
+  $('rechargeForm')
+    .onsubmit =
+      submitRecharge;
+
+
+  $('refreshWalletBtn')
+    .onclick =
+      async () => {
+
+        try {
+
+          await refreshAll();
+
+          msg(
+            'Wallet refreshed'
+          );
+
+        } catch (error) {
+
+          console.error(
+            error
+          );
+
+          msg(
+            error.message
+          );
+
+        }
+
+      };
+
+
+  $('refreshActivityBtn')
+    .onclick =
+      async () => {
+
+        try {
+
+          await loadTransactions();
+
+          await loadTopups();
+
+          renderSummary();
+
+          renderActivity();
+
+          msg(
+            'Wallet activity refreshed'
+          );
+
+        } catch (error) {
+
+          console.error(
+            error
+          );
+
+          msg(
+            error.message
+          );
+
+        }
+
+      };
+
+
+  $('logoutBtn')
+    .onclick =
+      async () => {
+
+        await sb.auth.signOut();
+
+        location.href =
+          'auth.html';
+
+      };
+
+
+
+  /* =========================================================
+     BOOT
+  ========================================================= */
+
+  async function boot() {
+
+    try {
+
+      const {
+        data: {
+          session
+        },
+        error
+      } =
+        await sb.auth
+          .getSession();
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      if (!session?.user) {
+
+        location.replace(
+          'auth.html'
+        );
+
+        return;
+      }
+
+
+      user =
+        session.user;
+
+
+      await loadWalletSettings();
+
+      await refreshAll();
+
+
+    } catch (error) {
+
+      console.error(
+        error
+      );
+
+      msg(
+        error.message ||
+        'Wallet load failed'
+      );
+
+    }
+
+  }
+
+
+  document.addEventListener(
+    'visibilitychange',
+    async () => {
+
+      if (
+        document.visibilityState ===
+        'visible' &&
+        user
+      ) {
+
+        try {
+
+          await refreshAll();
+
+        } catch (error) {
+
+          console.error(
+            error
+          );
+
+        }
+
+      }
+
+    }
+  );
+
+
+  boot();
+
+</script>
+
+
+</body>
+</html>
