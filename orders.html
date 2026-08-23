@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#1557d6">
+  <title>My Orders — SUNIL MULTI HUB</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="phase2.css">
+  <style>
+    body{background:#f6f8fc;color:#172033}
+    .orders-shell{max-width:1120px;margin:0 auto;padding:18px 16px 40px}
+    .orders-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .orders-back{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:#2855cc;font-weight:800}
+    .orders-title{margin:4px 0 0;font-size:28px}
+    .orders-sub{margin:5px 0 0;color:#667085}
+    .orders-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:18px 0}
+    .orders-tab{border:1px solid #dfe5ef;background:#fff;border-radius:14px;padding:12px 8px;font:inherit;font-weight:800;color:#5d6776;cursor:pointer}
+    .orders-tab.active{background:#edf3ff;border-color:#bcd0ff;color:#1557d6}
+    .orders-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px}
+    .orders-summary article{background:#fff;border:1px solid #e4e8ef;border-radius:16px;padding:14px}
+    .orders-summary small{display:block;color:#667085;font-weight:700}
+    .orders-summary strong{display:block;margin-top:5px;font-size:22px}
+    .orders-list{display:grid;gap:12px}
+    .order-card{background:#fff;border:1px solid #e1e7ef;border-radius:18px;padding:16px;box-shadow:0 8px 24px rgba(30,50,90,.05)}
+    .order-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .order-service{font-weight:900;font-size:16px}
+    .order-id{margin-top:4px;color:#667085;font-size:11px;word-break:break-all}
+    .status-pill{flex:0 0 auto;padding:7px 10px;border-radius:999px;font-size:11px;font-weight:900;background:#fff4df;color:#8a5a00}
+    .status-pill.completed{background:#eafaf1;color:#16794b}
+    .status-pill.cancelled{background:#fff0f0;color:#b42318}
+    .order-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+    .order-info{padding:10px 11px;background:#f8fafc;border-radius:12px}
+    .order-info small{display:block;color:#667085;font-size:11px}
+    .order-info strong{display:block;margin-top:3px;font-size:13px}
+    .order-note{margin-top:12px;padding:11px 12px;border-left:3px solid #8ba9ff;background:#f7f9ff;border-radius:10px;color:#475467;line-height:1.5}
+    .orders-empty{padding:30px;text-align:center;background:#fff;border:1px dashed #d9e0ea;border-radius:18px;color:#667085}
+    @media(max-width:600px){
+      .orders-title{font-size:23px}.orders-summary{grid-template-columns:repeat(3,1fr);gap:7px}.orders-summary article{padding:10px}.orders-summary strong{font-size:18px}.orders-summary small{font-size:10px}.order-grid{grid-template-columns:1fr}.orders-tab{font-size:12px;padding:10px 4px}
+    }
+  </style>
+</head>
+<body>
+<header class="portal-header">
+  <div class="container portal-nav">
+    <a href="dashboard.html" class="brand"><span class="brand-mark">SM</span><span><strong>SUNIL MULTI HUB</strong><small>Digital Service Portal</small></span></a>
+    <div class="portal-header-actions"><a href="dashboard.html" class="portal-icon-btn">🏠 <span>Dashboard</span></a><a href="wallet.html" class="portal-icon-btn">💰 <span>Wallet</span></a></div>
+  </div>
+</header>
+<main class="orders-shell">
+  <div class="orders-head"><div><a class="orders-back" href="dashboard.html">← Dashboard</a><h1 class="orders-title" id="ordersPageTitle">My Orders</h1><p class="orders-sub" id="ordersPageSub">आपके सभी service orders और उनकी स्थिति</p></div></div>
+  <div class="orders-tabs">
+    <button class="orders-tab" data-filter="all">📦 All Orders</button>
+    <button class="orders-tab" data-filter="pending">⏳ Pending</button>
+    <button class="orders-tab" data-filter="completed">✅ Completed</button>
+  </div>
+  <section class="orders-summary">
+    <article><small>Total</small><strong id="summaryAll">0</strong></article>
+    <article><small>Pending</small><strong id="summaryPending">0</strong></article>
+    <article><small>Completed</small><strong id="summaryCompleted">0</strong></article>
+  </section>
+  <div id="ordersPageList" class="orders-list"><div class="orders-empty">Orders loading...</div></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="orders.js"></script>
+</body>
+</html>
