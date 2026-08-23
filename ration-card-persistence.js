@@ -31,12 +31,18 @@
 
   function collectDraft(){
     if(!isRation()) return null;
-    const data={values:{},checks:{},radios:{},step:0,familyStore:'',nfsaStore:'',savedAt:new Date().toISOString()};
+    const data={values:{},checks:{},radios:{},nfsa:{},step:0,familyStore:'',nfsaStore:'',savedAt:new Date().toISOString()};
     document.querySelectorAll('#dynamicApplicationForm input,#dynamicApplicationForm select,#dynamicApplicationForm textarea').forEach(el=>{
-      if(!el.name || el.type==='file') return;
-      if(el.type==='checkbox') data.checks[el.name]=!!el.checked;
-      else if(el.type==='radio'){ if(el.checked) data.radios[el.name]=el.value; }
-      else data.values[el.name]=el.value;
+      if(el.type==='file') return;
+      if(el.name){
+        if(el.type==='checkbox') data.checks[el.name]=!!el.checked;
+        else if(el.type==='radio'){ if(el.checked) data.radios[el.name]=el.value; }
+        else data.values[el.name]=el.value;
+      }
+    });
+    document.querySelectorAll('#dynamicApplicationForm [data-nfsa]').forEach((el,i)=>{
+      const key=el.dataset.nfsa || el.dataset.no || el.name || String(i);
+      data.nfsa[key]=el.value;
     });
     const active=[...document.querySelectorAll('.smh-ration-step')].findIndex(x=>x.classList.contains('active'));
     data.step=Math.max(0,active);
@@ -69,11 +75,20 @@
     });
     Object.entries(d.checks||{}).forEach(([name,val])=>{ const el=document.querySelector(`#dynamicApplicationForm [name="${CSS.escape(name)}"]`); if(el) el.checked=!!val; });
     Object.entries(d.radios||{}).forEach(([name,val])=>{ const el=[...document.querySelectorAll(`#dynamicApplicationForm [name="${CSS.escape(name)}"]`)].find(x=>x.value===val); if(el) el.checked=true; });
+    const nfsaEls=[...document.querySelectorAll('#dynamicApplicationForm [data-nfsa]')];
+    Object.entries(d.nfsa||{}).forEach(([key,val])=>{
+      const el=nfsaEls.find((x,i)=>(x.dataset.nfsa||x.dataset.no||x.name||String(i))===key);
+      if(el){ el.value=val; el.dispatchEvent(new Event('change',{bubbles:true})); }
+    });
     const fam=document.querySelector('[data-field-wrap="family_members"] textarea,[data-field-wrap="family_members"] input[name="family_members"],textarea[name="family_members"],input[name="family_members"]');
     if(fam && d.familyStore){ fam.value=d.familyStore; renderRestoredFamily(d.familyStore); }
     const nfsa=document.querySelector('[data-field-wrap="nfsa_criteria"] textarea,[data-field-wrap="nfsa_criteria"] input[name="nfsa_criteria"],textarea[name="nfsa_criteria"],input[name="nfsa_criteria"]');
     if(nfsa && d.nfsaStore) nfsa.value=d.nfsaStore;
-    if(Number.isInteger(d.step) && d.step>0){ const btn=document.querySelector(`.smh-ration-step[data-step="${Math.min(5,d.step)}"]`); btn?.click(); }
+    if(Number.isInteger(d.step) && d.step>0){
+      const target=document.querySelector(`.smh-ration-pane[data-step="${Math.min(5,d.step)}"]`);
+      document.querySelectorAll('.smh-ration-pane').forEach(p=>p.classList.toggle('active',p===target));
+      document.querySelectorAll('.smh-ration-step').forEach(s=>s.classList.toggle('active',Number(s.dataset.step)===Math.min(5,d.step)));
+    }
     document.querySelectorAll('input[type="file"]').forEach(el=>{ if(el.closest('#supportingDocumentsSection')) el.title='सुरक्षा कारणों से page दोबारा खुलने पर file फिर चुननी होगी।'; });
   }
 
