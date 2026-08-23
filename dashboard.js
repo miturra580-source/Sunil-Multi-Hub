@@ -5868,26 +5868,26 @@ document.addEventListener(
   async () => {
 
     if (
-      document.visibilityState ===
-      'visible' &&
-      user
-    ) {
+  document.visibilityState ===
+    'visible' &&
+  user
+) {
 
-      try {
+  try {
 
-        await loadCustomerWallet();
+    await loadCustomerWallet();
+    await loadCustomerWalletHistory();
+    await loadWalletTransactions();
 
-      } catch (error) {
+  } catch (error) {
 
-        console.error(
-          'Wallet refresh error:',
-          error
-        );
+    console.error(
+      'Wallet refresh error:',
+      error
+    );
 
-      }
-
-    }
-
+  }
+}
   }
 );
 
