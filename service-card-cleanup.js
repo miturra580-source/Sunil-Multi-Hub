@@ -1,5 +1,8 @@
 (() => {
   const STYLE_ID = 'smh-clean-service-cards-style';
+  const HIDDEN_SERVICE_NAMES = new Set([
+    'aadhaar से pan खोजें'
+  ]);
 
   function injectStyles() {
     if (document.getElementById(STYLE_ID)) return;
@@ -40,6 +43,15 @@
   function cleanCard(card) {
     if (!card) return;
 
+    const title = String(card.querySelector('strong')?.textContent || '')
+      .trim()
+      .toLowerCase();
+
+    if (HIDDEN_SERVICE_NAMES.has(title)) {
+      card.remove();
+      return;
+    }
+
     card.querySelectorAll('small').forEach(el => el.remove());
 
     card.querySelectorAll(':scope > span').forEach(el => {
@@ -71,7 +83,7 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', start, { once: true });
+    document.addEventListener('DOMContentLoaded', start, { once:true });
   } else {
     start();
   }
