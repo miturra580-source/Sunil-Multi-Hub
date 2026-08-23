@@ -124,6 +124,23 @@
     box.dataset.smhPanEnhanced = '1';
   }
 
+  function routeWorkingAadhaarPan(event) {
+    const btn = event.target.closest?.('.variant-select-btn');
+    if (!btn) return;
+    const box = document.getElementById('variantBox');
+    if (!box?.classList.contains('smh-pan-box')) return;
+
+    const text = (btn.innerText || btn.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const isFindByAadhaar = text.includes('find pan by aadhaar') ||
+      (text.includes('pan') && text.includes('aadhaar') && (text.includes('find') || text.includes('खोज')));
+    if (!isFindByAadhaar) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    window.location.href = 'pan-aadhaar-test.html';
+  }
+
   injectStyles();
 
   function start() {
@@ -132,6 +149,7 @@
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
+    document.addEventListener('click', routeWorkingAadhaarPan, true);
     document.addEventListener('click', () => {
       setTimeout(enhancePanPanel, 260);
     }, true);
