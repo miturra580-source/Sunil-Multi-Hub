@@ -15,7 +15,12 @@
       #variantBox.smh-pan-box .variant-select-btn strong{font-size:15px!important;line-height:1.35!important;padding-right:34px!important}
       #variantBox.smh-pan-box .variant-select-btn small{font-size:12px!important;line-height:1.45!important}
       #variantBox.smh-pan-box .smh-pan-tag{display:inline-flex;align-items:center;margin-top:9px;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:900;background:#eef4ff;color:#3157d8}
-      #variantBox.smh-pan-box .smh-pan-note{grid-column:1/-1;margin-top:2px;padding:10px 12px;border-radius:14px;background:#fff8e8;border:1px solid #f7e3ae;color:#775514;font-size:11px;line-height:1.45}
+      #variantBox.smh-pan-box .smh-pan-docs{margin-top:18px;padding-top:17px;border-top:1px solid #dfe6f0}
+      #variantBox.smh-pan-box .smh-pan-docs h3{margin:0 0 12px;font-size:16px;color:#172033}
+      #variantBox.smh-pan-box .smh-pan-doc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+      #variantBox.smh-pan-box .smh-pan-doc-item{display:flex;align-items:center;gap:8px;padding:10px 11px;border:1px solid #e4eaf2;border-radius:12px;background:#fff;color:#475467;font-size:12px;font-weight:700}
+      #variantBox.smh-pan-box .smh-pan-doc-item span:first-child{color:#16794b;font-weight:900}
+      #variantBox.smh-pan-box .smh-pan-note{margin-top:10px;padding:10px 12px;border-radius:14px;background:#fff8e8;border:1px solid #f7e3ae;color:#775514;font-size:11px;line-height:1.45}
       @media(max-width:560px){
         #variantBox.smh-pan-box{padding:14px!important;border-radius:22px 22px 0 0!important}
         #variantBox.smh-pan-box #variantCards{grid-template-columns:1fr 1fr!important;gap:9px!important}
@@ -25,6 +30,7 @@
         #variantBox.smh-pan-box .variant-select-btn small{font-size:10.5px!important}
         #variantBox.smh-pan-box .variant-select-btn::after{width:23px;height:23px;right:9px;top:9px;font-size:17px}
         #variantBox.smh-pan-box .smh-pan-tag{font-size:9px;padding:4px 6px}
+        #variantBox.smh-pan-box .smh-pan-doc-grid{grid-template-columns:1fr}
       }
     `;
     document.head.appendChild(style);
@@ -57,6 +63,26 @@
     return 'Application';
   }
 
+  function addDocuments(box, cards) {
+    let docs = box.querySelector('.smh-pan-docs');
+    if (docs) return;
+
+    docs = document.createElement('section');
+    docs.className = 'smh-pan-docs';
+    docs.innerHTML = `
+      <h3>📄 आवश्यक दस्तावेज़</h3>
+      <div class="smh-pan-doc-grid">
+        <div class="smh-pan-doc-item"><span>✓</span><span>आधार कार्ड</span></div>
+        <div class="smh-pan-doc-item"><span>✓</span><span>फोटो</span></div>
+        <div class="smh-pan-doc-item"><span>✓</span><span>मोबाइल नंबर</span></div>
+        <div class="smh-pan-doc-item"><span>✓</span><span>ईमेल ID</span></div>
+        <div class="smh-pan-doc-item"><span>✓</span><span>आवश्यकतानुसार पहचान / पता प्रमाण</span></div>
+      </div>
+      <div class="smh-pan-note">ℹ️ अलग-अलग PAN services में documents और eligibility अलग हो सकते हैं। Aadhaar/PAN आधारित sensitive lookup केवल authorized provider/API उपलब्ध होने पर real-time चलेगा।</div>
+    `;
+    cards.insertAdjacentElement('afterend', docs);
+  }
+
   function enhancePanPanel() {
     const box = document.getElementById('variantBox');
     const title = document.getElementById('variantServiceName');
@@ -67,6 +93,7 @@
     if (!isPan) {
       box.classList.remove('smh-pan-box');
       box.dataset.smhPanEnhanced = '';
+      box.querySelector('.smh-pan-docs')?.remove();
       return;
     }
 
@@ -93,26 +120,18 @@
       btn.dataset.smhPanEnhanced = '1';
     });
 
-    if (!cards.querySelector('.smh-pan-note')) {
-      const note = document.createElement('div');
-      note.className = 'smh-pan-note';
-      note.textContent = 'ℹ️ Aadhaar/PAN based sensitive lookup केवल authorized provider/API उपलब्ध होने पर real-time चलेगा।';
-      cards.appendChild(note);
-    }
-
+    addDocuments(box, cards);
     box.dataset.smhPanEnhanced = '1';
   }
 
   injectStyles();
 
   function start() {
-    // Observe only structural changes; do not observe characterData to avoid mutation loops.
     const observer = new MutationObserver(() => {
       window.requestAnimationFrame(enhancePanPanel);
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Also enhance immediately after any click that may open the variant selector.
     document.addEventListener('click', () => {
       setTimeout(enhancePanPanel, 260);
     }, true);
