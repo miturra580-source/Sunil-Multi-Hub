@@ -6,13 +6,7 @@
     if (document.getElementById('smhCertificateDirectNoBlink')) return;
     const style = document.createElement('style');
     style.id = 'smhCertificateDirectNoBlink';
-    style.textContent = `
-      body.${OPENING_CLASS} #serviceDetailsBackdrop,
-      body.${OPENING_CLASS} #serviceDetailsBox {
-        display:none!important;visibility:hidden!important;opacity:0!important;
-        pointer-events:none!important;transition:none!important;
-      }
-    `;
+    style.textContent = `body.${OPENING_CLASS} #serviceDetailsBackdrop,body.${OPENING_CLASS} #serviceDetailsBox{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;transition:none!important}`;
     document.head.appendChild(style);
   }
 
@@ -23,8 +17,15 @@
     return text.includes('edistrict') || (text.includes('आय') && text.includes('जाति') && text.includes('निवास')) ? card : null;
   }
 
+  function serviceCardReady() {
+    return [...document.querySelectorAll('.portal-service-card')].some(card => {
+      const text = (card.textContent || '').toLowerCase();
+      return text.includes('edistrict') || String(card.getAttribute('onclick') || '').includes(SERVICE_ID);
+    });
+  }
+
   function openDirectHere() {
-    if (typeof window.openServiceDetails !== 'function') return false;
+    if (typeof window.openServiceDetails !== 'function' || !serviceCardReady()) return false;
     document.body.classList.add(OPENING_CLASS);
     window.openServiceDetails(SERVICE_ID);
     requestAnimationFrame(() => {
@@ -41,19 +42,16 @@
     let tries = 0;
     const timer = setInterval(() => {
       tries++;
-      if (openDirectHere() || tries > 80) clearInterval(timer);
+      if (openDirectHere() || tries > 120) clearInterval(timer);
     }, 100);
   }
 
   injectStyles();
-
   document.addEventListener('click', event => {
     const card = isEdistrictCard(event.target);
     if (!card) return;
     if (new URLSearchParams(location.search).get('edistrict') === '1') return;
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
+    event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
     window.open('dashboard.html?edistrict=1', '_blank', 'noopener');
   }, true);
 
