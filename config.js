@@ -32,7 +32,7 @@ window.SMH_CONFIG = {
 
   if (page === 'dashboard.html' && !document.querySelector('script[data-smh-pan-direct]')) {
     const panDirectScript = document.createElement('script');
-    panDirectScript.src = 'pan-direct.js?v=20260823-2';
+    panDirectScript.src = 'pan-direct.js?v=20260823-3';
     panDirectScript.defer = true;
     panDirectScript.dataset.smhPanDirect = 'true';
     document.head.appendChild(panDirectScript);
