@@ -24,7 +24,6 @@ window.SMH_CONFIG = {
     ['dashboard-wallet-sync.js?v=20260823-1','data-smh-wallet-sync',['dashboard.html']],
     ['service-card-cleanup.js?v=20260823-1','data-smh-service-card-cleanup',['dashboard.html']],
     ['service-config-guard.js?v=20260823-3','data-smh-service-config-guard',['dashboard.html']],
-    ['pan-aadhaar-hotfix.js?v=20260824-2','data-smh-pan-aadhaar-hotfix',['dashboard.html']],
     ['dashboard-stat-links.js?v=20260823-1','data-smh-dashboard-stat-links',['dashboard.html']],
     ['wallet-compact.js?v=20260823-1','data-smh-wallet-compact',['wallet.html']]
   ];
