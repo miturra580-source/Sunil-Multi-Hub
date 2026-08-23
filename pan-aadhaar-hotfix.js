@@ -20,11 +20,19 @@
     if(toast){toast.textContent=text;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2800);}
   }
 
+  function removeLegacyCopies(){
+    document.querySelectorAll('#smhAadhaarPanField,#smhAadhaarPanLookup').forEach(el=>el.remove());
+    const forced=document.querySelectorAll('#smhPanAadhaarForcedPanel');
+    forced.forEach((el,i)=>{ if(i>0) el.remove(); });
+  }
+
   function render(){
     if(!isTarget()) return;
     const form=document.getElementById('dynamicApplicationForm');
     const box=document.getElementById('applicationBox');
     if(!form||!box) return;
+
+    removeLegacyCopies();
 
     form.style.setProperty('display','block','important');
     form.style.setProperty('visibility','visible','important');
@@ -38,7 +46,10 @@
     fields.style.setProperty('opacity','1','important');
 
     let panel=document.getElementById('smhPanAadhaarForcedPanel');
-    if(panel) return;
+    if(panel){
+      [...fields.children].forEach(child=>{ if(child!==panel) child.remove(); });
+      return;
+    }
 
     fields.innerHTML='';
     panel=document.createElement('div');
