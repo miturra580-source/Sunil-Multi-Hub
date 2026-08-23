@@ -1,78 +1,24 @@
 (() => {
   const SERVICE_RE=/आय.*जाति.*निवास|जाति.*निवास.*आय|निवास.*आय.*जाति/;
+  const MAX=100*1024;
+  const TYPES=['फोटो','स्वप्रमाणित घोषणा पत्र','राशन कार्ड की छाया प्रति','वेतन पर्ची','पिता का आधार कार्ड','अन्य'];
+  const uploaded=new Map();
 
-  function isCertificateForm(){
-    const service=document.getElementById('applicationServiceName');
-    return !!service && SERVICE_RE.test(service.textContent||'');
+  function isCertificateForm(){const s=document.getElementById('applicationServiceName');return !!s&&SERVICE_RE.test(s.textContent||'');}
+  function ageFromDob(v){if(!v)return null;const d=new Date(v+'T00:00:00');if(Number.isNaN(d.getTime()))return null;const t=new Date();let a=t.getFullYear()-d.getFullYear(),m=t.getMonth()-d.getMonth();if(m<0||(m===0&&t.getDate()<d.getDate()))a--;return a;}
+  function allowedTypes(){const a=[...TYPES];const dob=document.querySelector('#beneficiaryFields [name="dob"]');if(ageFromDob(dob?.value||'')>=18)return a.filter(x=>x!=='पिता का आधार कार्ड');return a;}
+  function ensureStyle(){if(document.getElementById('smh-edoc-style'))return;const st=document.createElement('style');st.id='smh-edoc-style';st.textContent='.smh-edoc{border:1px solid #e5e7eb;border-radius:14px;padding:14px;background:#fff}.smh-edoc-row{display:grid;grid-template-columns:minmax(170px,1fr) minmax(190px,1.4fr) auto;gap:10px;align-items:center}.smh-edoc select,.smh-edoc input[type=file]{width:100%;min-height:42px;border:1px solid #d0d5dd;border-radius:9px;padding:8px;background:#fff}.smh-edoc button{min-height:42px;border:0;border-radius:9px;padding:0 18px;background:#2563eb;color:#fff;font-weight:800}.smh-edoc-note{font-size:12px;color:#667085;margin:10px 0}.smh-edoc-list{margin-top:12px;border-top:1px solid #eee;padding-top:10px}.smh-edoc-item{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #f2f4f7;font-size:13px}.smh-edoc-remove{background:none!important;color:#d92d20!important;padding:0!important;min-height:auto!important}@media(max-width:640px){.smh-edoc-row{grid-template-columns:1fr}.smh-edoc button{width:100%}}';document.head.appendChild(st);}
+  function syncHidden(section){section.querySelectorAll('[data-document-wrap]').forEach(w=>w.style.display='none');}
+  function renderList(box){const list=box.querySelector('.smh-edoc-list');list.innerHTML='<strong>संलग्नकों की सूची</strong>';if(!uploaded.size){list.insertAdjacentHTML('beforeend','<div style="font-size:12px;color:#98a2b3;margin-top:8px">अभी कोई दस्तावेज अपलोड नहीं है।</div>');return;}uploaded.forEach((v,k)=>{const r=document.createElement('div');r.className='smh-edoc-item';r.innerHTML='<span>✓ '+k+' <small>('+(v.size/1024).toFixed(1)+' KB)</small></span><button type="button" class="smh-edoc-remove">हटाएँ</button>';r.querySelector('button').onclick=()=>{uploaded.delete(k);renderList(box)};list.appendChild(r);});}
+  function build(section){if(section.querySelector('.smh-edoc'))return;ensureStyle();syncHidden(section);const box=document.createElement('div');box.className='smh-edoc';box.innerHTML='<div style="font-weight:900;margin-bottom:10px">📎 दस्तावेज अपलोड करें</div><div class="smh-edoc-row"><select class="smh-edoc-type"></select><input class="smh-edoc-file" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png"><button type="button" class="smh-edoc-upload">अपलोड</button></div><div class="smh-edoc-note">केवल JPG/JPEG/PNG • अधिकतम 100 KB प्रति दस्तावेज</div><div class="smh-edoc-list"></div>';
+    const warning=section.querySelector('.smh-upload-quality-warning');if(warning)warning.insertAdjacentElement('afterend',box);else{const h=section.querySelector('h3');h?h.insertAdjacentElement('afterend',box):section.prepend(box)}
+    const sel=box.querySelector('.smh-edoc-type'),file=box.querySelector('.smh-edoc-file');
+    const fill=()=>{const old=sel.value;sel.innerHTML='<option value="">-- संलग्नक शीर्षक चुनें --</option>'+allowedTypes().map(x=>'<option>'+x+'</option>').join('');if([...sel.options].some(o=>o.value===old))sel.value=old;};fill();
+    box.querySelector('.smh-edoc-upload').onclick=()=>{const type=sel.value,f=file.files[0];if(!type){alert('पहले संलग्नक शीर्षक चुनें।');return}if(!f){alert('फाइल चुनें।');return}if(!/image\/(jpeg|png)/i.test(f.type)&&!/[.](jpe?g|png)$/i.test(f.name)){alert('केवल JPG/JPEG/PNG फाइल स्वीकार है।');file.value='';return}if(f.size>MAX){alert('फाइल 100 KB से अधिक है।');file.value='';return}uploaded.set(type,f);renderList(box);file.value='';sel.value='';};
+    box._fillTypes=fill;renderList(box);
   }
-
-  function ageFromDob(value){
-    if(!value) return null;
-    const dob=new Date(value+'T00:00:00');
-    if(Number.isNaN(dob.getTime())) return null;
-    const today=new Date();
-    let age=today.getFullYear()-dob.getFullYear();
-    const m=today.getMonth()-dob.getMonth();
-    if(m<0 || (m===0 && today.getDate()<dob.getDate())) age--;
-    return age;
-  }
-
-  function findDocWrapByText(text){
-    return [...document.querySelectorAll('#supportingDocumentsSection [data-document-wrap]')]
-      .find(w=>(w.textContent||'').includes(text)) || null;
-  }
-
-  function ensureWarning(){
-    const section=document.getElementById('supportingDocumentsSection');
-    if(!section || section.querySelector('.smh-upload-quality-warning')) return;
-    const warning=document.createElement('div');
-    warning.className='smh-upload-quality-warning';
-    warning.style.cssText='margin:12px 0 14px;padding:12px 14px;border:1px solid #f0b429;border-radius:12px;background:#fff8e6;color:#7a5612;font-size:12px;font-weight:800;line-height:1.5';
-    warning.textContent='⚠️ केवल Original Document की clear scan/photo या साफ photocopy ही upload करें। धुंधली, कटी हुई या unreadable copy स्वीकार न करें।';
-    const heading=section.querySelector('h3');
-    if(heading) heading.insertAdjacentElement('afterend',warning); else section.prepend(warning);
-  }
-
-  function applyMinorRule(){
-    if(!isCertificateForm()) return;
-    const dob=document.querySelector('#beneficiaryFields [name="dob"]');
-    const wrap=findDocWrapByText('पिता का आधार कार्ड');
-    if(!wrap) return;
-    const input=wrap.querySelector('input[type="file"]');
-    const strong=wrap.querySelector('strong');
-    const age=ageFromDob(dob?.value||'');
-    const minor=age!==null && age<18;
-
-    wrap.style.display=minor ? 'block' : 'none';
-    if(input){
-      input.dataset.required=minor?'true':'false';
-      input.required=minor;
-      if(!minor) input.value='';
-    }
-    if(strong){
-      strong.innerHTML='पिता का आधार कार्ड '+(minor?'<span style="color:#d92d20">*</span>':'');
-    }
-  }
-
-  function enhance(){
-    if(!isCertificateForm()) return;
-    ensureWarning();
-    applyMinorRule();
-
-    const dob=document.querySelector('#beneficiaryFields [name="dob"]');
-    if(dob && dob.dataset.smhMinorBound!=='1'){
-      dob.dataset.smhMinorBound='1';
-      dob.addEventListener('change',()=>setTimeout(applyMinorRule,0));
-      dob.addEventListener('input',()=>setTimeout(applyMinorRule,0));
-    }
-  }
-
-  const start=()=>{
-    enhance();
-    new MutationObserver(()=>requestAnimationFrame(enhance)).observe(document.body,{childList:true,subtree:true});
-    document.addEventListener('change',()=>setTimeout(enhance,0),true);
-  };
-
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start,{once:true});
-  else start();
+  function ensureWarning(){const s=document.getElementById('supportingDocumentsSection');if(!s||s.querySelector('.smh-upload-quality-warning'))return;const w=document.createElement('div');w.className='smh-upload-quality-warning';w.style.cssText='margin:12px 0 14px;padding:10px 12px;border:1px solid #f0b429;border-radius:10px;background:#fff8e6;color:#7a5612;font-size:12px;font-weight:800';w.textContent='⚠️ Original document की clear scan/photo या साफ photocopy upload करें।';const h=s.querySelector('h3');h?h.insertAdjacentElement('afterend',w):s.prepend(w);}
+  function enhance(){if(!isCertificateForm())return;const s=document.getElementById('supportingDocumentsSection');if(!s)return;ensureWarning();build(s);syncHidden(s);const box=s.querySelector('.smh-edoc');if(box?._fillTypes)box._fillTypes();}
+  const start=()=>{enhance();new MutationObserver(()=>requestAnimationFrame(enhance)).observe(document.body,{childList:true,subtree:true});document.addEventListener('change',e=>{if(e.target?.name==='dob')setTimeout(enhance,0)},true);};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
