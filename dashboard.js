@@ -4558,93 +4558,22 @@ window.downloadApplicationOutput =
 
 boot();
 /* =========================================================
-   CUSTOMER WALLET MODULE
-   SUNIL MULTI HUB
+   CUSTOMER WALLET — DASHBOARD LITE
+   Balance only
+   Full wallet management: wallet.html
 ========================================================= */
 
 const walletBalanceEl =
-  document.getElementById('walletBalance');
+  document.getElementById(
+    'walletBalance'
+  );
 
 const walletStatBalanceEl =
-  document.getElementById('walletStatBalance');
-
-const walletCurrencyEl =
-  document.getElementById('walletCurrency');
-
-const walletStatusEl =
-  document.getElementById('walletStatus');
-
-const walletUpdatedAtEl =
-  document.getElementById('walletUpdatedAt');
-
-const openWalletRechargeBtn =
-  document.getElementById('openWalletRechargeBtn');
-
-const refreshWalletBtn =
-  document.getElementById('refreshWalletBtn');
-
-const refreshWalletHistoryBtn =
-  document.getElementById('refreshWalletHistoryBtn');
-
-const walletRechargeHistory =
-  document.getElementById('walletRechargeHistory');
-
-const walletRechargeModal =
-  document.getElementById('walletRechargeModal');
-
-const walletRechargeClose =
-  document.getElementById('walletRechargeClose');
-
-const walletRechargeForm =
-  document.getElementById('walletRechargeForm');
-
-const walletRechargeAmount =
-  document.getElementById('walletRechargeAmount');
-
-const walletPaymentMethod =
-  document.getElementById('walletPaymentMethod');
-
-const walletUtr =
-  document.getElementById('walletUtr');
-
-const walletPaymentReference =
-  document.getElementById('walletPaymentReference');
-
-const walletRechargeSubmit =
-  document.getElementById('walletRechargeSubmit');
-
-const walletUpiId =
-  document.getElementById('walletUpiId');
-
-const walletPayeeName =
-  document.getElementById('walletPayeeName');
-
-const walletMinRechargeText =
-  document.getElementById('walletMinRechargeText');
-
-const walletPaymentMethodText =
-  document.getElementById('walletPaymentMethodText');
-
-const walletMinRechargeHelp =
-  document.getElementById('walletMinRechargeHelp');
-
-const walletQrImage =
-  document.getElementById('walletQrImage');
-
-const walletQrEmpty =
-  document.getElementById('walletQrEmpty');
-
+  document.getElementById(
+    'walletStatBalance'
+  );
 
 let customerWallet = null;
-
-let customerWalletSettings = {
-  minimum_amount: 100,
-  currency: 'INR',
-  payment_method: 'UPI_QR',
-  upi_id: '',
-  payee_name: 'SUNIL MULTI HUB',
-  qr_storage_path: ''
-};
 
 
 /* =========================================================
@@ -4654,19 +4583,20 @@ let customerWalletSettings = {
 function walletMoney(value) {
 
   return '₹' +
-    Number(value || 0)
-      .toLocaleString(
-        'en-IN',
-        {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        }
-      );
+    Number(
+      value || 0
+    ).toLocaleString(
+      'en-IN',
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }
+    );
 }
 
 
 /* =========================================================
-   LOAD CUSTOMER WALLET
+   LOAD CURRENT WALLET BALANCE
 ========================================================= */
 
 async function loadCustomerWallet() {
@@ -4676,16 +4606,20 @@ async function loadCustomerWallet() {
     const {
       data: {
         session
-      }
+      },
+      error: sessionError
     } =
       await sb.auth.getSession();
 
-    if (!session?.user) {
-      return;
+
+    if (sessionError) {
+      throw sessionError;
     }
 
-    const userId =
-      session.user.id;
+
+    if (!session?.user) {
+      return null;
+    }
 
 
     const {
@@ -4704,7 +4638,7 @@ async function loadCustomerWallet() {
         `)
         .eq(
           'user_id',
-          userId
+          session.user.id
         )
         .maybeSingle();
 
@@ -4727,7 +4661,9 @@ async function loadCustomerWallet() {
     if (walletBalanceEl) {
 
       walletBalanceEl.textContent =
-        walletMoney(balance);
+        walletMoney(
+          balance
+        );
 
     }
 
@@ -4735,50 +4671,15 @@ async function loadCustomerWallet() {
     if (walletStatBalanceEl) {
 
       walletStatBalanceEl.textContent =
-        walletMoney(balance);
+        walletMoney(
+          balance
+        );
 
     }
 
 
-    if (walletCurrencyEl) {
+    return customerWallet;
 
-      walletCurrencyEl.textContent =
-        customerWallet?.currency ||
-        'INR';
-
-    }
-
-
-    if (walletStatusEl) {
-
-      walletStatusEl.textContent =
-        customerWallet
-          ? 'Active'
-          : 'Not Available';
-
-    }
-
-
-    if (walletUpdatedAtEl) {
-
-      if (customerWallet?.updated_at) {
-
-        walletUpdatedAtEl.textContent =
-          'Updated ' +
-          new Date(
-            customerWallet.updated_at
-          ).toLocaleString(
-            'en-IN'
-          );
-
-      } else {
-
-        walletUpdatedAtEl.textContent =
-          'Updated now';
-
-      }
-
-    }
 
   } catch (error) {
 
@@ -4787,17 +4688,7 @@ async function loadCustomerWallet() {
       error
     );
 
-    if (
-      typeof msg ===
-      'function'
-    ) {
-
-      msg(
-        'Wallet load failed: ' +
-        error.message
-      );
-
-    }
+    return null;
 
   }
 
@@ -4805,1008 +4696,19 @@ async function loadCustomerWallet() {
 
 
 /* =========================================================
-   LOAD PAYMENT SETTINGS
-========================================================= */
-
-async function loadCustomerWalletSettings() {
-
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await sb
-        .from('payment_settings')
-        .select(`
-          id,
-          setting_key,
-          setting_value,
-          active,
-          updated_at
-        `)
-        .eq(
-          'setting_key',
-          'wallet_topup'
-        )
-        .eq(
-          'active',
-          true
-        )
-        .maybeSingle();
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    if (
-      data?.setting_value
-    ) {
-
-      customerWalletSettings = {
-        ...customerWalletSettings,
-        ...data.setting_value
-      };
-
-    }
-
-
-    const minimum =
-      Number(
-        customerWalletSettings
-          .minimum_amount || 100
-      );
-
-
-    if (walletUpiId) {
-
-      walletUpiId.textContent =
-        customerWalletSettings
-          .upi_id ||
-        'Not configured';
-
-    }
-
-
-    if (walletPayeeName) {
-
-      walletPayeeName.textContent =
-        customerWalletSettings
-          .payee_name ||
-        'SUNIL MULTI HUB';
-
-    }
-
-
-    if (walletMinRechargeText) {
-
-      walletMinRechargeText.textContent =
-        walletMoney(minimum);
-
-    }
-
-
-    if (walletPaymentMethodText) {
-
-      walletPaymentMethodText.textContent =
-        customerWalletSettings
-          .payment_method ===
-          'UPI_QR'
-          ? 'UPI QR'
-          : customerWalletSettings
-              .payment_method ||
-            'UPI QR';
-
-    }
-
-
-    if (walletMinRechargeHelp) {
-
-      walletMinRechargeHelp.textContent =
-        'Minimum recharge ' +
-        walletMoney(minimum);
-
-    }
-
-
-    if (walletRechargeAmount) {
-
-      walletRechargeAmount.min =
-        String(minimum);
-
-      if (
-        !walletRechargeAmount.value
-      ) {
-
-        walletRechargeAmount.value =
-          String(minimum);
-
-      }
-
-    }
-
-
-    await loadCustomerWalletQr();
-
-  } catch (error) {
-
-    console.error(
-      'Wallet settings error:',
-      error
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   LOAD UPI QR
-========================================================= */
-
-async function loadCustomerWalletQr() {
-
-  const path =
-    customerWalletSettings
-      .qr_storage_path || '';
-
-
-  if (
-    !walletQrImage ||
-    !walletQrEmpty
-  ) {
-    return;
-  }
-
-
-  walletQrImage.style.display =
-    'none';
-
-  walletQrImage.removeAttribute(
-    'src'
-  );
-
-  walletQrEmpty.style.display =
-    'block';
-
-
-  if (!path) {
-
-    walletQrEmpty.textContent =
-      'UPI QR अभी उपलब्ध नहीं है।';
-
-    return;
-  }
-
-
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await sb.storage
-        .from('payment-qr')
-        .createSignedUrl(
-          path,
-          600
-        );
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    if (!data?.signedUrl) {
-
-      throw new Error(
-        'QR URL not available'
-      );
-
-    }
-
-
-    walletQrImage.src =
-      data.signedUrl;
-
-    walletQrImage.style.display =
-      'block';
-
-    walletQrEmpty.style.display =
-      'none';
-
-
-  } catch (error) {
-
-    console.error(
-      'QR load error:',
-      error
-    );
-
-    walletQrEmpty.textContent =
-      'QR Code load नहीं हो पाया।';
-
-  }
-
-}
-/* =========================================================
-   LOAD WALLET RECHARGE HISTORY
-========================================================= */
-
-async function loadCustomerWalletHistory() {
-
-  if (
-    !user ||
-    !walletRechargeHistory
-  ) {
-    return;
-  }
-
-  try {
-
-    walletRechargeHistory.innerHTML =
-      '<div class="wallet-history-empty">Loading recharge history...</div>';
-
-
-    const {
-      data,
-      error
-    } =
-      await sb
-        .from('wallet_topups')
-        .select(`
-          id,
-          user_id,
-          wallet_id,
-          amount,
-          payment_method,
-          utr,
-          payment_reference,
-          provider_reference,
-          status,
-          verification_mode,
-          rejection_reason,
-          created_at,
-          updated_at
-        `)
-        .eq(
-          'user_id',
-          user.id
-        )
-        .order(
-          'created_at',
-          {
-            ascending: false
-          }
-        );
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    const rows =
-      data || [];
-
-
-    if (!rows.length) {
-
-      walletRechargeHistory.innerHTML =
-        '<div class="wallet-history-empty">अभी कोई recharge request नहीं है।</div>';
-
-      return;
-    }
-
-
-    walletRechargeHistory.innerHTML =
-      rows.map(item => {
-
-        const status =
-          String(
-            item.status ||
-            'submitted'
-          );
-
-        const statusLabel =
-          status
-            .replace(/_/g, ' ')
-            .replace(
-              /\b\w/g,
-              c => c.toUpperCase()
-            );
-
-        return `
-          <div class="wallet-history-item">
-
-            <div>
-
-              <strong>
-                ${walletMoney(item.amount)}
-              </strong>
-
-              <small>
-                UTR:
-                ${esc(item.utr || 'Not submitted')}
-              </small>
-
-              <small>
-                ${new Date(
-                  item.created_at
-                ).toLocaleString('en-IN')}
-              </small>
-
-              ${
-                item.rejection_reason
-                  ? `
-                    <small style="color:#b42318">
-                      Reason:
-                      ${esc(item.rejection_reason)}
-                    </small>
-                  `
-                  : ''
-              }
-
-            </div>
-
-            <span class="status ${esc(status)}">
-              ${esc(statusLabel)}
-            </span>
-
-          </div>
-        `;
-
-      }).join('');
-
-
-  } catch (error) {
-
-    console.error(
-      'Wallet history error:',
-      error
-    );
-
-    walletRechargeHistory.innerHTML =
-      `<div class="wallet-history-empty">
-        ${esc(error.message || 'Recharge history load failed')}
-      </div>`;
-
-  }
-
-}
-/* =========================================================
-   WALLET TRANSACTION HISTORY
-========================================================= */
-
-const refreshWalletTransactionsBtn =
-  document.getElementById(
-    'refreshWalletTransactionsBtn'
-  );
-
-const walletTransactionHistory =
-  document.getElementById(
-    'walletTransactionHistory'
-  );
-
-
-async function loadWalletTransactions() {
-
-  if (
-    !user ||
-    !walletTransactionHistory
-  ) {
-    return;
-  }
-
-  walletTransactionHistory.innerHTML =
-    '<div class="wallet-history-empty">Loading transactions...</div>';
-
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await sb
-        .from('wallet_transactions')
-        .select(`
-          id,
-          user_id,
-          wallet_id,
-          transaction_type,
-          amount,
-          balance_before,
-          balance_after,
-          reference_type,
-          reference_id,
-          description,
-          status,
-          created_at
-        `)
-        .eq(
-          'user_id',
-          user.id
-        )
-        .order(
-          'created_at',
-          {
-            ascending: false
-          }
-        )
-        .limit(50);
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    const rows =
-      data || [];
-
-
-    if (!rows.length) {
-
-      walletTransactionHistory.innerHTML =
-        '<div class="wallet-history-empty">अभी कोई wallet transaction नहीं है।</div>';
-
-      return;
-    }
-
-
-    walletTransactionHistory.innerHTML =
-      rows.map(item => {
-
-        const type =
-          String(
-            item.transaction_type ||
-            ''
-          ).toLowerCase();
-
-        const isDebit =
-          type === 'debit';
-
-        const sign =
-          isDebit
-            ? '-'
-            : '+';
-
-        const title =
-          item.description ||
-          (
-            isDebit
-              ? 'Service Payment'
-              : 'Wallet Credit'
-          );
-
-        const status =
-          String(
-            item.status ||
-            'completed'
-          );
-
-        const statusLabel =
-          status
-            .replace(/_/g, ' ')
-            .replace(
-              /\b\w/g,
-              c => c.toUpperCase()
-            );
-
-        return `
-          <div class="wallet-history-item">
-
-            <div>
-
-              <strong
-                style="
-                  color:${isDebit ? '#b42318' : '#067647'};
-                  font-size:16px;
-                "
-              >
-                ${sign}${walletMoney(item.amount)}
-              </strong>
-
-              <small
-                style="
-                  font-weight:700;
-                  color:#344054;
-                "
-              >
-                ${esc(title)}
-              </small>
-
-              <small>
-                Balance:
-                ${walletMoney(item.balance_before)}
-                →
-                ${walletMoney(item.balance_after)}
-              </small>
-
-              ${
-                item.reference_type
-                  ? `
-                    <small>
-                      Ref:
-                      ${esc(item.reference_type)}
-                    </small>
-                  `
-                  : ''
-              }
-
-              <small>
-                ${new Date(
-                  item.created_at
-                ).toLocaleString('en-IN')}
-              </small>
-
-            </div>
-
-            <span
-              class="status ${esc(status)}"
-            >
-              ${esc(statusLabel)}
-            </span>
-
-          </div>
-        `;
-
-      }).join('');
-
-
-  } catch (error) {
-
-    console.error(
-      'Wallet transactions error:',
-      error
-    );
-
-    walletTransactionHistory.innerHTML =
-      `
-        <div class="wallet-history-empty">
-          ${esc(
-            error.message ||
-            'Transaction history load failed'
-          )}
-        </div>
-      `;
-  }
-
-}
-
-
-if (refreshWalletTransactionsBtn) {
-
-  refreshWalletTransactionsBtn.onclick =
-    async () => {
-
-      await loadWalletTransactions();
-
-      msg(
-        'Wallet transactions refreshed'
-      );
-    };
-}
-
-/* =========================================================
-   OPEN / CLOSE RECHARGE MODAL
+   OPEN WALLET PAGE
 ========================================================= */
 
 function openCustomerWalletRecharge() {
 
-  if (!walletRechargeModal) {
-    return;
-  }
-
-  const minimum =
-    Number(
-      customerWalletSettings
-        .minimum_amount || 100
-    );
-
-
-  if (walletRechargeAmount) {
-
-    walletRechargeAmount.min =
-      String(minimum);
-
-    if (
-      !walletRechargeAmount.value ||
-      Number(
-        walletRechargeAmount.value
-      ) < minimum
-    ) {
-
-      walletRechargeAmount.value =
-        String(minimum);
-
-    }
-
-  }
-
-
-  walletRechargeModal.classList.add(
-    'show'
-  );
-
-  document.body.style.overflow =
-    'hidden';
-
-}
-
-
-function closeCustomerWalletRecharge() {
-
-  if (!walletRechargeModal) {
-    return;
-  }
-
-  walletRechargeModal.classList.remove(
-    'show'
-  );
-
-  document.body.style.overflow =
-    '';
+  window.location.href =
+    'wallet.html';
 
 }
 
 
 /* =========================================================
-   CHECK DUPLICATE UTR
-========================================================= */
-
-async function walletUtrAlreadyExists(
-  utr
-) {
-
-  const {
-    data,
-    error
-  } =
-    await sb
-      .from('wallet_topups')
-      .select('id')
-      .eq(
-        'utr',
-        utr
-      )
-      .maybeSingle();
-
-
-  if (
-    error &&
-    error.code !== 'PGRST116'
-  ) {
-    throw error;
-  }
-
-
-  return !!data;
-
-}
-
-
-/* =========================================================
-   SUBMIT WALLET RECHARGE
-========================================================= */
-
-async function submitCustomerWalletRecharge(
-  event
-) {
-
-  event.preventDefault();
-
-
-  if (
-    !user
-  ) {
-
-    msg(
-      'Please login again'
-    );
-
-    return;
-  }
-
-
-  if (
-    !customerWallet
-  ) {
-
-    msg(
-      'Wallet account available नहीं है'
-    );
-
-    return;
-  }
-
-
-  const minimum =
-    Number(
-      customerWalletSettings
-        .minimum_amount || 100
-    );
-
-
-  const amount =
-    Number(
-      walletRechargeAmount
-        ?.value || 0
-    );
-
-
-  const utr =
-    String(
-      walletUtr
-        ?.value || ''
-    )
-      .trim();
-
-
-  const paymentReference =
-    String(
-      walletPaymentReference
-        ?.value || ''
-    )
-      .trim();
-
-
-  const method =
-    customerWalletSettings
-      .payment_method ||
-    'UPI_QR';
-
-
-  if (
-    !Number.isFinite(amount) ||
-    amount < minimum
-  ) {
-
-    msg(
-      `Minimum recharge ${walletMoney(minimum)} है`
-    );
-
-    walletRechargeAmount
-      ?.focus();
-
-    return;
-  }
-
-
-  if (
-    !utr ||
-    utr.length < 6
-  ) {
-
-    msg(
-      'Valid UTR / Transaction ID भरें'
-    );
-
-    walletUtr
-      ?.focus();
-
-    return;
-  }
-
-
-  if (
-    !/^[A-Za-z0-9._\-\/]+$/
-      .test(utr)
-  ) {
-
-    msg(
-      'UTR में केवल letters, numbers और basic symbols रखें'
-    );
-
-    return;
-  }
-
-
-  if (
-    walletRechargeSubmit
-  ) {
-
-    walletRechargeSubmit.disabled =
-      true;
-
-    walletRechargeSubmit.textContent =
-      'Submitting...';
-
-  }
-
-
-  try {
-
-    const duplicate =
-      await walletUtrAlreadyExists(
-        utr
-      );
-
-
-    if (duplicate) {
-
-      throw new Error(
-        'यह UTR पहले submit हो चुका है'
-      );
-
-    }
-
-
-    const {
-      error
-    } =
-      await sb
-        .from('wallet_topups')
-        .insert({
-          user_id:
-            user.id,
-
-          wallet_id:
-            customerWallet.id,
-
-          amount:
-            amount,
-
-          payment_method:
-            method,
-
-          utr:
-            utr,
-
-          payment_reference:
-            paymentReference ||
-            null,
-
-          status:
-            'submitted',
-
-          verification_mode:
-            customerWalletSettings
-              .auto_verification
-              ? 'automatic'
-              : 'manual'
-        });
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    if (
-      walletRechargeForm
-    ) {
-
-      walletRechargeForm.reset();
-
-    }
-
-
-    if (
-      walletRechargeAmount
-    ) {
-
-      walletRechargeAmount.value =
-        String(minimum);
-
-    }
-
-
-    closeCustomerWalletRecharge();
-
-
-    msg(
-      'Recharge request submitted'
-    );
-
-
-    await loadCustomerWalletHistory();
-     await loadWalletTransactions();
-
-
-  } catch (error) {
-
-    console.error(
-      'Recharge submit error:',
-      error
-    );
-
-    msg(
-      error.message ||
-      'Recharge request submit failed'
-    );
-
-
-  } finally {
-
-    if (
-      walletRechargeSubmit
-    ) {
-
-      walletRechargeSubmit.disabled =
-        false;
-
-      walletRechargeSubmit.textContent =
-        'Submit Recharge Request';
-
-    }
-
-  }
-
-}
-/* =========================================================
-   WALLET EVENTS
-========================================================= */
-
-function setupCustomerWalletEvents() {
-
-  if (openWalletRechargeBtn) {
-    openWalletRechargeBtn.onclick =
-      openCustomerWalletRecharge;
-  }
-
-
-  if (walletRechargeClose) {
-    walletRechargeClose.onclick =
-      closeCustomerWalletRecharge;
-  }
-
-
-  if (walletRechargeModal) {
-
-    walletRechargeModal.onclick =
-      event => {
-
-        if (
-          event.target ===
-          walletRechargeModal
-        ) {
-          closeCustomerWalletRecharge();
-        }
-
-      };
-
-  }
-
-
-  if (walletRechargeForm) {
-
-    walletRechargeForm.onsubmit =
-      submitCustomerWalletRecharge;
-
-  }
-
-
-  if (refreshWalletBtn) {
-
-V
-
-  }
-
-
-  if (refreshWalletHistoryBtn) {
-
-    refreshWalletHistoryBtn.onclick =
-      async () => {
-
-        await loadCustomerWalletHistory();
-
-        msg(
-          'Recharge history refreshed'
-        );
-
-      };
-
-  }
-
-}
-
-
-/* =========================================================
-   CUSTOMER WALLET INITIAL LOAD
+   INITIAL WALLET LOAD
 ========================================================= */
 
 async function initializeCustomerWallet() {
@@ -5826,25 +4728,12 @@ async function initializeCustomerWallet() {
     }
 
 
-    /*
-      Existing dashboard.js में global
-      user variable पहले set होता है।
-      Safety के लिए यहाँ भी ensure कर रहे हैं।
-    */
-
     if (!user) {
       user = session.user;
     }
 
 
-    setupCustomerWalletEvents();
-
-
-    await Promise.all([
-      loadCustomerWallet(),
-      loadCustomerWalletSettings(),
-      loadCustomerWalletHistory()
-    ]);
+    await loadCustomerWallet();
 
 
   } catch (error) {
@@ -5868,68 +4757,34 @@ document.addEventListener(
   async () => {
 
     if (
-  document.visibilityState ===
-    'visible' &&
-  user
-) {
+      document.visibilityState ===
+        'visible' &&
+      user
+    ) {
 
-  try {
+      await loadCustomerWallet();
 
-    await loadCustomerWallet();
-    await loadCustomerWalletHistory();
-    await loadWalletTransactions();
+    }
 
-  } catch (error) {
-
-    console.error(
-      'Wallet refresh error:',
-      error
-    );
-
-  }
-}
   }
 );
 
 
 /* =========================================================
-   START CUSTOMER WALLET MODULE
+   START DASHBOARD WALLET
 ========================================================= */
 
 window.addEventListener(
   'load',
-  async () => {
-
-    /*
-      Existing dashboard boot() भी page load
-      के आसपास चलता है।
-
-      छोटा delay इसलिए कि login/session
-      और existing customer portal पहले
-      initialize हो जाए।
-    */
+  () => {
 
     setTimeout(
-      async () => {
-
-        await initializeCustomerWallet();
-
-      },
+      initializeCustomerWallet,
       500
     );
 
   }
 );
-/* =========================================================
-   AADHAAR → PAN LOOKUP (TEST MODE)
-========================================================= */
-
-const AADHAAR_PAN_SERVICE_ID =
-  'edf53c2d-1712-4108-8f72-1acd10920c77';
-
-
-function setupAadhaarPanLookupButton() {
-
   const form =
     document.getElementById(
       'dynamicApplicationForm'
