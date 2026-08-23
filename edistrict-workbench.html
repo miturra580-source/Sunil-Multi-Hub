@@ -18,9 +18,9 @@
     </div>
     <div class="ed-grid">
       <section class="ed-card">
-        <h3 style="margin-top:0">Ready Applications</h3>
+        <h3 style="margin-top:0">आय • जाति • निवास Applications</h3>
         <div id="edList" class="ed-list"><p>Loading...</p></div>
-        <div class="ed-note">Desktop/browser helper के लिए userscript उपलब्ध है। यह केवल fields भरता है; OTP/CAPTCHA और final submit manual रहेंगे.</div>
+        <div class="ed-note">Desktop/browser helper केवल fields भरता है। OTP/CAPTCHA और सरकारी portal का final submit manual रहेगा।</div>
         <a class="helper-link" href="edistrict-helper.user.js" target="_blank" rel="noopener">⚡ Open Autofill Helper Script</a>
       </section>
       <section class="ed-card">
@@ -30,7 +30,7 @@
             <div><small>Application</small><h2 id="edAppNo" style="margin:4px 0"></h2></div>
             <div><small>Status</small><h3 id="edStatus" style="margin:4px 0"></h3></div>
           </div>
-          <div class="ed-note">Aadhaar OTP/CAPTCHA bypass नहीं होगा। eDistrict portal पर OTP customer के Aadhaar-linked mobile पर आएगा और manual entry के बाद ही final submit करें।</div>
+          <div class="ed-note">SUNIL MULTI HUB पर Aadhaar verification नहीं होगा। eDistrict portal यदि Aadhaar OTP माँगे तो OTP customer के linked mobile पर आएगा और वहीं manual entry होगी।</div>
           <h3>Autofill Data</h3>
           <div id="edJson" class="ed-json"></div>
           <div class="ed-btns">
@@ -51,6 +51,6 @@
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="edistrict-workbench.js?v=20260823-2"></script>
+  <script src="edistrict-workbench.js?v=20260823-3"></script>
 </body>
 </html>
