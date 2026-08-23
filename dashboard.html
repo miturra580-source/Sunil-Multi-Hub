@@ -447,7 +447,13 @@
    Wallet management is now in wallet.html
 ========================================= */
 
-.wallet-section {
+<style>
+/* =========================================
+   HIDE OLD FULL WALLET FROM DASHBOARD
+   Dedicated wallet is wallet.html
+========================================= */
+
+section:has(.wallet-card) {
   display: none !important;
 }
 </style>
