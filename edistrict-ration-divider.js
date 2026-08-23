@@ -50,8 +50,6 @@
     const heading = (document.getElementById('variantServiceName')?.textContent || '').toLowerCase();
     if (!heading.includes('edistrict')) return;
 
-    grid.querySelectorAll('.smh-ration-divider').forEach(el => el.remove());
-
     const cards = [...grid.children].filter(el => !el.classList.contains('smh-ration-divider'));
     if (!cards.length) return;
 
@@ -63,18 +61,33 @@
     if (residenceIndex < 0 || rationIndex <= residenceIndex) return;
 
     ensureStyle();
-    const divider = document.createElement('div');
-    divider.className = 'smh-ration-divider';
-    divider.setAttribute('aria-label', 'Ration Card services');
-    divider.innerHTML = '<span>🌾 राशन कार्ड</span>';
-    grid.insertBefore(divider, rationCard);
+
+    let divider = grid.querySelector('.smh-ration-divider');
+    if (!divider) {
+      divider = document.createElement('div');
+      divider.className = 'smh-ration-divider';
+      divider.setAttribute('aria-label', 'Ration Card services');
+      divider.innerHTML = '<span>🌾 राशन कार्ड</span>';
+    }
+
+    /* Only move/insert when needed. This avoids a MutationObserver loop. */
+    if (divider.nextElementSibling !== rationCard) {
+      grid.insertBefore(divider, rationCard);
+    }
   }
 
   function start() {
     applyDivider();
-    const grid = document.getElementById('variantCards');
-    if (grid) new MutationObserver(() => requestAnimationFrame(applyDivider)).observe(grid, { childList:true, subtree:true });
-    new MutationObserver(() => requestAnimationFrame(applyDivider)).observe(document.body, { childList:true, subtree:true });
+    let scheduled = false;
+    const schedule = () => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(() => {
+        scheduled = false;
+        applyDivider();
+      });
+    };
+    new MutationObserver(schedule).observe(document.body, { childList:true, subtree:true });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once:true });
