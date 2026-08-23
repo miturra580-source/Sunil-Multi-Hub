@@ -56,7 +56,7 @@ window.SMH_CONFIG = {
 
   if (page === 'dashboard.html' && !document.querySelector('script[data-smh-up-location]')) {
     const s = document.createElement('script');
-    s.src = 'up-location.js?v=20260823-2';
+    s.src = 'up-location.js?v=20260823-3';
     s.defer = true;
     s.dataset.smhUpLocation = 'true';
     document.head.appendChild(s);
