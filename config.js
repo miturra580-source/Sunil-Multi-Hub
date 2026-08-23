@@ -21,4 +21,12 @@ window.SMH_CONFIG = {
     navScript.dataset.smhDashboardNav = 'true';
     document.head.appendChild(navScript);
   }
+
+  if (page === 'wallet.html' && !document.querySelector('script[data-smh-wallet-compact]')) {
+    const walletScript = document.createElement('script');
+    walletScript.src = 'wallet-compact.js?v=20260823-1';
+    walletScript.defer = true;
+    walletScript.dataset.smhWalletCompact = 'true';
+    document.head.appendChild(walletScript);
+  }
 })();
