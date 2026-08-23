@@ -5744,6 +5744,15 @@ function setupAadhaarPanLookupButton() {
   ) {
     return;
   }
+   const normalSubmitBtn =
+  document.getElementById(
+    'submitDynamicApplication'
+  );
+
+if (normalSubmitBtn) {
+  normalSubmitBtn.style.display =
+    'none';
+}
 
 
   if (
