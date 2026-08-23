@@ -1,0 +1,26 @@
+(() => {
+const cfg=window.SMH_CONFIG||{}; if(!window.supabase||!cfg.supabaseUrl)return;
+const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey||cfg.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true}});
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const mask=v=>{const s=String(v||'');return s.length===12?`XXXX XXXX ${s.slice(-4)}`:s};
+let rows=[];
+async function copy(t){try{await navigator.clipboard.writeText(t);alert('Copied');}catch(e){alert('Copy failed');}}
+function allText(r){return [`Application ID: ${r.application_no||''}`,`Service: ${r.service_name||''}`,`Name: ${r.full_name||''}`,`Father/Husband: ${r.father_or_husband_name||''}`,`Mother: ${r.mother_name||''}`,`DOB: ${r.dob||''}`,`Gender: ${r.gender||''}`,`Mobile: ${r.mobile||''}`,`Email: ${r.email||''}`,`Aadhaar: ${r.aadhaar||''}`,`PAN: ${r.pan||''}`,`Address: ${r.address||''}`,`Village/City: ${r.village_city||''}`,`Post/Police: ${r.post_police||''}`,`District: ${r.district||''}`,`State: ${r.state||''}`,`PIN: ${r.pincode||''}`,`Notes: ${r.notes||''}`].join('\n');}
+function card(r,admin=false){return `<article style="border:1px solid #e4e9f1;border-radius:16px;padding:14px;background:#fff;margin:10px 0"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><strong>${esc(r.full_name)}</strong><div style="font-size:13px;color:#667085">${esc(r.service_name)} • ${esc(r.application_no)}</div>${admin?`<div style="font-size:12px;color:#667085">CSC: ${esc(r.owner_name||r.owner_email||r.owner_id)}</div>`:''}</div><span style="font-size:12px;font-weight:800;color:#1557d6">${esc(r.status)}</span></div><div style="margin-top:10px;font-size:13px;line-height:1.7"><b>Mobile:</b> ${esc(r.mobile)} &nbsp; <b>DOB:</b> ${esc(r.dob||'-')}<br><b>Aadhaar:</b> ${esc(mask(r.aadhaar)||'-')} &nbsp; <b>PAN:</b> ${esc(r.pan||'-')}<br><b>Address:</b> ${esc(r.address||'-')}</div><button class="btn secondary csc-copy" data-id="${esc(r.id)}" style="margin-top:10px">Copy All Details</button></article>`;}
+function bind(){document.querySelectorAll('.csc-copy').forEach(b=>b.onclick=()=>{const r=rows.find(x=>String(x.id)===String(b.dataset.id));if(r)copy(allText(r));});}
+async function dashboard(session){
+ const main=document.querySelector('main'); if(!main)return;
+ const base=location.href.split('dashboard.html')[0]; const link=`${base}self-form.html?center=${encodeURIComponent(session.user.id)}`;
+ const sec=document.createElement('section'); sec.className='portal-section'; sec.innerHTML=`<div class="container"><div style="background:#fff;border:1px solid #e4e9f1;border-radius:22px;padding:18px;margin-top:16px"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><span style="color:#2855cc;font-weight:800">CSC CUSTOMER DATA</span><h2 style="margin:5px 0">📝 Customer Self Form</h2><p style="color:#667085">अपने customers को अपना link दें। उनके भरे हुए forms सिर्फ आपके account में आएँगे।</p></div><strong id="cscCount" style="font-size:28px">0</strong></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn primary" href="${esc(link)}" target="_blank">Open Customer Form</a><button id="copyCscLink" class="btn secondary" type="button">Copy Customer Link</button></div><div id="myCscRows" style="margin-top:14px"><p>Loading customer forms...</p></div></div></div>`;
+ main.appendChild(sec); document.getElementById('copyCscLink').onclick=()=>copy(link);
+ const {data,error}=await sb.from('customer_intakes').select('*').eq('owner_id',session.user.id).order('created_at',{ascending:false}).limit(100);
+ if(error){document.getElementById('myCscRows').innerHTML=`<p>${esc(error.message)}</p>`;return;} rows=data||[]; document.getElementById('cscCount').textContent=rows.length; document.getElementById('myCscRows').innerHTML=rows.length?rows.map(r=>card(r)).join(''):'<p>No customer forms yet.</p>'; bind();
+}
+async function admin(){
+ const main=document.querySelector('main .container')||document.querySelector('main'); if(!main)return;
+ const sec=document.createElement('section'); sec.className='admin-card'; sec.style.marginTop='18px'; sec.innerHTML=`<div class="card-head"><div><span class="eyebrow">USER DATA</span><h2>👥 CSC User Data / Self Forms</h2><p>सभी registered CSC users के customer self forms.</p></div></div><div id="allCscRows"><p>Loading...</p></div>`; main.appendChild(sec);
+ const {data,error}=await sb.from('customer_intakes_admin_view').select('*').order('created_at',{ascending:false}).limit(300); if(error){document.getElementById('allCscRows').innerHTML=`<p>${esc(error.message)}</p>`;return;} rows=data||[]; document.getElementById('allCscRows').innerHTML=rows.length?rows.map(r=>card(r,true)).join(''):'<p>No customer self forms yet.</p>'; bind();
+}
+async function boot(){const {data:{session}}=await sb.auth.getSession();if(!session)return;const {data:p}=await sb.from('profiles').select('role').eq('id',session.user.id).maybeSingle();if(location.pathname.endsWith('admin.html')&&p?.role==='admin')await admin();else if(location.pathname.endsWith('dashboard.html'))await dashboard(session);}
+boot().catch(console.error);
+})();
