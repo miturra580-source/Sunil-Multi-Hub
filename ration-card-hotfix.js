@@ -2,11 +2,44 @@
   const RATION_RE = /राशन कार्ड|पात्र गृहस्थी|अन्त्योदय|अंत्योदय|समर्पण|नवीनीकरण|संशोधन|नामिलीकरण|ration/i;
   const MAX_BYTES = 100 * 1024;
   let timer = null;
+  let rebuilding = false;
 
   function isRation() {
     const service = document.getElementById('applicationServiceName')?.textContent || '';
     const variant = document.getElementById('applicationVariantName')?.textContent || '';
     return RATION_RE.test(`${service} ${variant}`);
+  }
+
+  function repairEmptyStepper() {
+    if (rebuilding || !isRation()) return false;
+
+    const form = document.getElementById('dynamicApplicationForm');
+    const root = document.getElementById('beneficiaryFields');
+    if (!form || !root || form.dataset.rationV3 !== '1') return false;
+
+    const basic = form.querySelector('.smh-ration-pane[data-step="0"] .smh-pane-body');
+    const basicFields = basic?.querySelectorAll('[data-field-wrap]').length || 0;
+    const loadedFields = root.querySelectorAll('[data-field-wrap]').length;
+
+    if (basicFields === 0 && loadedFields > 0) {
+      rebuilding = true;
+
+      form.querySelectorAll('.smh-ration-pane,.smh-ration-nav').forEach(el => el.remove());
+      document.querySelectorAll('.smh-ration-banner,.smh-ration-steps').forEach(el => el.remove());
+
+      root.style.display = '';
+      delete form.dataset.rationV3;
+      document.getElementById('applicationBox')?.classList.remove('smh-ration-form');
+
+      setTimeout(() => {
+        rebuilding = false;
+        document.body.appendChild(document.createComment('smh-ration-rebuild'));
+      }, 40);
+
+      return true;
+    }
+
+    return false;
   }
 
   function fileOk(input) {
@@ -207,6 +240,7 @@
 
   function repair() {
     if (!isRation()) return;
+    if (repairEmptyStepper()) return;
     addStyle();
     fixStep5();
     fixStep6();
@@ -219,7 +253,7 @@
 
   function start() {
     schedule();
-    new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true });
+    new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, characterData: true });
     document.addEventListener('click', schedule, true);
     document.addEventListener('change', schedule, true);
     setTimeout(repair, 400);
