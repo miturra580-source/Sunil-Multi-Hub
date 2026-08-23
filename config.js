@@ -54,6 +54,14 @@ window.SMH_CONFIG = {
     document.head.appendChild(cardCleanupScript);
   }
 
+  if (page === 'dashboard.html' && !document.querySelector('script[data-smh-service-config-guard]')) {
+    const guardScript = document.createElement('script');
+    guardScript.src = 'service-config-guard.js?v=20260823-1';
+    guardScript.defer = true;
+    guardScript.dataset.smhServiceConfigGuard = 'true';
+    document.head.appendChild(guardScript);
+  }
+
   if (page === 'wallet.html' && !document.querySelector('script[data-smh-wallet-compact]')) {
     const walletScript = document.createElement('script');
     walletScript.src = 'wallet-compact.js?v=20260823-1';
