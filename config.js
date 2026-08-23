@@ -24,10 +24,18 @@ window.SMH_CONFIG = {
 
   if (page === 'dashboard.html' && !document.querySelector('script[data-smh-pan-ui]')) {
     const panUiScript = document.createElement('script');
-    panUiScript.src = 'pan-ui.js?v=20260823-2';
+    panUiScript.src = 'pan-ui.js?v=20260823-3';
     panUiScript.defer = true;
     panUiScript.dataset.smhPanUi = 'true';
     document.head.appendChild(panUiScript);
+  }
+
+  if (page === 'dashboard.html' && !document.querySelector('script[data-smh-wallet-sync]')) {
+    const walletSyncScript = document.createElement('script');
+    walletSyncScript.src = 'dashboard-wallet-sync.js?v=20260823-1';
+    walletSyncScript.defer = true;
+    walletSyncScript.dataset.smhWalletSync = 'true';
+    document.head.appendChild(walletSyncScript);
   }
 
   if (page === 'wallet.html' && !document.querySelector('script[data-smh-wallet-compact]')) {
