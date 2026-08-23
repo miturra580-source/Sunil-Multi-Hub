@@ -29,14 +29,14 @@
     document.querySelectorAll('.ed-item').forEach(b=>b.classList.toggle('active',b.dataset.id===id));
     $('edEmpty').classList.add('hidden');$('edDetail').classList.remove('hidden');
     $('edAppNo').textContent=selected.application_no||selected.id.slice(0,8);
-    $('edStatus').textContent=selected.status||'submitted';
+    $('edStatus').textContent=(selected.admin_note||'').includes('OTP pending')?'OTP Pending':(selected.status||'submitted');
     $('edJson').textContent=JSON.stringify(payload(selected),null,2);
     $('externalRef').value=selected.external_reference_no||'';
     $('finalNote').value=selected.admin_note||'';
   }
   $('copyBtn').onclick=async()=>{if(!selected)return;await navigator.clipboard.writeText(JSON.stringify(payload(selected),null,2));showResult('Autofill data clipboard में copy हो गया। eDistrict page पर helper चलाएँ।');};
   $('openPortalBtn').onclick=()=>window.open(EDISTRICT_URL,'_blank','noopener');
-  $('otpBtn').onclick=async()=>{if(!selected)return;const {error}=await sb.from('applications').update({status:'otp_pending',admin_note:'Aadhaar OTP pending / manual verification required'}).eq('id',selected.id).eq('user_id',session.user.id); if(error)showResult(error.message,false);else{showResult('Status OTP Pending कर दिया गया।');await load();}};
+  $('otpBtn').onclick=async()=>{if(!selected)return;const {error}=await sb.from('applications').update({status:'processing',admin_note:'Aadhaar OTP pending / manual verification required'}).eq('id',selected.id).eq('user_id',session.user.id); if(error)showResult(error.message,false);else{showResult('Application को OTP Pending mark कर दिया गया।');await load();}};
   $('refreshBtn').onclick=load;
   $('finalizeBtn').onclick=async()=>{
     if(!selected)return; const ref=$('externalRef').value.trim(); if(!ref){showResult('eDistrict Application Number भरें।',false);return;}
