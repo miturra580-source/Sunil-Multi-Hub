@@ -14,7 +14,7 @@ window.SMH_CONFIG = {
     ['certificate-direct.js?v=20260823-6','data-smh-certificate-direct',['dashboard.html']],
     ['edistrict-ui.js?v=20260823-3','data-smh-edistrict-ui',['dashboard.html']],
     ['edistrict-document-picker.js?v=20260823-2','data-smh-edistrict-document-picker',['dashboard.html']],
-    ['ration-card-ui.js?v=20260823-1','data-smh-ration-card-ui',['dashboard.html']],
+    ['ration-card-ui.js?v=20260823-2','data-smh-ration-card-ui',['dashboard.html']],
     ['certificate-ui.js?v=20260823-3','data-smh-certificate-ui',['dashboard.html']],
     ['up-location.js?v=20260823-4','data-smh-up-location',['dashboard.html']],
     ['certificate-radio.js?v=20260823-1','data-smh-certificate-radio',['dashboard.html']],
@@ -22,7 +22,7 @@ window.SMH_CONFIG = {
     ['dashboard-wallet-sync.js?v=20260823-1','data-smh-wallet-sync',['dashboard.html']],
     ['service-card-cleanup.js?v=20260823-1','data-smh-service-card-cleanup',['dashboard.html']],
     ['service-config-guard.js?v=20260823-1','data-smh-service-config-guard',['dashboard.html']],
-    ['dashboard-stat-links.js?v=20260823-1','data-smh-stat-links',['dashboard.html']],
+    ['dashboard-stat-links.js?v=20260823-1','data-smh-dashboard-stat-links',['dashboard.html']],
     ['wallet-compact.js?v=20260823-1','data-smh-wallet-compact',['wallet.html']]
   ];
   modules.forEach(([src,attr,pages])=>{
