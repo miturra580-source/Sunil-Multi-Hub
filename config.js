@@ -10,7 +10,6 @@ window.SMH_CONFIG = {
     ['full-page-panels.js?v=20260823-1','data-smh-full-page-panels',['dashboard.html']],
     ['dashboard-nav.js?v=20260823-3','data-smh-dashboard-nav',['dashboard.html']],
     ['pan-ui.js?v=20260824-5','data-smh-pan-ui',['dashboard.html']],
-    ['pan-direct.js?v=20260823-3','data-smh-pan-direct',['dashboard.html']],
     ['certificate-direct.js?v=20260823-6','data-smh-certificate-direct',['dashboard.html']],
     ['edistrict-ui.js?v=20260823-3','data-smh-edistrict-ui',['dashboard.html']],
     ['edistrict-document-picker.js?v=20260823-3','data-smh-edistrict-document-picker',['dashboard.html']],
