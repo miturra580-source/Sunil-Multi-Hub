@@ -24,10 +24,18 @@ window.SMH_CONFIG = {
 
   if (page === 'dashboard.html' && !document.querySelector('script[data-smh-pan-ui]')) {
     const panUiScript = document.createElement('script');
-    panUiScript.src = 'pan-ui.js?v=20260823-3';
+    panUiScript.src = 'pan-ui.js?v=20260823-4';
     panUiScript.defer = true;
     panUiScript.dataset.smhPanUi = 'true';
     document.head.appendChild(panUiScript);
+  }
+
+  if (page === 'dashboard.html' && !document.querySelector('script[data-smh-pan-direct]')) {
+    const panDirectScript = document.createElement('script');
+    panDirectScript.src = 'pan-direct.js?v=20260823-1';
+    panDirectScript.defer = true;
+    panDirectScript.dataset.smhPanDirect = 'true';
+    document.head.appendChild(panDirectScript);
   }
 
   if (page === 'dashboard.html' && !document.querySelector('script[data-smh-wallet-sync]')) {
