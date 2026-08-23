@@ -15,6 +15,7 @@ window.SMH_CONFIG = {
     ['edistrict-ui.js?v=20260823-3','data-smh-edistrict-ui',['dashboard.html']],
     ['edistrict-document-picker.js?v=20260823-2','data-smh-edistrict-document-picker',['dashboard.html']],
     ['ration-card-ui.js?v=20260823-5','data-smh-ration-card-ui',['dashboard.html']],
+    ['ration-card-hotfix.js?v=20260823-1','data-smh-ration-card-hotfix',['dashboard.html']],
     ['certificate-ui.js?v=20260823-3','data-smh-certificate-ui',['dashboard.html']],
     ['up-location.js?v=20260823-4','data-smh-up-location',['dashboard.html']],
     ['certificate-radio.js?v=20260823-1','data-smh-certificate-radio',['dashboard.html']],
