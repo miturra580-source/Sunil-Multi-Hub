@@ -22,6 +22,14 @@ window.SMH_CONFIG = {
     document.head.appendChild(navScript);
   }
 
+  if (page === 'dashboard.html' && !document.querySelector('script[data-smh-pan-ui]')) {
+    const panUiScript = document.createElement('script');
+    panUiScript.src = 'pan-ui.js?v=20260823-1';
+    panUiScript.defer = true;
+    panUiScript.dataset.smhPanUi = 'true';
+    document.head.appendChild(panUiScript);
+  }
+
   if (page === 'wallet.html' && !document.querySelector('script[data-smh-wallet-compact]')) {
     const walletScript = document.createElement('script');
     walletScript.src = 'wallet-compact.js?v=20260823-1';
