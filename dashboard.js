@@ -5937,10 +5937,12 @@ if (aadhaarFieldWrap) {
               </div>
 
               <div>
-                <strong>Status:</strong>
-                ${esc(
-                  data.data?.details || ''
-                )}
+               <strong>Status:</strong>
+${esc(
+  data.data?.status ||
+  data.data?.details ||
+  ''
+)}
               </div>
 
               ${
