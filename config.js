@@ -38,6 +38,14 @@ window.SMH_CONFIG = {
     document.head.appendChild(walletSyncScript);
   }
 
+  if (page === 'dashboard.html' && !document.querySelector('script[data-smh-service-card-cleanup]')) {
+    const cardCleanupScript = document.createElement('script');
+    cardCleanupScript.src = 'service-card-cleanup.js?v=20260823-1';
+    cardCleanupScript.defer = true;
+    cardCleanupScript.dataset.smhServiceCardCleanup = 'true';
+    document.head.appendChild(cardCleanupScript);
+  }
+
   if (page === 'wallet.html' && !document.querySelector('script[data-smh-wallet-compact]')) {
     const walletScript = document.createElement('script');
     walletScript.src = 'wallet-compact.js?v=20260823-1';
