@@ -62,6 +62,14 @@ window.SMH_CONFIG = {
     document.head.appendChild(s);
   }
 
+  if (page === 'dashboard.html' && !document.querySelector('script[data-smh-certificate-radio]')) {
+    const s = document.createElement('script');
+    s.src = 'certificate-radio.js?v=20260823-1';
+    s.defer = true;
+    s.dataset.smhCertificateRadio = 'true';
+    document.head.appendChild(s);
+  }
+
   if (page === 'dashboard.html' && !document.querySelector('script[data-smh-certificate-document-rules]')) {
     const s = document.createElement('script');
     s.src = 'certificate-document-rules.js?v=20260823-1';
