@@ -2181,6 +2181,31 @@ section:has(.wallet-card) {
 
 <script src="dashboard.js"></script>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 
+  const oldWalletCard =
+    document.querySelector('.wallet-card');
+
+  if (oldWalletCard) {
+
+    const oldSection =
+      oldWalletCard.closest('section');
+
+    if (oldSection) {
+      oldSection.style.display = 'none';
+    } else {
+
+      const oldContainer =
+        oldWalletCard.closest('.container');
+
+      if (oldContainer) {
+        oldContainer.style.display = 'none';
+      }
+    }
+  }
+
+});
+</script>
 </body>
 </html>
