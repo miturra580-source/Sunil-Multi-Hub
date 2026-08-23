@@ -1,22 +1,24 @@
 (() => {
   const NOT_CONFIGURED_TEXT = 'form अभी configure नहीं किया गया है';
+  const RATION_RE = /राशन कार्ड|पात्र गृहस्थी|अन्त्योदय|अंत्योदय|समर्पण|नवीनीकरण|संशोधन|नामिलीकरण|ration/i;
 
   function getForm() { return document.getElementById('dynamicApplicationForm'); }
   function getSubmitButton() { return document.getElementById('submitDynamicApplication'); }
-  function isRationStepper() {
+  function isRationWorkflow() {
+    const service = document.getElementById('applicationServiceName')?.textContent || '';
+    const variant = document.getElementById('applicationVariantName')?.textContent || '';
     const form = getForm();
-    return !!form?.dataset?.rationV3 || !!document.querySelector('.smh-ration-pane[data-step="5"]');
+    return RATION_RE.test(`${service} ${variant}`) || !!form?.dataset?.rationV3 || !!document.querySelector('.smh-ration-pane[data-step="5"]');
   }
   function hasCustomWorkflow() {
     return !!document.getElementById('smhAadhaarPanLookup') ||
-      !!document.getElementById('fetchPanDataBtn') ||
-      isRationStepper();
+      !!document.getElementById('fetchPanDataBtn');
   }
   function isConfigured() {
     const form = getForm();
     const fieldsBox = document.getElementById('beneficiaryFields');
     if (!form || !fieldsBox) return true;
-    if (hasCustomWorkflow()) return true;
+    if (isRationWorkflow() || hasCustomWorkflow()) return true;
     const text = (fieldsBox.textContent || '').trim();
     if (text.includes(NOT_CONFIGURED_TEXT)) return false;
     const hasConfiguredFields = !!fieldsBox.querySelector('input, select, textarea');
@@ -30,18 +32,11 @@
   }
 
   function applyGuard() {
+    if (isRationWorkflow()) return;
+
     const button = getSubmitButton();
     const fieldsBox = document.getElementById('beneficiaryFields');
     if (!button || !fieldsBox) return;
-
-    if (isRationStepper()) {
-      button.disabled = false;
-      button.style.opacity = '';
-      button.style.cursor = '';
-      button.dataset.smhUnconfigured = '';
-      button.textContent = 'सुरक्षित करें एवं आवेदन जमा करें';
-      return;
-    }
 
     const configured = isConfigured();
     if (!configured) {
@@ -61,7 +56,7 @@
 
   document.addEventListener('submit', event => {
     if (event.target?.id !== 'dynamicApplicationForm') return;
-    if (isConfigured()) return;
+    if (isRationWorkflow() || isConfigured()) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     const errorBox = document.getElementById('applicationError');
@@ -73,7 +68,7 @@
 
   const observer = new MutationObserver(() => requestAnimationFrame(applyGuard));
   function start() {
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes:true, attributeFilter:['disabled'] });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['disabled'] });
     applyGuard();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
