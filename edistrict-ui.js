@@ -7,6 +7,16 @@
     return title.includes('edistrict') || title.includes('आय प्रमाण') || title.includes('जाति प्रमाण') || title.includes('निवास प्रमाण');
   }
 
+  function ensureLegacyMarker() {
+    const title = document.getElementById('applicationServiceName');
+    if (!title || title.querySelector('.smh-cert-legacy-marker')) return;
+    const marker = document.createElement('span');
+    marker.className = 'smh-cert-legacy-marker';
+    marker.textContent = ' आय जाति निवास';
+    marker.hidden = true;
+    title.appendChild(marker);
+  }
+
   function ensureStyles() {
     if (document.getElementById('smhEdistrictUploadStyles')) return;
     const style = document.createElement('style');
@@ -57,6 +67,7 @@
 
   function enhance() {
     if (!isEdistrictApplication()) return;
+    ensureLegacyMarker();
     ensureStyles();
     const box = document.getElementById('applicationBox');
     if (box) box.classList.add('smh-edistrict-app');
