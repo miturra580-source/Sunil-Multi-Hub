@@ -6,6 +6,42 @@
     return RATION_RE.test((document.getElementById('applicationServiceName')?.textContent||'')+' '+(document.getElementById('applicationVariantName')?.textContent||''));
   }
 
+  function getDocs(){
+    try{
+      if(typeof applicationDocuments!=='undefined' && Array.isArray(applicationDocuments)) return applicationDocuments;
+    }catch(_){ }
+    return [];
+  }
+
+  function findDocId(key, matcher){
+    const docs=getDocs();
+    const byKey=docs.find(d=>String(d.document_key||'').toLowerCase()===key);
+    if(byKey?.id) return String(byKey.id);
+    const byName=docs.find(d=>matcher.test(String(d.name||'')));
+    return byName?.id ? String(byName.id) : '';
+  }
+
+  function bindFallbackIds(){
+    if(!isRation()) return;
+    const box=document.getElementById('smhRationFallbackAttachments');
+    if(!box) return;
+
+    const mapping=[
+      ['input[name="ration_head_photo"]','head_photo',/मुखिया.*फोटो|head.*photo|photo/i],
+      ['input[name="ration_head_aadhaar"]','head_aadhaar',/मुखिया.*आधार|aadhaar|aadhar/i],
+      ['input[name="ration_bank_passbook"]','bank_passbook',/बैंक.*पासबुक|bank.*passbook|passbook/i]
+    ];
+
+    mapping.forEach(([selector,key,matcher])=>{
+      const input=box.querySelector(selector);
+      if(!input) return;
+      const id=findDocId(key,matcher);
+      if(!id) return;
+      input.dataset.documentId=id;
+      input.dataset.required='true';
+    });
+  }
+
   function copyFileToInput(input,file){
     if(!input || !file) return;
     try{
@@ -30,6 +66,7 @@
 
   function restoreAll(){
     if(!isRation()) return;
+    bindFallbackIds();
     document.querySelectorAll('input[type="file"][data-document-id]').forEach(input=>{
       const id=input.dataset.documentId;
       const own=input.files?.[0];
@@ -39,8 +76,11 @@
   }
 
   document.addEventListener('change',e=>{
-    const input=e.target?.matches?.('input[type="file"][data-document-id]')?e.target:null;
-    if(!input || !isRation()) return;
+    if(!isRation()) return;
+    bindFallbackIds();
+    const input=e.target?.matches?.('input[type="file"]')?e.target:null;
+    if(!input) return;
+    if(!input.dataset.documentId) bindFallbackIds();
     rememberInput(input);
   },true);
 
