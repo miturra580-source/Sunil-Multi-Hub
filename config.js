@@ -11,7 +11,7 @@ window.SMH_CONFIG = {
     ['dashboard-nav.js?v=20260823-3','data-smh-dashboard-nav',['dashboard.html']],
     ['pan-ui.js?v=20260823-4','data-smh-pan-ui',['dashboard.html']],
     ['pan-direct.js?v=20260823-3','data-smh-pan-direct',['dashboard.html']],
-    ['pan-aadhaar-wallet.js?v=20260823-2','data-smh-pan-aadhaar-wallet',['dashboard.html']],
+    ['pan-aadhaar-wallet.js?v=20260823-3','data-smh-pan-aadhaar-wallet',['dashboard.html']],
     ['certificate-direct.js?v=20260823-6','data-smh-certificate-direct',['dashboard.html']],
     ['edistrict-ui.js?v=20260823-3','data-smh-edistrict-ui',['dashboard.html']],
     ['edistrict-document-picker.js?v=20260823-3','data-smh-edistrict-document-picker',['dashboard.html']],
@@ -24,7 +24,7 @@ window.SMH_CONFIG = {
     ['certificate-document-rules.js?v=20260823-3','data-smh-certificate-document-rules',['dashboard.html']],
     ['dashboard-wallet-sync.js?v=20260823-1','data-smh-wallet-sync',['dashboard.html']],
     ['service-card-cleanup.js?v=20260823-1','data-smh-service-card-cleanup',['dashboard.html']],
-    ['service-config-guard.js?v=20260823-1','data-smh-service-config-guard',['dashboard.html']],
+    ['service-config-guard.js?v=20260823-2','data-smh-service-config-guard',['dashboard.html']],
     ['dashboard-stat-links.js?v=20260823-1','data-smh-dashboard-stat-links',['dashboard.html']],
     ['wallet-compact.js?v=20260823-1','data-smh-wallet-compact',['wallet.html']]
   ];
