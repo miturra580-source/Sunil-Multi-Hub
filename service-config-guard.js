@@ -9,10 +9,17 @@
     return document.getElementById('submitDynamicApplication');
   }
 
+  function hasCustomWorkflow() {
+    return !!document.getElementById('smhAadhaarPanLookup') ||
+      !!document.getElementById('fetchPanDataBtn');
+  }
+
   function isConfigured() {
     const form = getForm();
     const fieldsBox = document.getElementById('beneficiaryFields');
     if (!form || !fieldsBox) return true;
+
+    if (hasCustomWorkflow()) return true;
 
     const text = (fieldsBox.textContent || '').trim();
     if (text.includes(NOT_CONFIGURED_TEXT)) return false;
