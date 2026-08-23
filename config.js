@@ -17,7 +17,7 @@ window.SMH_CONFIG = {
     ['edistrict-ration-divider.js?v=20260824-2','data-smh-edistrict-ration-divider',['dashboard.html']],
     ['ration-card-ui.js?v=20260823-5','data-smh-ration-card-ui',['dashboard.html']],
     ['ration-card-hotfix.js?v=20260824-11','data-smh-ration-card-hotfix',['dashboard.html']],
-    ['ration-card-persistence.js?v=20260823-1','data-smh-ration-card-persistence',['dashboard.html']],
+    ['ration-card-persistence.js?v=20260824-2','data-smh-ration-card-persistence',['dashboard.html']],
     ['ration-entry-fix.js?v=20260824-1','data-smh-ration-entry-fix',['dashboard.html']],
     ['certificate-ui.js?v=20260823-3','data-smh-certificate-ui',['dashboard.html']],
     ['up-location.js?v=20260823-4','data-smh-up-location',['dashboard.html']],
@@ -25,7 +25,7 @@ window.SMH_CONFIG = {
     ['certificate-document-rules.js?v=20260823-3','data-smh-certificate-document-rules',['dashboard.html']],
     ['dashboard-wallet-sync.js?v=20260823-1','data-smh-wallet-sync',['dashboard.html']],
     ['service-card-cleanup.js?v=20260823-1','data-smh-service-card-cleanup',['dashboard.html']],
-    ['service-config-guard.js?v=20260824-4','data-smh-service-config-guard',['dashboard.html']],
+    ['service-config-guard.js?v=20260824-5','data-smh-service-config-guard',['dashboard.html']],
     ['dashboard-stat-links.js?v=20260823-1','data-smh-dashboard-stat-links',['dashboard.html']],
     ['wallet-compact.js?v=20260823-1','data-smh-wallet-compact',['wallet.html']]
   ];
