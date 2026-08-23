@@ -5958,7 +5958,28 @@ ${esc(
                         font-size:13px;
                       "
                     >
-                      TEST MODE — कोई real PAN lookup या wallet debit नहीं हुआ।
+                      ${
+  data.test_mode
+    ? `
+      <div
+        style="
+          margin-top:8px;
+          padding:9px;
+          border-radius:10px;
+          background:#fff7e6;
+          color:#8a5a00;
+          font-size:13px;
+        "
+      >
+        ${
+          data.charged
+            ? `TEST MODE — ₹${esc(data.amount || 50)} wallet से debit हुआ। Real PAN lookup अभी नहीं हुआ।`
+            : `TEST MODE — कोई real PAN lookup या wallet debit नहीं हुआ।`
+        }
+      </div>
+    `
+    : ''
+}
                     </div>
                   `
                   : ''
