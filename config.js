@@ -48,7 +48,7 @@ window.SMH_CONFIG = {
 
   if (page === 'dashboard.html' && !document.querySelector('script[data-smh-certificate-direct]')) {
     const s = document.createElement('script');
-    s.src = 'certificate-direct.js?v=20260823-5';
+    s.src = 'certificate-direct.js?v=20260823-6';
     s.defer = true;
     s.dataset.smhCertificateDirect = 'true';
     document.head.appendChild(s);
@@ -56,7 +56,7 @@ window.SMH_CONFIG = {
 
   if (page === 'dashboard.html' && !document.querySelector('script[data-smh-edistrict-ui]')) {
     const s = document.createElement('script');
-    s.src = 'edistrict-ui.js?v=20260823-1';
+    s.src = 'edistrict-ui.js?v=20260823-2';
     s.defer = true;
     s.dataset.smhEdistrictUi = 'true';
     document.head.appendChild(s);
