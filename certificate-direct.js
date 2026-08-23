@@ -9,68 +9,54 @@
     style.textContent = `
       body.${OPENING_CLASS} #serviceDetailsBackdrop,
       body.${OPENING_CLASS} #serviceDetailsBox {
-        display:none!important;
-        visibility:hidden!important;
-        opacity:0!important;
-        pointer-events:none!important;
-        transition:none!important;
-      }
-      body.${OPENING_CLASS} #serviceDetailsBox {
-        transform:translateX(-50%) translateY(110%)!important;
+        display:none!important;visibility:hidden!important;opacity:0!important;
+        pointer-events:none!important;transition:none!important;
       }
     `;
     document.head.appendChild(style);
   }
 
-  function isCertificateCard(target) {
+  function isEdistrictCard(target) {
     const card = target.closest('.portal-service-card');
     if (!card) return null;
-    const text = (card.textContent || '').replace(/\s+/g, ' ').trim();
-    return text.includes('आय') && text.includes('जाति') && text.includes('निवास') ? card : null;
+    const text = (card.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    return text.includes('edistrict') || (text.includes('आय') && text.includes('जाति') && text.includes('निवास')) ? card : null;
   }
 
-  function releaseWhenVariantOpens() {
-    const started = Date.now();
+  function openDirectHere() {
+    if (typeof window.openServiceDetails !== 'function') return false;
+    document.body.classList.add(OPENING_CLASS);
+    window.openServiceDetails(SERVICE_ID);
+    requestAnimationFrame(() => {
+      const apply = document.getElementById('serviceApplyBtn');
+      if (!apply) { document.body.classList.remove(OPENING_CLASS); return; }
+      apply.click();
+      setTimeout(() => document.body.classList.remove(OPENING_CLASS), 250);
+    });
+    return true;
+  }
+
+  function autoOpenFromQuery() {
+    if (new URLSearchParams(location.search).get('edistrict') !== '1') return;
+    let tries = 0;
     const timer = setInterval(() => {
-      const backdrop = document.getElementById('variantBackdrop');
-      const box = document.getElementById('variantBox');
-      const opened = backdrop?.style.display === 'block' ||
-        (box && !String(box.style.transform || '').includes('110%'));
-      if (opened || Date.now() - started > 1400) {
-        clearInterval(timer);
-        document.body.classList.remove(OPENING_CLASS);
-        document.body.style.overflow = opened ? 'hidden' : '';
-      }
-    }, 25);
-  }
-
-  function openDirect() {
-    try {
-      if (typeof window.openServiceDetails !== 'function') return;
-      document.body.classList.add(OPENING_CLASS);
-      window.openServiceDetails(SERVICE_ID);
-      requestAnimationFrame(() => {
-        const apply = document.getElementById('serviceApplyBtn');
-        if (!apply) {
-          document.body.classList.remove(OPENING_CLASS);
-          return;
-        }
-        apply.click();
-        releaseWhenVariantOpens();
-      });
-    } catch (err) {
-      document.body.classList.remove(OPENING_CLASS);
-      console.error('Certificate direct open failed:', err);
-    }
+      tries++;
+      if (openDirectHere() || tries > 80) clearInterval(timer);
+    }, 100);
   }
 
   injectStyles();
+
   document.addEventListener('click', event => {
-    const card = isCertificateCard(event.target);
+    const card = isEdistrictCard(event.target);
     if (!card) return;
+    if (new URLSearchParams(location.search).get('edistrict') === '1') return;
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation();
-    openDirect();
+    window.open('dashboard.html?edistrict=1', '_blank', 'noopener');
   }, true);
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', autoOpenFromQuery, {once:true});
+  else autoOpenFromQuery();
 })();
