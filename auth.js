@@ -18,6 +18,8 @@ function makeClient(){
 }
 
 let sb;
+let recoveryMode = false;
+
 try{
   sb=makeClient();
   document.getElementById('apiText').textContent='Supabase connected';
@@ -28,10 +30,14 @@ try{
   msg(e.message);
 }
 
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
-  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));
-  document.querySelectorAll('.auth-form').forEach(f=>f.classList.toggle('active',f.id.startsWith(b.dataset.tab)));
-});
+function showAuthForm(name){
+  document.querySelectorAll('.auth-form').forEach(f=>f.classList.toggle('active',f.id===`${name}Form`));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab===name));
+  const tabs=document.getElementById('authTabs');
+  if(tabs) tabs.style.display=name==='recovery'?'none':'';
+}
+
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showAuthForm(b.dataset.tab));
 
 document.getElementById('registerForm').onsubmit=async e=>{
   e.preventDefault();
@@ -74,23 +80,56 @@ document.getElementById('loginForm').onsubmit=async e=>{
 
 document.getElementById('forgotBtn').onclick=async()=>{
   if(!sb) return msg('Supabase connect नहीं है');
-  const email=document.getElementById('loginEmail').value.trim();
+  const email=document.getElementById('loginEmail').value.trim().toLowerCase();
   if(!email) return msg('पहले email डालें');
-  const redirectTo=location.origin+location.pathname.replace(/auth\.html$/,'auth.html');
+  const redirectTo=new URL('auth.html?recovery=1',location.href).href;
   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
   msg(error?error.message:'Password reset email भेजा गया');
 };
 
+document.getElementById('recoveryForm').onsubmit=async e=>{
+  e.preventDefault();
+  if(!sb) return msg('Supabase connect नहीं है');
+  const p1=document.getElementById('newPassword').value;
+  const p2=document.getElementById('confirmPassword').value;
+  if(p1.length<6) return msg('Password कम से कम 6 characters का रखें');
+  if(p1!==p2) return msg('दोनों passwords match नहीं कर रहे');
+  const {error}=await sb.auth.updateUser({password:p1});
+  if(error) return msg(error.message);
+  recoveryMode=false;
+  msg('Password successfully updated');
+  history.replaceState({},document.title,location.pathname);
+  setTimeout(()=>location.href='dashboard.html',800);
+};
+
 document.getElementById('googleLoginBtn').onclick=async()=>{
   if(!sb) return msg('Supabase connect नहीं है');
-  const redirectTo=location.origin+location.pathname.replace(/auth\.html$/,'dashboard.html');
+  const redirectTo=new URL('dashboard.html',location.href).href;
   const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo}});
   if(error) msg(error.message);
 };
 
 (async()=>{
   if(!sb) return;
+
+  const params=new URLSearchParams(location.search);
+  if(params.get('recovery')==='1') recoveryMode=true;
+
+  sb.auth.onAuthStateChange((event)=>{
+    if(event==='PASSWORD_RECOVERY'){
+      recoveryMode=true;
+      showAuthForm('recovery');
+      msg('नया password सेट करें');
+    }
+  });
+
   const {data:{session}}=await sb.auth.getSession();
+
+  if(recoveryMode){
+    showAuthForm('recovery');
+    return;
+  }
+
   if(session){
     const {data:profile}=await sb.from('profiles').select('role').eq('id',session.user.id).maybeSingle();
     location.replace(profile?.role==='admin'?'admin.html':'dashboard.html');
