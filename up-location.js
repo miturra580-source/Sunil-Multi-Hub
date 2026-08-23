@@ -1,16 +1,34 @@
 (() => {
   const SERVICE_RE = /आय.*जाति.*निवास|जाति.*निवास.*आय|निवास.*आय.*जाति/;
-  const RAW = 'https://raw.githubusercontent.com/planemad/india-local-government-directory/main/';
-  const URLS = {
-    districts: RAW + 'administrative/2-district.csv',
-    subdistricts: RAW + 'administrative/3-subdistrict.csv',
-    blocks: RAW + 'administrative/blocks.csv',
-    villageZip: RAW + 'administrative/4-village.csv.zip'
+  const VILLAGE_ZIP = 'https://raw.githubusercontent.com/planemad/india-local-government-directory/main/administrative/4-village.csv.zip';
+
+  // Verified district / tehsil / block lists for Chitrakoot Dham Division only.
+  // Tehsil and block are kept as separate district-level lists because some blocks
+  // can overlap tehsil boundaries. Village filtering further narrows the result.
+  const MASTER = {
+    'Banda': {
+      label: 'बाँदा',
+      tehsils: ['Banda', 'Baberu', 'Naraini', 'Atarra', 'Pailani'],
+      blocks: ['Badokhar Khurd', 'Mahuva', 'Baberu', 'Bisanda', 'Kamasin', 'Jaspura', 'Naraini', 'Tindwari']
+    },
+    'Chitrakoot': {
+      label: 'चित्रकूट',
+      tehsils: ['Karwi', 'Mau', 'Manikpur', 'Rajapur'],
+      blocks: ['Karwi', 'Mau', 'Pahari', 'Ramnagar', 'Manikpur']
+    },
+    'Hamirpur': {
+      label: 'हमीरपुर',
+      tehsils: ['Hamirpur', 'Maudaha', 'Rath', 'Sarila'],
+      blocks: ['Gohand', 'Kurara', 'Maudaha', 'Muskara', 'Rath', 'Sarila', 'Sumerpur']
+    },
+    'Mahoba': {
+      label: 'महोबा',
+      tehsils: ['Mahoba', 'Charkhari', 'Kulpahar'],
+      blocks: ['Kabrai', 'Charkhari', 'Jaitpur', 'Panwari']
+    }
   };
 
-  let masterPromise = null;
   let villagePromise = null;
-  let master = null;
   let villages = [];
 
   function parseCSV(text) {
@@ -56,49 +74,14 @@
     }
     return '';
   }
-  function isUP(o) {
-    return val(o, ['State Code']) === '9' || /^UTTAR PRADESH$/i.test(val(o, ['State Name']));
-  }
-  function uniq(arr, key = 'name') {
-    const map = new Map();
-    for (const item of arr) {
-      const k = String(item[key] || '').trim();
-      if (k && !map.has(k)) map.set(k, item);
-    }
-    return [...map.values()].sort((a, b) => String(a[key]).localeCompare(String(b[key]), 'en'));
-  }
-  async function fetchText(url) {
-    const r = await fetch(url, { cache: 'force-cache' });
-    if (!r.ok) throw new Error('Location data load failed');
-    return r.text();
+
+  function canonicalDistrict(name) {
+    const n = norm(name);
+    return Object.keys(MASTER).find(k => norm(k) === n || norm(MASTER[k].label) === n) || '';
   }
 
-  async function loadMaster() {
-    if (masterPromise) return masterPromise;
-    masterPromise = (async () => {
-      const [dText, tText, bText] = await Promise.all([
-        fetchText(URLS.districts),
-        fetchText(URLS.subdistricts),
-        fetchText(URLS.blocks)
-      ]);
-      const districts = toObjects(dText).filter(isUP).map(o => ({
-        code: val(o, ['District Code']),
-        name: val(o, ['District Name'])
-      })).filter(x => x.code && x.name);
-      const tehsils = toObjects(tText).filter(isUP).map(o => ({
-        districtCode: val(o, ['District Code']),
-        code: val(o, ['Sub-district Code', 'Subdistrict Code']),
-        name: val(o, ['Sub-district Name', 'Subdistrict Name'])
-      })).filter(x => x.districtCode && x.code && x.name);
-      const blocks = toObjects(bText).filter(isUP).map(o => ({
-        districtCode: val(o, ['District Code']),
-        code: val(o, ['Block Code']),
-        name: val(o, ['Block Name'])
-      })).filter(x => x.districtCode && x.code && x.name);
-      master = { districts: uniq(districts, 'code'), tehsils: uniq(tehsils, 'code'), blocks: uniq(blocks, 'code') };
-      return master;
-    })();
-    return masterPromise;
+  function uniq(items) {
+    return [...new Set(items.filter(Boolean).map(x => String(x).trim()))].sort((a,b)=>a.localeCompare(b,'en'));
   }
 
   async function ensureJSZip() {
@@ -117,23 +100,19 @@
     if (villagePromise) return villagePromise;
     villagePromise = (async () => {
       const JSZip = await ensureJSZip();
-      const r = await fetch(URLS.villageZip, { cache: 'force-cache' });
+      const r = await fetch(VILLAGE_ZIP, { cache: 'force-cache' });
       if (!r.ok) throw new Error('Village directory unavailable');
       const zip = await JSZip.loadAsync(await r.arrayBuffer());
       const file = Object.values(zip.files).find(f => !f.dir && /\.csv$/i.test(f.name));
       if (!file) throw new Error('Village CSV unavailable');
-      const rows = toObjects(await file.async('string')).filter(isUP);
+      const rows = toObjects(await file.async('string'));
       villages = rows.map(o => ({
-        districtCode: val(o, ['District Code']),
         district: val(o, ['District Name']),
-        tehsilCode: val(o, ['Sub-district Code', 'Subdistrict Code']),
         tehsil: val(o, ['Sub-district Name', 'Subdistrict Name']),
-        blockCode: val(o, ['Block Code']),
         block: val(o, ['Block Name']),
         gp: val(o, ['Localbody Name', 'Local Body Name', 'Gram Panchayat Name', 'GP Name']),
-        villageCode: val(o, ['Village Code']),
         village: val(o, ['Village Name'])
-      })).filter(x => x.village);
+      })).filter(x => canonicalDistrict(x.district) && x.village);
       return villages;
     })();
     return villagePromise;
@@ -153,100 +132,100 @@
     return select;
   }
 
-  function fillOptions(select, items, placeholder) {
+  function fill(select, items, placeholder) {
     if (!select) return;
-    const previous = select.value;
     select.innerHTML = `<option value="">${placeholder}</option>` + items.map(item => {
-      const name = String(item.name || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-      const code = String(item.code || '').replace(/"/g, '&quot;');
-      return `<option value="${name}" data-code="${code}">${name}</option>`;
+      const value = typeof item === 'string' ? item : item.value;
+      const label = typeof item === 'string' ? item : item.label;
+      const safeValue = String(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+      const safeLabel = String(label).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+      return `<option value="${safeValue}">${safeLabel}</option>`;
     }).join('');
-    if ([...select.options].some(o => o.value === previous)) select.value = previous;
   }
 
-  function selectedCode(select) {
-    return select?.selectedOptions?.[0]?.dataset?.code || '';
-  }
-
-  function status(text, bad = false) {
-    let el = document.getElementById('smhUpLocationStatus');
-    if (!el) {
-      el = document.createElement('div');
-      el.id = 'smhUpLocationStatus';
-      el.style.cssText = 'margin:10px 0;padding:10px 12px;border-radius:12px;font-size:11px;line-height:1.45';
-      const wrap = document.querySelector('[data-field-wrap="district"]');
-      wrap?.parentNode?.insertBefore(el, wrap);
-    }
-    if (!el) return;
-    el.textContent = text;
-    el.style.background = bad ? '#fff1f1' : '#eef6ff';
-    el.style.color = bad ? '#9b2c2c' : '#244eaf';
+  function removeOldStatus() {
+    document.getElementById('smhUpLocationStatus')?.remove();
   }
 
   async function enhance() {
     const appTitle = document.getElementById('applicationServiceName');
     if (!appTitle || !SERVICE_RE.test(appTitle.textContent || '')) return;
 
+    removeOldStatus();
+
     const district = replaceWithSelect('district', 'जिला चुनें');
     const tehsil = replaceWithSelect('tehsil', 'तहसील चुनें');
-    const block = replaceWithSelect('block', 'ब्लॉक चुनें');
+    const block = replaceWithSelect('block', 'विकासखंड / ब्लॉक चुनें');
     const gp = replaceWithSelect('gram_panchayat', 'ग्राम पंचायत चुनें');
     const village = replaceWithSelect('village_ward', 'गाँव / वार्ड चुनें');
     if (!district || !tehsil || !block || !village) return;
     if (district.dataset.smhBound === '1') return;
     district.dataset.smhBound = '1';
 
-    status('उत्तर प्रदेश के जिला, तहसील और ब्लॉक लोड हो रहे हैं…');
-    try {
-      const m = await loadMaster();
-      fillOptions(district, m.districts, 'जिला चुनें');
-      status(`${m.districts.length} जिले उपलब्ध हैं। जिला चुनें → तहसील → ब्लॉक → ग्राम पंचायत / गाँव।`);
+    fill(district, Object.entries(MASTER).map(([value, data]) => ({ value, label: data.label })), 'जिला चुनें');
+    fill(tehsil, [], 'तहसील चुनें');
+    fill(block, [], 'विकासखंड / ब्लॉक चुनें');
+    fill(gp, [], 'ग्राम पंचायत चुनें');
+    fill(village, [], 'गाँव / वार्ड चुनें');
 
-      district.addEventListener('change', () => {
-        const dc = selectedCode(district);
-        fillOptions(tehsil, uniq(m.tehsils.filter(x => x.districtCode === dc)), 'तहसील चुनें');
-        fillOptions(block, uniq(m.blocks.filter(x => x.districtCode === dc)), 'ब्लॉक चुनें');
-        fillOptions(gp, [], 'ग्राम पंचायत चुनें');
-        fillOptions(village, [], 'गाँव / वार्ड चुनें');
-      });
+    district.addEventListener('change', () => {
+      const d = MASTER[district.value];
+      fill(tehsil, d?.tehsils || [], 'तहसील चुनें');
+      fill(block, [], 'पहले तहसील चुनें');
+      fill(gp, [], 'ग्राम पंचायत चुनें');
+      fill(village, [], 'गाँव / वार्ड चुनें');
+    });
 
-      async function refreshVillages() {
-        const dc = selectedCode(district);
-        if (!dc) return;
-        status('ग्राम पंचायत और गाँव की सूची लोड हो रही है…');
-        try {
-          const rows = await loadVillages();
-          let filtered = rows.filter(x => !x.districtCode || x.districtCode === dc || x.district === district.value);
-          const tc = selectedCode(tehsil);
-          const bc = selectedCode(block);
-          if (tc || tehsil.value) filtered = filtered.filter(x => !x.tehsilCode || x.tehsilCode === tc || x.tehsil === tehsil.value);
-          if (bc || block.value) filtered = filtered.filter(x => !x.blockCode || x.blockCode === bc || x.block === block.value);
+    tehsil.addEventListener('change', () => {
+      const d = MASTER[district.value];
+      // Blocks are district verified. They are shown after tehsil selection so the flow remains sequential.
+      fill(block, d?.blocks || [], 'विकासखंड / ब्लॉक चुनें');
+      fill(gp, [], 'ग्राम पंचायत चुनें');
+      fill(village, [], 'गाँव / वार्ड चुनें');
+    });
 
-          const gps = uniq(filtered.filter(x => x.gp).map(x => ({ name: x.gp, code: x.gp })));
-          const vs = uniq(filtered.map(x => ({ name: x.village, code: x.villageCode || x.village })));
-          fillOptions(gp, gps, 'ग्राम पंचायत चुनें');
-          fillOptions(village, vs, 'गाँव / वार्ड चुनें');
-          status(`${vs.length.toLocaleString('en-IN')} गाँव${gps.length ? ` • ${gps.length.toLocaleString('en-IN')} ग्राम पंचायत` : ''} उपलब्ध हैं।`);
-        } catch (error) {
-          console.error(error);
-          status('गाँव directory अभी load नहीं हो सकी। District/Tehsil/Block selection काम करता रहेगा।', true);
-        }
+    async function refreshVillageLists() {
+      if (!district.value || !tehsil.value || !block.value) return;
+      try {
+        const rows = await loadVillages();
+        const filtered = rows.filter(x => {
+          const dk = canonicalDistrict(x.district);
+          if (dk !== district.value) return false;
+          const tehsilOk = !x.tehsil || norm(x.tehsil) === norm(tehsil.value);
+          const blockOk = !x.block || norm(x.block) === norm(block.value);
+          return tehsilOk && blockOk;
+        });
+
+        const gps = uniq(filtered.map(x => x.gp));
+        const vs = uniq(filtered.map(x => x.village));
+        fill(gp, gps, gps.length ? 'ग्राम पंचायत चुनें' : 'ग्राम पंचायत उपलब्ध नहीं');
+        fill(village, vs, vs.length ? 'गाँव / वार्ड चुनें' : 'गाँव उपलब्ध नहीं');
+      } catch (err) {
+        console.error('Certificate village directory:', err);
+        fill(gp, [], 'ग्राम पंचायत सूची लोड नहीं हुई');
+        fill(village, [], 'गाँव सूची लोड नहीं हुई');
       }
-
-      tehsil.addEventListener('change', refreshVillages);
-      block.addEventListener('change', refreshVillages);
-      village.addEventListener('focus', () => { if (village.options.length <= 1) refreshVillages(); });
-      gp?.addEventListener('focus', () => { if (gp.options.length <= 1) refreshVillages(); });
-    } catch (error) {
-      console.error(error);
-      status('UP location master load नहीं हुआ। कृपया network check करें।', true);
     }
+
+    block.addEventListener('change', refreshVillageLists);
+    gp?.addEventListener('change', async () => {
+      if (!gp.value) return;
+      try {
+        const rows = await loadVillages();
+        const filtered = rows.filter(x => canonicalDistrict(x.district) === district.value &&
+          (!x.tehsil || norm(x.tehsil) === norm(tehsil.value)) &&
+          (!x.block || norm(x.block) === norm(block.value)) &&
+          norm(x.gp) === norm(gp.value));
+        fill(village, uniq(filtered.map(x => x.village)), 'गाँव / वार्ड चुनें');
+      } catch (err) { console.error(err); }
+    });
   }
 
   function start() {
+    removeOldStatus();
     const observer = new MutationObserver(() => setTimeout(enhance, 60));
     observer.observe(document.body, { childList: true, subtree: true });
-    document.addEventListener('click', () => setTimeout(enhance, 300), true);
+    document.addEventListener('click', () => setTimeout(enhance, 250), true);
     enhance();
   }
 
