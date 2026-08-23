@@ -715,13 +715,125 @@
 
 
 <!-- =========================================================
-     MY WALLET
+     WALLET QUICK CARD
 ========================================================= -->
 
 <section
-  class="portal-section wallet-section"
+  class="portal-section"
   id="walletSection"
 >
+
+  <div class="container">
+
+    <a
+      href="wallet.html"
+      style="
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:18px;
+        padding:20px 22px;
+        border-radius:22px;
+        text-decoration:none;
+        color:#fff;
+        background:
+          linear-gradient(
+            135deg,
+            #0d5fe8,
+            #4a4de9,
+            #7045f5
+          );
+        box-shadow:
+          0 14px 35px
+          rgba(40,74,200,.20);
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          align-items:center;
+          gap:14px;
+          min-width:0;
+        "
+      >
+
+        <div
+          style="
+            width:52px;
+            height:52px;
+            flex:0 0 52px;
+            display:grid;
+            place-items:center;
+            border-radius:16px;
+            background:
+              rgba(255,255,255,.15);
+            font-size:26px;
+          "
+        >
+          💰
+        </div>
+
+        <div>
+
+          <small
+            style="
+              display:block;
+              color:
+                rgba(255,255,255,.82);
+              font-weight:700;
+            "
+          >
+            My Wallet
+          </small>
+
+          <strong
+            id="walletBalance"
+            style="
+              display:block;
+              margin-top:3px;
+              color:#fff;
+              font-size:24px;
+            "
+          >
+            ₹0.00
+          </strong>
+
+          <small
+            style="
+              display:block;
+              margin-top:4px;
+              color:
+                rgba(255,255,255,.82);
+            "
+          >
+            Recharge • Payments • History
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <div
+        style="
+          flex:0 0 auto;
+          padding:10px 14px;
+          border-radius:12px;
+          background:#fff;
+          color:#2855cc;
+          font-weight:800;
+          white-space:nowrap;
+        "
+      >
+        Open Wallet →
+      </div>
+
+    </a>
+
+  </div>
+
+</section>
 
   <div class="container">
 
@@ -1620,7 +1732,7 @@
       </a>
 
 
-      <a href="#walletSection">
+      <a href="wallet.html">
         💰
         <span>
           My Wallet
