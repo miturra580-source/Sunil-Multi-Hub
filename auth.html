@@ -15,7 +15,7 @@
     </a>
 
     <section class="auth-card">
-      <div class="tabs">
+      <div class="tabs" id="authTabs">
         <button class="tab active" data-tab="login">Login</button>
         <button class="tab" data-tab="register">Register</button>
       </div>
@@ -40,6 +40,14 @@
         <button class="btn primary full" type="submit">Register</button>
       </form>
 
+      <form id="recoveryForm" class="auth-form">
+        <h1>नया Password सेट करें</h1>
+        <p>कम से कम 6 characters का नया password रखें।</p>
+        <label>New Password<input type="password" id="newPassword" required minlength="6" autocomplete="new-password"></label>
+        <label>Confirm Password<input type="password" id="confirmPassword" required minlength="6" autocomplete="new-password"></label>
+        <button class="btn primary full" type="submit">Update Password</button>
+      </form>
+
       <div class="api-box">
         <span id="apiDot"></span>
         <strong id="apiText">Checking Supabase…</strong>
@@ -50,6 +58,6 @@
   <div class="toast" id="toast"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="auth.js"></script>
+  <script src="auth.js?v=20260824-1"></script>
 </body>
 </html>
