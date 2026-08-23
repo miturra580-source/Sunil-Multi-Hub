@@ -10,8 +10,12 @@
   }
 
   function hasCustomWorkflow() {
+    const form = getForm();
+    const isRationStepper = !!form?.dataset?.rationV3 || !!document.querySelector('.smh-ration-pane[data-step="5"]');
+
     return !!document.getElementById('smhAadhaarPanLookup') ||
-      !!document.getElementById('fetchPanDataBtn');
+      !!document.getElementById('fetchPanDataBtn') ||
+      isRationStepper;
   }
 
   function isConfigured() {
@@ -52,7 +56,9 @@
       button.style.opacity = '';
       button.style.cursor = '';
       button.dataset.smhUnconfigured = '';
-      button.textContent = 'Submit Application';
+      button.textContent = document.querySelector('.smh-ration-pane[data-step="5"]')
+        ? 'सुरक्षित करें एवं आवेदन जमा करें'
+        : 'Submit Application';
     }
   }
 
