@@ -14,6 +14,14 @@ window.SMH_CONFIG = {
     document.head.appendChild(script);
   }
 
+  if (page === 'dashboard.html' && !document.querySelector('script[data-smh-full-page-panels]')) {
+    const s = document.createElement('script');
+    s.src = 'full-page-panels.js?v=20260823-1';
+    s.defer = true;
+    s.dataset.smhFullPagePanels = 'true';
+    document.head.appendChild(s);
+  }
+
   if (page === 'dashboard.html' && !document.querySelector('script[data-smh-dashboard-nav]')) {
     const navScript = document.createElement('script');
     navScript.src = 'dashboard-nav.js?v=20260823-3';
@@ -56,7 +64,7 @@ window.SMH_CONFIG = {
 
   if (page === 'dashboard.html' && !document.querySelector('script[data-smh-up-location]')) {
     const s = document.createElement('script');
-    s.src = 'up-location.js?v=20260823-3';
+    s.src = 'up-location.js?v=20260823-4';
     s.defer = true;
     s.dataset.smhUpLocation = 'true';
     document.head.appendChild(s);
