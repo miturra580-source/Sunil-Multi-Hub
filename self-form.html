@@ -1,2 +1,58 @@
 <!doctype html>
-<html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#1557d6"><title>CSC Customer Self Form — SUNIL MULTI HUB</title><link rel="stylesheet" href="style.css"><style>body{background:#f6f8fc}.wrap{max-width:760px;margin:24px auto;padding:0 14px 50px}.card{background:#fff;border:1px solid #e4e9f1;border-radius:24px;padding:20px;box-shadow:0 12px 32px rgba(20,40,80,.07)}.head{text-align:center}.head h1{margin:7px 0}.head p{margin:0;color:#667085;line-height:1.55}.center{margin:14px 0;padding:12px;border-radius:14px;background:#eef4ff;color:#1849a9;text-align:center;font-weight:800}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.f{display:block;font-size:13px;font-weight:800;color:#344054}.f.full{grid-column:1/-1}.f input,.f select,.f textarea{width:100%;box-sizing:border-box;margin-top:7px;padding:13px;border:1px solid #d8e0eb;border-radius:12px;background:#fff;font:inherit}.f textarea{min-height:90px;resize:vertical}.note{margin:14px 0;padding:12px;border-radius:14px;background:#f8faff;color:#475467;font-size:13px;line-height:1.55}.consent{display:flex;gap:9px;margin:16px 0;color:#475467;line-height:1.5}.consent input{margin-top:4px}.msg{display:none;margin-top:14px;padding:14px;border-radius:14px}.error{background:#fef3f2;color:#b42318}.success{background:#ecfdf3;color:#067647;text-align:center}@media(max-width:650px){.grid{grid-template-columns:1fr}.f.full{grid-column:auto}.card{padding:16px}}</style></head><body><header class="site-header"><div class="container nav"><a href="index.html" class="brand"><span class="brand-mark">SM</span><span><strong>SUNIL MULTI HUB</strong><small>CSC Self Form</small></span></a></div></header><main class="wrap"><section class="card"><div class="head"><strong style="color:#1557d6">CUSTOMER SELF ENTRY</strong><h1>अपनी जानकारी खुद भरें</h1><p>यह जानकारी आपके चुने हुए CSC centre को application process करने के लिए भेजी जाएगी।</p></div><div id="centerBox" class="center">CSC Centre पहचान रहे हैं…</div><div class="note">🔒 OTP, CAPTCHA, biometric PIN या banking password यहाँ कभी न भरें।</div><form id="selfForm"><div class="grid"><label class="f full">Service *<select name="service_name" required><option value="">Select Service</option><option>PAN Card</option><option>आय प्रमाण पत्र</option><option>जाति प्रमाण पत्र</option><option>निवास प्रमाण पत्र</option><option>राशन कार्ड</option><option>श्रम कार्ड</option><option>जीवन प्रमाण पत्र / पेंशन</option><option>वोटर ID</option><option>Passport Service</option><option>Railway / Flight Form</option><option>अन्य ऑनलाइन फॉर्म</option></select></label><label class="f">पूरा नाम *<input name="full_name" required maxlength="120"></label><label class="f">पिता / पति का नाम<input name="father_or_husband_name" maxlength="120"></label><label class="f">माता का नाम<input name="mother_name" maxlength="120"></label><label class="f">जन्मतिथि<input name="dob" type="date"></label><label class="f">Gender<select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></label><label class="f">Mobile *<input name="mobile" required inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10"></label><label class="f">Email<input name="email" type="email" maxlength="160"></label><label class="f">Aadhaar<input name="aadhaar" inputmode="numeric" pattern="[0-9]{12}" maxlength="12"></label><label class="f">PAN<input name="pan" maxlength="10" pattern="[A-Za-z]{5}[0-9]{4}[A-Za-z]" style="text-transform:uppercase"></label><label class="f full">पूरा पता<textarea name="address" maxlength="500"></textarea></label><label class="f">गाँव / शहर<input name="village_city"></label><label class="f">पोस्ट / थाना<input name="post_police"></label><label class="f">जिला<input name="district"></label><label class="f">राज्य<input name="state" value="Uttar Pradesh"></label><label class="f">PIN Code<input name="pincode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"></label><label class="f full">Extra Details<textarea name="notes" maxlength="1000"></textarea></label></div><label class="consent"><input type="checkbox" name="consent" required><span>मैं दी गई जानकारी को चुनी गई सेवा के लिए इस CSC centre द्वारा उपयोग करने की अनुमति देता/देती हूँ।</span></label><button id="submitBtn" type="submit" class="btn primary" style="width:100%;min-height:52px">Submit Details</button><div id="formError" class="msg error"></div><div id="formSuccess" class="msg success"></div></form></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="self-form.js"></script></body></html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1557d6">
+<title>CSC Customer Self Form — SUNIL MULTI HUB</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body{background:#f6f8fc}.wrap{max-width:920px;margin:24px auto;padding:0 14px 50px}.card{background:#fff;border:1px solid #e4e9f1;border-radius:24px;padding:20px;box-shadow:0 12px 32px rgba(20,40,80,.07)}.head{text-align:center}.head h1{margin:7px 0}.head p{margin:0;color:#667085;line-height:1.55}.center{margin:14px 0;padding:12px;border-radius:14px;background:#eef4ff;color:#1849a9;text-align:center;font-weight:800}.catalog-title{margin:22px 0 10px}.service-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.service-card{border:1px solid #e4e9f1;border-radius:16px;background:#fff;padding:14px;text-align:left;cursor:pointer}.service-card.active{border:2px solid #1557d6;background:#f4f7ff}.service-card .icon{font-size:28px}.service-card strong{display:block;margin-top:7px}.service-card small{display:block;color:#667085;margin-top:5px;line-height:1.4}.details{display:none;margin:14px 0;padding:16px;border-radius:16px;background:#f8faff;border:1px solid #dfe7f5}.details.show{display:block}.details h3{margin:0 0 8px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.detail-box{background:#fff;border:1px solid #e4e9f1;border-radius:12px;padding:12px}.detail-box small{color:#667085}.detail-box strong{display:block;margin-top:4px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.f{display:block;font-size:13px;font-weight:800;color:#344054}.f.full{grid-column:1/-1}.f input,.f select,.f textarea{width:100%;box-sizing:border-box;margin-top:7px;padding:13px;border:1px solid #d8e0eb;border-radius:12px;background:#fff;font:inherit}.f textarea{min-height:90px;resize:vertical}.dynamic-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.note{margin:14px 0;padding:12px;border-radius:14px;background:#f8faff;color:#475467;font-size:13px;line-height:1.55}.consent{display:flex;gap:9px;margin:16px 0;color:#475467;line-height:1.5}.consent input{margin-top:4px}.msg{display:none;margin-top:14px;padding:14px;border-radius:14px}.error{background:#fef3f2;color:#b42318}.success{background:#ecfdf3;color:#067647;text-align:center}.section-label{margin:22px 0 10px;color:#1557d6;font-weight:900}.doc-list{margin:8px 0 0;padding-left:18px;color:#475467;line-height:1.7}@media(max-width:650px){.grid,.dynamic-fields,.detail-grid{grid-template-columns:1fr}.f.full{grid-column:auto}.card{padding:16px}}
+</style>
+</head>
+<body>
+<header class="site-header"><div class="container nav"><a href="index.html" class="brand"><span class="brand-mark">SM</span><span><strong>SUNIL MULTI HUB</strong><small>CSC Self Form</small></span></a></div></header>
+<main class="wrap"><section class="card">
+<div class="head"><strong style="color:#1557d6">CUSTOMER SELF ENTRY</strong><h1>अपनी जानकारी खुद भरें</h1><p>Service चुनें, details देखें और वही form यहीं भरें।</p></div>
+<div id="centerBox" class="center">CSC Centre पहचान रहे हैं…</div>
+<div class="note">🔒 OTP, CAPTCHA, biometric PIN या banking password यहाँ कभी न भरें।</div>
+
+<h2 class="catalog-title">🧩 उपलब्ध सेवाएँ</h2>
+<div id="serviceGrid" class="service-grid"><p>Services loading...</p></div>
+<div id="serviceDetails" class="details"></div>
+
+<form id="selfForm">
+<input type="hidden" name="service_id" id="serviceId">
+<label class="f full">Selected Service *<select name="service_name" id="serviceSelect" required><option value="">Select Service</option></select></label>
+
+<div id="dynamicServiceFieldsWrap" style="display:none">
+<div class="section-label">📋 Service Specific Details</div>
+<div id="dynamicServiceFields" class="dynamic-fields"></div>
+</div>
+
+<div class="section-label">👤 Applicant Details</div>
+<div class="grid">
+<label class="f">पूरा नाम *<input name="full_name" required maxlength="120"></label>
+<label class="f">पिता / पति का नाम<input name="father_or_husband_name" maxlength="120"></label>
+<label class="f">माता का नाम<input name="mother_name" maxlength="120"></label>
+<label class="f">जन्मतिथि<input name="dob" type="date"></label>
+<label class="f">Gender<select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></label>
+<label class="f">Mobile *<input name="mobile" required inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10"></label>
+<label class="f">Email<input name="email" type="email" maxlength="160"></label>
+<label class="f">Aadhaar<input name="aadhaar" inputmode="numeric" pattern="[0-9]{12}" maxlength="12"></label>
+<label class="f">PAN<input name="pan" maxlength="10" pattern="[A-Za-z]{5}[0-9]{4}[A-Za-z]" style="text-transform:uppercase"></label>
+<label class="f full">पूरा पता<textarea name="address" maxlength="500"></textarea></label>
+<label class="f">गाँव / शहर<input name="village_city"></label>
+<label class="f">पोस्ट / थाना<input name="post_police"></label>
+<label class="f">जिला<input name="district"></label>
+<label class="f">राज्य<input name="state" value="Uttar Pradesh"></label>
+<label class="f">PIN Code<input name="pincode" inputmode="numeric" pattern="[0-9]{6}" maxlength="6"></label>
+<label class="f full">Extra Details<textarea name="notes" maxlength="1000"></textarea></label>
+</div>
+<label class="consent"><input type="checkbox" name="consent" required><span>मैं दी गई जानकारी को चुनी गई सेवा के लिए इस CSC centre द्वारा उपयोग करने की अनुमति देता/देती हूँ।</span></label>
+<button id="submitBtn" type="submit" class="btn primary" style="width:100%;min-height:52px">Submit Details</button>
+<div id="formError" class="msg error"></div><div id="formSuccess" class="msg success"></div>
+</form>
+</section></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="self-form.js"></script>
+</body></html>
