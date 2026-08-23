@@ -70,14 +70,15 @@
       divider.innerHTML = '<span>🌾 राशन कार्ड</span>';
     }
 
-    /* Only move/insert when needed. This avoids a MutationObserver loop. */
     if (divider.nextElementSibling !== rationCard) {
       grid.insertBefore(divider, rationCard);
     }
   }
 
   function start() {
-    applyDivider();
+    const grid = document.getElementById('variantCards');
+    if (!grid) return;
+
     let scheduled = false;
     const schedule = () => {
       if (scheduled) return;
@@ -87,7 +88,10 @@
         applyDivider();
       });
     };
-    new MutationObserver(schedule).observe(document.body, { childList:true, subtree:true });
+
+    applyDivider();
+    new MutationObserver(schedule).observe(grid, { childList:true });
+    document.addEventListener('click', () => setTimeout(schedule, 60), true);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once:true });
