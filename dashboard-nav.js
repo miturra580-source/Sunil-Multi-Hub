@@ -10,58 +10,61 @@
     const style=document.createElement('style');
     style.id='smhStableTabsCss';
     style.textContent=`
-      #smhStableTabs.smh-stable-tabs{display:block!important;visibility:visible!important;opacity:1!important;position:relative!important;z-index:1400!important;background:#fff!important;border:1px solid #e7ebf2!important;border-radius:18px!important;box-shadow:0 8px 24px rgba(30,50,90,.07)!important;margin:10px auto 0!important;width:calc(100% - 24px)!important;max-width:1180px!important;overflow:hidden!important}
+      #smhStableTabs.smh-stable-tabs{display:block!important;visibility:visible!important;opacity:1!important;position:relative!important;z-index:1400!important;background:#fff!important;border:1px solid #e7ebf2!important;border-radius:18px!important;box-shadow:0 8px 24px rgba(30,50,90,.07)!important;margin:10px auto 12px!important;width:calc(100% - 24px)!important;max-width:1180px!important;overflow:hidden!important}
       #smhStableTabs .smh-stable-tabs-inner{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;width:100%!important;align-items:stretch!important}
       #smhStableTabs .smh-stable-tab{min-width:0!important;text-decoration:none!important;color:#5f6b7a!important;background:#fff!important;border:0!important;padding:9px 3px 8px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;font:inherit!important;font-size:10.5px!important;font-weight:800!important;cursor:pointer!important;border-bottom:3px solid transparent!important;white-space:nowrap!important}
       #smhStableTabs .smh-stable-tab .ico{font-size:18px!important;line-height:1!important}
       #smhStableTabs .smh-stable-tab.active{color:#1557d6!important;border-bottom-color:#1557d6!important;background:#f8faff!important}
 
-      /* approved compact welcome-card layout */
-      .customer-portal .portal-hero{padding:10px 0 6px!important}
-      .customer-portal .portal-banner{padding:14px 16px!important;border-radius:20px!important;box-shadow:0 10px 24px rgba(40,71,210,.18)!important}
-      .customer-portal .portal-banner h1{font-size:21px!important;line-height:1.12!important;margin:0 0 3px!important}
+      /* Final approved compact welcome card */
+      .customer-portal .portal-hero{padding:0 0 6px!important;margin:0!important}
+      .customer-portal .portal-banner{min-height:0!important;height:auto!important;padding:14px 16px!important;border-radius:20px!important;box-shadow:0 10px 24px rgba(40,71,210,.18)!important;display:block!important}
+      .customer-portal .portal-banner-art{display:none!important}
+      .customer-portal .portal-badge{display:none!important}
+      .customer-portal .portal-banner h1{font-size:21px!important;line-height:1.12!important;margin:0 0 4px!important}
       .customer-portal .portal-banner-copy>p{font-size:11.5px!important;line-height:1.35!important;margin:3px 0 0!important}
-      .customer-portal .portal-user{margin-top:4px!important}
-      .customer-portal .portal-user strong{font-size:11.5px!important}
-      .customer-portal .smh-hero-stats{margin-top:10px!important}
-      .customer-portal .smh-hero-stats .portal-stat-grid{gap:8px!important}
+      .customer-portal .portal-user{margin-top:4px!important;padding:5px 8px!important}
+      .customer-portal .portal-user>span{width:28px!important;height:28px!important}
+      .customer-portal .portal-user small{font-size:9px!important}
+      .customer-portal .portal-user strong{font-size:11px!important}
+      .customer-portal .smh-hero-stats{margin-top:9px!important}
+      .customer-portal .smh-hero-stats .portal-stat-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important}
       .customer-portal .smh-hero-stats .portal-stat-grid article{padding:9px 10px!important;min-height:52px!important;border-radius:12px!important}
       .customer-portal .smh-hero-stats .portal-stat-grid article span{font-size:17px!important}
       .customer-portal .smh-hero-stats .portal-stat-grid small{font-size:9.5px!important;line-height:1.2!important}
       .customer-portal .smh-hero-stats .portal-stat-grid strong{font-size:14px!important;line-height:1.1!important}
-      .customer-portal .smh-hero-wallet{margin-top:8px!important}
-      .customer-portal .smh-hero-wallet>a{min-height:0!important;padding:9px 11px!important;border-radius:13px!important}
-      .customer-portal .smh-hero-wallet a span:first-child{font-size:22px!important}
-      .customer-portal .smh-hero-wallet a strong{font-size:18px!important;line-height:1.1!important}
-      .customer-portal .smh-hero-wallet a small{font-size:10px!important;line-height:1.25!important}
-      .customer-portal .smh-hero-wallet a span:last-child{font-size:11px!important;padding:8px 11px!important}
 
-      @media(max-width:420px){
-        #smhStableTabs.smh-stable-tabs{width:calc(100% - 16px)!important;margin-top:7px!important;border-radius:14px!important}
-        #smhStableTabs .smh-stable-tab{font-size:8.8px!important;padding:7px 1px 6px!important;gap:2px!important}
+      /* My Wallet lower strip is intentionally removed; wallet remains in stats + Wallet tab */
+      .customer-portal .smh-hero-wallet,
+      .customer-portal #walletSection{display:none!important}
+      .customer-portal .portal-stat-grid article:has(#serviceCount){display:none!important}
+
+      @media(max-width:560px){
+        .customer-portal .portal-header{position:relative!important}
+        #smhStableTabs.smh-stable-tabs{width:calc(100% - 24px)!important;margin:8px auto 10px!important;border-radius:14px!important;clear:both!important}
+        #smhStableTabs .smh-stable-tab{font-size:9px!important;padding:8px 1px 7px!important;gap:2px!important}
         #smhStableTabs .smh-stable-tab .ico{font-size:16px!important}
-        .customer-portal .portal-hero{padding-top:8px!important}
+        #smhStableTabs + main{margin-top:0!important;padding-top:0!important}
+        #smhStableTabs + main .portal-hero{padding-top:0!important;margin-top:0!important}
         .customer-portal .portal-banner{padding:12px!important;border-radius:18px!important}
-        .customer-portal .portal-banner h1{font-size:18px!important}
+        .customer-portal .portal-banner h1{font-size:18px!important;margin-bottom:3px!important}
         .customer-portal .portal-banner-copy>p{font-size:10.5px!important}
         .customer-portal .smh-hero-stats{margin-top:8px!important}
         .customer-portal .smh-hero-stats .portal-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
-        .customer-portal .smh-hero-stats .portal-stat-grid article{min-height:48px!important;padding:8px!important;border-radius:11px!important}
+        .customer-portal .smh-hero-stats .portal-stat-grid article{min-height:46px!important;padding:7px 8px!important;border-radius:11px!important}
         .customer-portal .smh-hero-stats .portal-stat-grid article span{font-size:16px!important}
         .customer-portal .smh-hero-stats .portal-stat-grid small{font-size:9px!important}
         .customer-portal .smh-hero-stats .portal-stat-grid strong{font-size:13px!important}
-        .customer-portal .smh-hero-wallet>a{padding:8px 9px!important}
-        .customer-portal .smh-hero-wallet a strong{font-size:17px!important}
       }
 
       @media(min-width:700px){
-        #smhStableTabs.smh-stable-tabs{margin-top:12px!important}
+        #smhStableTabs.smh-stable-tabs{margin-top:12px!important;margin-bottom:12px!important}
         #smhStableTabs .smh-stable-tab{font-size:12px!important;padding:10px 8px!important}
         #smhStableTabs .smh-stable-tab .ico{font-size:19px!important}
         .customer-portal .portal-hero .container{max-width:1180px!important}
-        .customer-portal .portal-banner{padding:16px 18px!important}
-        .customer-portal .portal-banner h1{font-size:23px!important}
-        .customer-portal .smh-hero-stats .portal-stat-grid article{min-height:56px!important}
+        .customer-portal .portal-banner{padding:14px 18px!important}
+        .customer-portal .portal-banner h1{font-size:22px!important}
+        .customer-portal .smh-hero-stats .portal-stat-grid article{min-height:52px!important}
       }
     `;
     document.head.appendChild(style);
@@ -72,7 +75,6 @@
     removeDuplicateTabs();
     installStyles();
     if(document.getElementById('smhStableTabs')) return;
-
     const nav=document.createElement('nav');
     nav.id='smhStableTabs';
     nav.className='smh-stable-tabs';
@@ -84,7 +86,6 @@
       <a class="smh-stable-tab" href="wallet.html"><span class="ico">₹</span><span>Wallet</span></a>
       <a class="smh-stable-tab" href="tools.html"><span class="ico">▦</span><span>Tools</span></a>
     </div>`;
-
     const header=document.querySelector('.portal-header')||document.querySelector('header');
     if(header) header.insertAdjacentElement('afterend',nav);
     else document.body.insertAdjacentElement('afterbegin',nav);
@@ -95,14 +96,61 @@
     if(!document.getElementById('smhStableTabs')) installTabs();
   }
 
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',installTabs,{once:true});
-  else installTabs();
+  function money(v){
+    return '₹'+Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+
+  function paintWalletBalance(balance){
+    const text=money(balance);
+    document.querySelectorAll('#walletBalance,#walletStatBalance,[data-wallet-balance]').forEach(el=>{el.textContent=text;});
+    document.querySelectorAll('.wallet-balance-value').forEach(el=>{el.textContent=text;});
+  }
+
+  async function syncWalletEverywhere(){
+    try{
+      const cfg=window.SMH_CONFIG||{};
+      const url=cfg.supabaseUrl;
+      const key=cfg.supabaseAnonKey||cfg.supabaseKey;
+      if(!url||!key||!window.supabase) return;
+      const client=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true}});
+      const {data:{session}}=await client.auth.getSession();
+      if(!session?.user) return;
+      const {data,error}=await client.from('wallets').select('balance').eq('user_id',session.user.id).maybeSingle();
+      if(error) throw error;
+      paintWalletBalance(Number(data?.balance||0));
+    }catch(err){console.error('Dashboard wallet sync:',err);}
+  }
+
+  function finalizeLayout(){
+    const quick=document.getElementById('walletSection');
+    if(quick) quick.style.display='none';
+    document.querySelectorAll('.smh-hero-wallet').forEach(el=>el.style.display='none');
+  }
+
+  function start(){
+    installTabs();
+    finalizeLayout();
+    syncWalletEverywhere();
+    setTimeout(syncWalletEverywhere,700);
+    setTimeout(syncWalletEverywhere,1800);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start,{once:true});
+  else start();
 
   setTimeout(enforceSingleNav,250);
   setTimeout(enforceSingleNav,800);
   setTimeout(enforceSingleNav,1800);
 
-  const observer=new MutationObserver(()=>enforceSingleNav());
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible') syncWalletEverywhere();
+  });
+  window.addEventListener('focus',syncWalletEverywhere);
+
+  const observer=new MutationObserver(()=>{
+    enforceSingleNav();
+    finalizeLayout();
+  });
   const startObserver=()=>{if(document.body) observer.observe(document.body,{childList:true,subtree:true});};
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',startObserver,{once:true}); else startObserver();
 })();
