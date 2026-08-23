@@ -2,9 +2,6 @@
   const SERVICE_RE = /आय.*जाति.*निवास|जाति.*निवास.*आय|निवास.*आय.*जाति/;
   const VILLAGE_ZIP = 'https://raw.githubusercontent.com/planemad/india-local-government-directory/main/administrative/4-village.csv.zip';
 
-  // Verified district / tehsil / block lists for Chitrakoot Dham Division only.
-  // Tehsil and block are kept as separate district-level lists because some blocks
-  // can overlap tehsil boundaries. Village filtering further narrows the result.
   const MASTER = {
     'Banda': {
       label: 'बाँदा',
@@ -29,7 +26,6 @@
   };
 
   let villagePromise = null;
-  let villages = [];
 
   function parseCSV(text) {
     const rows = [];
@@ -105,15 +101,12 @@
       const zip = await JSZip.loadAsync(await r.arrayBuffer());
       const file = Object.values(zip.files).find(f => !f.dir && /\.csv$/i.test(f.name));
       if (!file) throw new Error('Village CSV unavailable');
-      const rows = toObjects(await file.async('string'));
-      villages = rows.map(o => ({
+      return toObjects(await file.async('string')).map(o => ({
         district: val(o, ['District Name']),
         tehsil: val(o, ['Sub-district Name', 'Subdistrict Name']),
         block: val(o, ['Block Name']),
-        gp: val(o, ['Localbody Name', 'Local Body Name', 'Gram Panchayat Name', 'GP Name']),
         village: val(o, ['Village Name'])
       })).filter(x => canonicalDistrict(x.district) && x.village);
-      return villages;
     })();
     return villagePromise;
   }
@@ -143,21 +136,24 @@
     }).join('');
   }
 
-  function removeOldStatus() {
-    document.getElementById('smhUpLocationStatus')?.remove();
+  function hideGramPanchayatField() {
+    const wrap = document.querySelector('[data-field-wrap="gram_panchayat"]');
+    if (wrap) wrap.remove();
+    const field = document.querySelector('#beneficiaryFields [name="gram_panchayat"]');
+    if (field) field.closest('label, .application-field, .field-wrap, div')?.remove();
   }
 
   async function enhance() {
     const appTitle = document.getElementById('applicationServiceName');
     if (!appTitle || !SERVICE_RE.test(appTitle.textContent || '')) return;
 
-    removeOldStatus();
+    document.getElementById('smhUpLocationStatus')?.remove();
+    hideGramPanchayatField();
 
     const district = replaceWithSelect('district', 'जिला चुनें');
     const tehsil = replaceWithSelect('tehsil', 'तहसील चुनें');
     const block = replaceWithSelect('block', 'विकासखंड / ब्लॉक चुनें');
-    const gp = replaceWithSelect('gram_panchayat', 'ग्राम पंचायत चुनें');
-    const village = replaceWithSelect('village_ward', 'गाँव / वार्ड चुनें');
+    const village = replaceWithSelect('village_ward', 'ग्राम चुनें');
     if (!district || !tehsil || !block || !village) return;
     if (district.dataset.smhBound === '1') return;
     district.dataset.smhBound = '1';
@@ -165,64 +161,56 @@
     fill(district, Object.entries(MASTER).map(([value, data]) => ({ value, label: data.label })), 'जिला चुनें');
     fill(tehsil, [], 'तहसील चुनें');
     fill(block, [], 'विकासखंड / ब्लॉक चुनें');
-    fill(gp, [], 'ग्राम पंचायत चुनें');
-    fill(village, [], 'गाँव / वार्ड चुनें');
+    fill(village, [], 'ग्राम चुनें');
 
     district.addEventListener('change', () => {
       const d = MASTER[district.value];
       fill(tehsil, d?.tehsils || [], 'तहसील चुनें');
       fill(block, [], 'पहले तहसील चुनें');
-      fill(gp, [], 'ग्राम पंचायत चुनें');
-      fill(village, [], 'गाँव / वार्ड चुनें');
+      fill(village, [], 'ग्राम चुनें');
     });
 
     tehsil.addEventListener('change', () => {
       const d = MASTER[district.value];
-      // Blocks are district verified. They are shown after tehsil selection so the flow remains sequential.
       fill(block, d?.blocks || [], 'विकासखंड / ब्लॉक चुनें');
-      fill(gp, [], 'ग्राम पंचायत चुनें');
-      fill(village, [], 'गाँव / वार्ड चुनें');
+      fill(village, [], 'ग्राम चुनें');
     });
 
-    async function refreshVillageLists() {
+    async function refreshVillages() {
       if (!district.value || !tehsil.value || !block.value) return;
+      fill(village, [], 'ग्राम लोड हो रहे हैं…');
       try {
         const rows = await loadVillages();
-        const filtered = rows.filter(x => {
-          const dk = canonicalDistrict(x.district);
-          if (dk !== district.value) return false;
-          const tehsilOk = !x.tehsil || norm(x.tehsil) === norm(tehsil.value);
-          const blockOk = !x.block || norm(x.block) === norm(block.value);
-          return tehsilOk && blockOk;
-        });
+        let filtered = rows.filter(x => canonicalDistrict(x.district) === district.value);
 
-        const gps = uniq(filtered.map(x => x.gp));
-        const vs = uniq(filtered.map(x => x.village));
-        fill(gp, gps, gps.length ? 'ग्राम पंचायत चुनें' : 'ग्राम पंचायत उपलब्ध नहीं');
-        fill(village, vs, vs.length ? 'गाँव / वार्ड चुनें' : 'गाँव उपलब्ध नहीं');
+        const strict = filtered.filter(x =>
+          (!x.tehsil || norm(x.tehsil) === norm(tehsil.value)) &&
+          (!x.block || norm(x.block) === norm(block.value))
+        );
+
+        // Some LGD rows do not carry reliable block mapping. If strict mapping
+        // gives no rows, fall back to selected district + tehsil so village list
+        // still remains useful instead of appearing stuck.
+        if (strict.length) filtered = strict;
+        else {
+          filtered = filtered.filter(x => !x.tehsil || norm(x.tehsil) === norm(tehsil.value));
+        }
+
+        const villages = uniq(filtered.map(x => x.village));
+        fill(village, villages, villages.length ? 'ग्राम चुनें' : 'ग्राम उपलब्ध नहीं');
       } catch (err) {
         console.error('Certificate village directory:', err);
-        fill(gp, [], 'ग्राम पंचायत सूची लोड नहीं हुई');
-        fill(village, [], 'गाँव सूची लोड नहीं हुई');
+        fill(village, [], 'ग्राम सूची लोड नहीं हुई');
       }
     }
 
-    block.addEventListener('change', refreshVillageLists);
-    gp?.addEventListener('change', async () => {
-      if (!gp.value) return;
-      try {
-        const rows = await loadVillages();
-        const filtered = rows.filter(x => canonicalDistrict(x.district) === district.value &&
-          (!x.tehsil || norm(x.tehsil) === norm(tehsil.value)) &&
-          (!x.block || norm(x.block) === norm(block.value)) &&
-          norm(x.gp) === norm(gp.value));
-        fill(village, uniq(filtered.map(x => x.village)), 'गाँव / वार्ड चुनें');
-      } catch (err) { console.error(err); }
+    block.addEventListener('change', refreshVillages);
+    village.addEventListener('focus', () => {
+      if (village.options.length <= 1 && block.value) refreshVillages();
     });
   }
 
   function start() {
-    removeOldStatus();
     const observer = new MutationObserver(() => setTimeout(enhance, 60));
     observer.observe(document.body, { childList: true, subtree: true });
     document.addEventListener('click', () => setTimeout(enhance, 250), true);
