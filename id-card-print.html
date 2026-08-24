@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b4fd8">
+  <title>ID Card Print — SUNIL MULTI HUB</title>
+  <meta name="description" content="Aadhaar, PAN, Voter ID और अन्य ID cards को सही size में A4 PDF, JPG या direct print के लिए तैयार करें।">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="id-card-print.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<header class="site-header"><div class="container nav">
+  <a href="index.html" class="brand"><span class="brand-mark">SM</span><span><strong>SUNIL MULTI HUB</strong><small>ID Card Print</small></span></a>
+  <a class="btn secondary" href="index.html">← Home</a>
+</div></header>
+<main class="id-tool">
+  <section class="id-hero"><div class="container">
+    <span class="eyebrow">FREE • BROWSER-BASED • PRIVATE</span>
+    <h1>🪪 Smart ID Card Print</h1>
+    <p>Front और Back फोटो चुनें, crop/rotate ठीक करें और standard ID-card size में A4 PDF, JPG या direct print निकालें।</p>
+    <div class="privacy">🔒 आपकी images इसी browser में process होती हैं—किसी server पर upload नहीं होतीं।</div>
+  </div></section>
+
+  <div class="container workspace">
+    <section class="editor-card">
+      <div class="step-title"><span>1</span><div><h2>Card images चुनें</h2><p>Front और Back साथ में या अलग-अलग चुन सकते हैं।</p></div></div>
+      <div class="upload-grid">
+        <label class="upload-box"><strong>Front Side</strong><span id="frontName">फोटो चुनें</span><input id="frontInput" type="file" accept="image/jpeg,image/png,image/webp"></label>
+        <label class="upload-box"><strong>Back Side</strong><span id="backName">फोटो चुनें</span><input id="backInput" type="file" accept="image/jpeg,image/png,image/webp"></label>
+      </div>
+      <label class="switch-row"><input id="singleSide" type="checkbox"><span>Single Side Mode — केवल Front print करें</span></label>
+
+      <div class="step-title compact"><span>2</span><div><h2>Crop और layout</h2><p>जिस side को बदलना है उसे चुनकर controls इस्तेमाल करें।</p></div></div>
+      <div class="side-tabs"><button class="active" data-side="front">Front</button><button data-side="back">Back</button></div>
+      <div class="crop-stage"><canvas id="cropCanvas" width="856" height="540"></canvas><div id="emptyCrop">ऊपर से image चुनें</div></div>
+      <div class="controls">
+        <label>Zoom <input id="zoom" type="range" min="1" max="3" value="1" step="0.01"></label>
+        <div class="button-row">
+          <button id="leftBtn" class="btn secondary" type="button">↺ Rotate</button>
+          <button id="rightBtn" class="btn secondary" type="button">↻ Rotate</button>
+          <button id="resetBtn" class="btn secondary" type="button">Reset Crop</button>
+        </div>
+        <p class="hint">मोबाइल/कंप्यूटर पर image को drag करके position बदलें।</p>
+      </div>
+
+      <div class="step-title compact"><span>3</span><div><h2>Print settings</h2><p>Default CR80 standard card size है।</p></div></div>
+      <div class="settings-grid">
+        <label>Card width (mm)<input id="cardW" type="number" value="85.6" min="20" max="190" step="0.1"></label>
+        <label>Card height (mm)<input id="cardH" type="number" value="54" min="20" max="277" step="0.1"></label>
+        <label>Copies<select id="copies"><option>1</option><option>2</option><option>4</option><option>6</option><option>8</option></select></label>
+        <label>Gap (mm)<input id="gap" type="number" value="6" min="0" max="30" step="1"></label>
+      </div>
+      <div class="action-row">
+        <button id="pdfBtn" class="btn primary" type="button">⬇ Download PDF</button>
+        <button id="jpgBtn" class="btn secondary" type="button">⬇ Download JPG</button>
+        <button id="printBtn" class="btn secondary" type="button">🖨 Print</button>
+        <button id="clearBtn" class="btn danger" type="button">Clear</button>
+      </div>
+    </section>
+
+    <aside class="preview-card">
+      <div><span class="eyebrow">A4 PREVIEW</span><h2>Print Sheet</h2></div>
+      <canvas id="sheetCanvas" width="794" height="1123"></canvas>
+      <p>Print करते समय paper A4, scale 100% / Actual Size और margins None रखें।</p>
+    </aside>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script src="id-card-print.js"></script>
+</body>
+</html>
