@@ -10,6 +10,7 @@ window.SMH_CONFIG = {
     ['full-page-panels.js?v=20260823-1','data-smh-full-page-panels',['dashboard.html']],
     ['dashboard-nav.js?v=20260823-3','data-smh-dashboard-nav',['dashboard.html']],
     ['gov-jobs-live.js?v=20260824-7','data-smh-gov-jobs-live',['dashboard.html']],
+    ['gov-jobs-enhancements.js?v=20260824-1','data-smh-gov-jobs-enhancements',['dashboard.html']],
     ['application-modal-guard.js?v=20260824-1','data-smh-application-modal-guard',['dashboard.html']],
     ['pan-ui.js?v=20260824-6','data-smh-pan-ui',['dashboard.html']],
     ['certificate-direct.js?v=20260823-6','data-smh-certificate-direct',['dashboard.html']],
