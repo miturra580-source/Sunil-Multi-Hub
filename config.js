@@ -10,6 +10,7 @@ window.SMH_CONFIG = {
     ['full-page-panels.js?v=20260823-1','data-smh-full-page-panels',['dashboard.html']],
     ['dashboard-nav.js?v=20260823-3','data-smh-dashboard-nav',['dashboard.html']],
     ['aadhaar-uidai.js?v=20260824-1','data-smh-aadhaar-uidai',['dashboard.html']],
+    ['voter-eci.js?v=20260824-1','data-smh-voter-eci',['dashboard.html']],
     ['gov-jobs-live.js?v=20260824-9','data-smh-gov-jobs-live',['dashboard.html']],
     ['gov-jobs-enhancements.js?v=20260824-5','data-smh-gov-jobs-enhancements',['dashboard.html']],
     ['gov-jobs-home.js?v=20260824-4','data-smh-gov-jobs-home',['dashboard.html']],
