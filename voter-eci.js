@@ -9,7 +9,7 @@
   const SERVICES = [
     { icon:'🆕', title:'New Voter ID', desc:'18+ नागरिक के लिए नया voter registration (Form 6).', url:'https://voters.eci.gov.in/form6', key:'form6' },
     { icon:'✏️', title:'Voter ID Correction / Shift', desc:'नाम, पता, फोटो, अन्य correction या residence shift (Form 8).', url:'https://voters.eci.gov.in/form8', key:'form8-correction' },
-    { icon:'📱', title:'Mobile Number Correction', desc:'Existing voter record में mobile number correction/update के लिए Form 8.', url:'https://voters.eci.gov.in/form8', key:'form8-mobile' },
+    { icon:'📱', title:'Mobile Number Correction', desc:'पहले EPIC ID और नया mobile number भरें, फिर ₹20 payment के बाद official Form 8 खुलेगा.', url:'https://voters.eci.gov.in/form8', key:'form8-mobile', intake:true },
     { icon:'🪪', title:'Replacement Voter ID', desc:'Lost/damaged EPIC replacement के लिए Form 8.', url:'https://voters.eci.gov.in/form8', key:'form8-replacement' },
     { icon:'⬇️', title:'Download e-EPIC', desc:'Digital Voter ID (e-EPIC) download करें.', url:'https://voters.eci.gov.in/home/e-epic-download', key:'eepic' },
     { icon:'🔎', title:'Search Name in Voter List', desc:'नाम/EPIC से electoral roll में अपनी entry खोजें.', url:'https://electoralsearch.eci.gov.in/', key:'search-roll' },
@@ -35,13 +35,52 @@
     return `voter:${key}:${Date.now()}:${Math.random().toString(36).slice(2,8)}`;
   }
 
-  async function chargeAndOpen(item, button){
+  function normalizeEpic(value){
+    return String(value || '').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,20);
+  }
+
+  function normalizeMobile(value){
+    return String(value || '').replace(/\D/g,'').slice(-10);
+  }
+
+  function saveMobileDraft(epic, mobile){
+    try {
+      sessionStorage.setItem('smh-voter-mobile-draft', JSON.stringify({epic,mobile,savedAt:Date.now()}));
+    } catch(_) {}
+  }
+
+  async function copyMobileDetails(epic, mobile){
+    const text = `EPIC ID: ${epic}\nNew Mobile Number: ${mobile}`;
+    try { await navigator.clipboard.writeText(text); toast('EPIC और mobile number copied'); }
+    catch(_) {}
+  }
+
+  function showMobileIntake(item){
+    const panel = ensurePanel();
+    const box = panel.querySelector('.ve-mobile-intake');
+    if (!box) return;
+    let draft = {};
+    try { draft = JSON.parse(sessionStorage.getItem('smh-voter-mobile-draft') || '{}'); } catch(_) {}
+    const epic = box.querySelector('#veEpic');
+    const mobile = box.querySelector('#veMobile');
+    if (epic && draft.epic) epic.value = draft.epic;
+    if (mobile && draft.mobile) mobile.value = draft.mobile;
+    box.dataset.itemKey = item.key;
+    box.classList.add('show');
+    box.scrollIntoView({behavior:'smooth', block:'center'});
+    setTimeout(()=>epic?.focus(),200);
+  }
+
+  function hideMobileIntake(){
+    document.querySelector(`#${PANEL_ID} .ve-mobile-intake`)?.classList.remove('show');
+  }
+
+  async function chargeAndOpen(item, button, metadata){
     if (busy || !item?.url) return;
     busy = true;
     const old = button?.textContent;
     if (button) { button.disabled = true; button.textContent = 'Processing ₹20…'; }
 
-    // Open synchronously so browsers do not block the ECI tab after async wallet debit.
     const target = window.open('about:blank', '_blank');
     try {
       const api = client();
@@ -49,9 +88,10 @@
       if (sessionError) throw sessionError;
       if (!session) throw new Error('Please login again');
 
+      const refSuffix = metadata?.epic ? `${item.key}:${metadata.epic.slice(-6)}` : item.key;
       const { data, error } = await api.rpc('debit_wallet_for_service', {
         p_service_id: SERVICE_ID,
-        p_request_reference: makeRef(item.key)
+        p_request_reference: makeRef(refSuffix)
       });
       if (error) throw error;
       if (!data?.success) {
@@ -63,13 +103,18 @@
         throw new Error(data?.message || 'Payment failed');
       }
 
+      if (metadata?.epic && metadata?.mobile) {
+        saveMobileDraft(metadata.epic, metadata.mobile);
+        await copyMobileDetails(metadata.epic, metadata.mobile);
+      }
+
       if (target) {
         target.opener = null;
         target.location.replace(item.url);
       } else {
         location.href = item.url;
       }
-      toast(`₹${CHARGE} deducted • ECI service opened`);
+      toast(`₹${CHARGE} deducted • Official ECI service opened`);
       try { window.dispatchEvent(new CustomEvent('smh-wallet-updated', {detail:{balance:data.balance_after}})); } catch(_) {}
     } catch (err) {
       if (target) target.close();
@@ -105,9 +150,21 @@
       #${PANEL_ID} .ve-price{margin-top:11px;font-size:14px;font-weight:900;color:#138808}
       #${PANEL_ID} .ve-action{margin-top:10px;width:100%;border:0;border-radius:10px;background:#1557d6;color:#fff;padding:11px;font-weight:900;cursor:pointer}
       #${PANEL_ID} .ve-action:disabled{opacity:.55;cursor:not-allowed}
+      #${PANEL_ID} .ve-mobile-intake{display:none;margin:0 16px 18px;border:1px solid #cfdcf0;background:#f8fbff;border-radius:18px;padding:16px;box-shadow:0 10px 28px rgba(30,55,95,.08)}
+      #${PANEL_ID} .ve-mobile-intake.show{display:block}
+      #${PANEL_ID} .ve-mobile-intake h3{margin:0 0 5px;font-size:18px}
+      #${PANEL_ID} .ve-mobile-intake p{margin:0 0 14px;color:#667085;font-size:12px;line-height:1.55}
+      #${PANEL_ID} .ve-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      #${PANEL_ID} .ve-field{display:block;font-size:12px;font-weight:900;color:#344054}
+      #${PANEL_ID} .ve-field input{width:100%;box-sizing:border-box;margin-top:6px;padding:12px;border:1px solid #cfd8e6;border-radius:10px;font:inherit;background:#fff;text-transform:none}
+      #${PANEL_ID} .ve-mobile-actions{display:flex;gap:9px;margin-top:12px}
+      #${PANEL_ID} .ve-mobile-actions button{flex:1;border:0;border-radius:10px;padding:11px;font-weight:900;cursor:pointer}
+      #${PANEL_ID} .ve-mobile-submit{background:#1557d6;color:#fff}
+      #${PANEL_ID} .ve-mobile-cancel{background:#eef2f6;color:#344054}
+      #${PANEL_ID} .ve-intake-note{margin-top:10px;padding:10px;border-radius:10px;background:#fff8dd;border:1px solid #edd98a;color:#665200;font-size:11px;line-height:1.55}
       #${PANEL_ID} .ve-foot{padding:0 16px 22px;text-align:center;color:#667085;font-size:11px;line-height:1.5}
       @media(max-width:820px){#${PANEL_ID} .ve-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-      @media(max-width:560px){#${PANEL_ID} .ve-grid{grid-template-columns:1fr;padding:0 10px 14px}#${PANEL_ID} .ve-info{margin:12px 10px}#${PANEL_ID} .ve-head h2{font-size:21px}}
+      @media(max-width:560px){#${PANEL_ID} .ve-grid{grid-template-columns:1fr;padding:0 10px 14px}#${PANEL_ID} .ve-info{margin:12px 10px}#${PANEL_ID} .ve-mobile-intake{margin:0 10px 14px}#${PANEL_ID} .ve-fields{grid-template-columns:1fr}#${PANEL_ID} .ve-head h2{font-size:21px}}
     `;
     document.head.appendChild(style);
 
@@ -122,18 +179,45 @@
           <button type="button" class="ve-close" aria-label="Close">×</button>
         </header>
         <div class="ve-info"><b>प्रति सेवा ₹20</b> • Login/OTP/form submission Election Commission of India के official portal पर ही होगा।</div>
+        <div class="ve-mobile-intake">
+          <h3>📱 Voter Mobile Number Correction</h3>
+          <p>EPIC ID और नया mobile number यहाँ भरें। Details save रहेंगी और ₹20 payment के बाद official ECI Form 8 खुलेगा।</p>
+          <div class="ve-fields">
+            <label class="ve-field">EPIC ID<input id="veEpic" type="text" maxlength="20" autocomplete="off" placeholder="Example: ABC1234567"></label>
+            <label class="ve-field">New Mobile Number<input id="veMobile" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel" placeholder="10 digit mobile number"></label>
+          </div>
+          <div class="ve-intake-note">ECI portal पर login/OTP या verification मांगी जा सकती है। Multi Hub OTP bypass नहीं करता और इन details से direct ECI database update नहीं करता।</div>
+          <div class="ve-mobile-actions"><button type="button" class="ve-mobile-cancel">Cancel</button><button type="button" class="ve-mobile-submit">Pay ₹20 & Open Form 8 ↗</button></div>
+        </div>
         <div class="ve-grid">
-          ${SERVICES.map((s,i)=>`<article class="ve-card"><div class="ve-icon">${s.icon}</div><h3>${s.title}</h3><p>${s.desc}</p><div class="ve-price">₹20</div><button type="button" class="ve-action" data-index="${i}">Open Service ↗</button></article>`).join('')}
+          ${SERVICES.map((s,i)=>`<article class="ve-card"><div class="ve-icon">${s.icon}</div><h3>${s.title}</h3><p>${s.desc}</p><div class="ve-price">₹20</div><button type="button" class="ve-action" data-index="${i}">${s.intake ? 'Enter Details' : 'Open Service ↗'}</button></article>`).join('')}
         </div>
         <div class="ve-foot">Multi Hub ECI credentials, OTP या voter portal password collect नहीं करता। Final application official ECI portal पर ही submit होगी।</div>
       </div>`;
+
     panel.querySelector('.ve-close').addEventListener('click', closePanel);
+    panel.querySelector('.ve-mobile-cancel').addEventListener('click', hideMobileIntake);
+    panel.querySelector('#veEpic').addEventListener('input', e => { e.target.value = normalizeEpic(e.target.value); });
+    panel.querySelector('#veMobile').addEventListener('input', e => { e.target.value = normalizeMobile(e.target.value); });
+    panel.querySelector('.ve-mobile-submit').addEventListener('click', e => {
+      const epic = normalizeEpic(panel.querySelector('#veEpic')?.value);
+      const mobile = normalizeMobile(panel.querySelector('#veMobile')?.value);
+      if (epic.length < 8) return toast('Valid EPIC ID भरें');
+      if (!/^[6-9]\d{9}$/.test(mobile)) return toast('Valid 10 digit mobile number भरें');
+      const item = SERVICES.find(x => x.key === 'form8-mobile');
+      if (!item) return;
+      saveMobileDraft(epic, mobile);
+      chargeAndOpen(item, e.currentTarget, {epic,mobile});
+    });
+
     panel.addEventListener('click', e => {
       const btn = e.target.closest('.ve-action[data-index]');
       if (!btn) return;
       e.preventDefault();
       const item = SERVICES[Number(btn.dataset.index)];
-      if (item) chargeAndOpen(item, btn);
+      if (!item) return;
+      if (item.intake) showMobileIntake(item);
+      else chargeAndOpen(item, btn);
     });
     document.body.appendChild(panel);
     return panel;
