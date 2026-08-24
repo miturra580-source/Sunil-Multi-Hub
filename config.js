@@ -6,6 +6,7 @@ window.SMH_CONFIG = {
 (function loadSmhModules() {
   const page = (location.pathname.split('/').pop() || '').toLowerCase();
   const modules = [
+    ['auto-print-entry.js?v=20260824-1','data-smh-auto-print-entry',['dashboard.html']],
     ['csc-module.js?v=20260823-2','data-smh-csc-module', ['dashboard.html','admin.html']],
     ['full-page-panels.js?v=20260823-1','data-smh-full-page-panels',['dashboard.html']],
     ['dashboard-nav.js?v=20260823-3','data-smh-dashboard-nav',['dashboard.html']],
