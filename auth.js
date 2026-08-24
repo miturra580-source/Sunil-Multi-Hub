@@ -7,6 +7,12 @@ function msg(t){
   timer=setTimeout(()=>toast.classList.remove('show'),2800);
 }
 
+function safeNextPage(){
+  const next=new URLSearchParams(location.search).get('next')||'';
+  const allowed=['dashboard.html','auto-print.html','wallet.html'];
+  return allowed.includes(next)?next:'dashboard.html';
+}
+
 function makeClient(){
   const cfg = window.SMH_CONFIG || {};
   const url = cfg.supabaseUrl;
@@ -75,7 +81,7 @@ document.getElementById('loginForm').onsubmit=async e=>{
   const {data:profile}=await sb.from('profiles').select('role').eq('id',data.user.id).maybeSingle();
   if(profile?.role) role=profile.role;
   msg('Login successful');
-  setTimeout(()=>location.href=role==='admin'?'admin.html':'dashboard.html',500);
+  setTimeout(()=>location.href=role==='admin'?'admin.html':safeNextPage(),500);
 };
 
 document.getElementById('forgotBtn').onclick=async()=>{
@@ -104,7 +110,7 @@ document.getElementById('recoveryForm').onsubmit=async e=>{
 
 document.getElementById('googleLoginBtn').onclick=async()=>{
   if(!sb) return msg('Supabase connect नहीं है');
-  const redirectTo=new URL('dashboard.html',location.href).href;
+  const redirectTo=new URL(safeNextPage(),location.href).href;
   const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo}});
   if(error) msg(error.message);
 };
