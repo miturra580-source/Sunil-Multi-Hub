@@ -65,6 +65,17 @@
     } catch (_) {}
   }
 
+  function setUrlDetail(detailUrl) {
+    try {
+      const url = new URL(location.href);
+      url.searchParams.set('gov', '1');
+      url.searchParams.set('gjTab', 'home');
+      if (detailUrl) url.searchParams.set('gjDetail', detailUrl);
+      else url.searchParams.delete('gjDetail');
+      history.replaceState(null, '', url);
+    } catch (_) {}
+  }
+
   function fmtTime(iso) {
     if (!iso) return '';
     try {
@@ -201,9 +212,10 @@
     if (!wrap || !section) return;
     const body = wrap.querySelector('.gj-home-body');
     const items = Array.isArray(section.items) ? section.items : [];
-    const shown = items.slice(0, visibleCount);
+    const safeCount = Math.max(HOME_LIMIT, Math.min(Number(visibleCount || HOME_LIMIT), items.length));
+    const shown = items.slice(0, safeCount);
     body.innerHTML = `
-      <div class="gj-home-expanded" data-expanded-key="${esc(key)}" data-visible-count="${visibleCount}">
+      <div class="gj-home-expanded" data-expanded-key="${esc(key)}" data-visible-count="${safeCount}">
         <div class="gj-home-expanded-head">
           <strong>${esc(section.title || key)}</strong>
           <button type="button" class="gj-home-back">← All Sections</button>
@@ -219,32 +231,47 @@
   function triggerExistingDetail(url) {
     if (!panel || !url) return;
     exitHomeMode();
+    panel.dataset.smhDetailFromHome = '1';
+    setUrlDetail(url);
+    panel.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (typeof window.openGovernmentJobDetail === 'function') {
+      window.openGovernmentJobDetail(url).catch?.(() => {});
+      return;
+    }
+
     const list = panel.querySelector('.gj-list');
     if (!list) return;
     const temp = document.createElement('button');
     temp.type = 'button';
     temp.className = 'gj-item';
     temp.dataset.url = url;
+    temp.dataset.homeTemp = '1';
     temp.style.display = 'none';
     list.appendChild(temp);
-    temp.click();
-    setTimeout(() => temp.remove(), 0);
+    requestAnimationFrame(() => {
+      temp.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+      setTimeout(() => temp.remove(), 1200);
+    });
   }
 
   function onHomeClick(event) {
     const link = event.target.closest('[data-home-url]');
     if (link?.dataset.homeUrl) {
+      event.preventDefault();
       triggerExistingDetail(link.dataset.homeUrl);
       return;
     }
 
     if (event.target.closest('.gj-home-back')) {
+      event.preventDefault();
       renderHome(homeData);
       return;
     }
 
     const expandMore = event.target.closest('[data-expand-more]');
     if (expandMore) {
+      event.preventDefault();
       const box = event.target.closest('.gj-home-expanded');
       const current = Number(box?.dataset.visibleCount || HOME_LIMIT);
       renderExpanded(expandMore.dataset.expandMore, current + PAGE_STEP);
@@ -253,17 +280,9 @@
 
     const more = event.target.closest('[data-more-key]');
     if (!more) return;
+    event.preventDefault();
     const key = more.dataset.moreKey;
-    const navKey = CATEGORY_MAP[key];
-    if (navKey && panel) {
-      exitHomeMode();
-      const nav = panel.querySelector(`.gj-nav button[data-k="${CSS.escape(navKey)}"]`);
-      if (nav) {
-        nav.click();
-        return;
-      }
-    }
-    renderExpanded(key, HOME_LIMIT);
+    renderExpanded(key, HOME_LIMIT + PAGE_STEP);
   }
 
   async function fetchHome(force = false) {
@@ -307,6 +326,7 @@
     installStyles();
     const wrap = ensureHomeWrap();
     homeMode = true;
+    panel.dataset.smhDetailFromHome = '0';
     setUrlHome();
 
     panel.querySelectorAll('.gj-nav button').forEach(button => {
@@ -392,8 +412,19 @@
     ensureHomeWrap();
 
     panel.addEventListener('click', event => {
+      const back = event.target.closest('.gj-back');
+      if (back && panel.dataset.smhDetailFromHome === '1') {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        showHome(false);
+        panel.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
       const nav = event.target.closest('.gj-nav button[data-k]');
       if (!nav) return;
+      panel.dataset.smhDetailFromHome = '0';
       if (nav.dataset.k === 'home') {
         event.preventDefault();
         event.stopPropagation();
