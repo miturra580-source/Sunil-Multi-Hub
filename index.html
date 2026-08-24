@@ -72,10 +72,11 @@
             <span class="live-dot">LIVE</span>
           </div>
           <div class="quick-grid">
+            <button onclick="scrollToCard('idprint')"><span>🪪</span><b data-hi="कार्ड प्रिंट" data-en="Card Print">कार्ड प्रिंट</b></button>
             <button onclick="scrollToCard('certificate')"><span>📄</span><b data-hi="प्रमाण पत्र" data-en="Certificates">प्रमाण पत्र</b></button>
             <button onclick="scrollToCard('passport')"><span>📸</span><b data-hi="पासपोर्ट फोटो" data-en="Passport Photo">पासपोर्ट फोटो</b></button>
             <button onclick="scrollToCard('pdf')"><span>🧾</span><b data-hi="PDF टूल्स" data-en="PDF Tools">PDF टूल्स</b></button>
-            <button onclick="scrollToCard('idprint')"><span>🪪</span><b data-hi="कार्ड प्रिंट" data-en="Card Print">कार्ड प्रिंट</b></button>
+            
             <button onclick="scrollToCard('mobile')"><span>📱</span><b data-hi="मोबाइल" data-en="Mobile">मोबाइल</b></button>
             <button onclick="scrollToCard('vehicle')"><span>🚗</span><b data-hi="वाहन" data-en="Vehicle">वाहन</b></button>
           </div>
@@ -101,6 +102,12 @@
         </div>
 
         <div class="cards service-cards" id="serviceCards">
+          <article class="service-card" id="idprint" data-search="aadhar aadhaar pan voter id card print pvc">
+            <div class="icon">🪪</div>
+            <div><span class="tag">PRINT</span><h3 data-hi="आधार • PAN • वोटर ID प्रिंट" data-en="Aadhaar • PAN • Voter ID Print">आधार • PAN • वोटर ID प्रिंट</h3>
+            <p data-hi="ID कार्ड को standard print size में तैयार करें।" data-en="Prepare ID cards in standard print sizes.">ID कार्ड को standard print size में तैयार करें।</p></div>
+            <button class="card-arrow" onclick="openTool('ID Card Print')">→</button>
+          </article>
           <article class="service-card" id="certificate" data-search="आय जाति निवास प्रमाण पत्र income caste residence certificate">
             <div class="icon">📑</div>
             <div><span class="tag">GOVT</span><h3 data-hi="आय • जाति • निवास प्रमाण पत्र" data-en="Income • Caste • Residence Certificates">आय • जाति • निवास प्रमाण पत्र</h3>
@@ -201,12 +208,7 @@
             <button class="card-arrow" onclick="openService('आयुष्मान कार्ड')">→</button>
           </article>
 
-          <article class="service-card" id="idprint" data-search="aadhar aadhaar pan voter id card print pvc">
-            <div class="icon">🪪</div>
-            <div><span class="tag">PRINT</span><h3 data-hi="आधार • PAN • वोटर ID प्रिंट" data-en="Aadhaar • PAN • Voter ID Print">आधार • PAN • वोटर ID प्रिंट</h3>
-            <p data-hi="ID कार्ड को standard print size में तैयार करें।" data-en="Prepare ID cards in standard print sizes.">ID कार्ड को standard print size में तैयार करें।</p></div>
-            <button class="card-arrow" onclick="openTool('ID Card Print')">→</button>
-          </article>
+          
 
           <article class="service-card" data-search="print photocopy lamination फोटो कॉपी लेमिनेशन">
             <div class="icon">🖨️</div>
