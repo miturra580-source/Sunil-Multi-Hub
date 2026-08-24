@@ -7,149 +7,26 @@
     download: 'https://myaadhaar.uidai.gov.in/genricDownloadAadhaar/en',
     update: 'https://myaadhaar.uidai.gov.in/',
     retrieve: 'https://myaadhaar.uidai.gov.in/retrieve-eid-uid',
-    services: 'https://uidai.gov.in/en/my-aadhaar/avail-aadhaar-services.html',
+    verifyMobile: 'https://myaadhaar.uidai.gov.in/verify-email-mobile',
+    verifyAadhaar: 'https://myaadhaar.uidai.gov.in/check-aadhaar-validity',
+    services: 'https://myaadhaar.uidai.gov.in/',
     updateInfo: 'https://uidai.gov.in/en/my-aadhaar/update-aadhaar.html',
     locate: 'https://bhuvan.nrsc.gov.in/aadhaar/'
   };
 
   const SERVICES = [
-    {
-      icon: '⬇️',
-      title: 'Download Aadhaar',
-      desc: 'e-Aadhaar डाउनलोड करें। OTP registered mobile number पर आएगा।',
-      url: LINKS.download,
-      cta: 'Download from UIDAI'
-    },
-    {
-      icon: '✏️',
-      title: 'Update Aadhaar Online',
-      desc: 'MyAadhaar login से उपलब्ध online address / document update सेवाएँ खोलें।',
-      url: LINKS.update,
-      cta: 'Login to MyAadhaar'
-    },
-    {
-      icon: '📱',
-      title: 'Verify Mobile / Email',
-      desc: 'देखें कि आपका mobile number या email Aadhaar में registered है या नहीं।',
-      url: LINKS.services,
-      cta: 'Verify on UIDAI'
-    },
-    {
-      icon: '🪪',
-      title: 'Verify Aadhaar Number',
-      desc: 'Aadhaar number valid और active है या नहीं, official UIDAI service से check करें।',
-      url: LINKS.services,
-      cta: 'Verify Aadhaar'
-    },
-    {
-      icon: '🔎',
-      title: 'Retrieve Aadhaar / EID',
-      desc: 'Lost / forgotten Aadhaar number या Enrolment ID retrieve करें।',
-      url: LINKS.retrieve,
-      cta: 'Retrieve UID / EID'
-    },
-    {
-      icon: '📍',
-      title: 'Update / Link Mobile Number',
-      desc: 'Mobile number update/link online नहीं होता। इसके लिए Aadhaar Enrolment / Update Centre जाना होता है।',
-      url: LINKS.locate,
-      cta: 'Find Aadhaar Centre'
-    }
+    {icon:'⬇️',title:'Download Aadhaar',desc:'e-Aadhaar डाउनलोड करें। OTP registered mobile number पर आएगा।',url:LINKS.download,cta:'Download from UIDAI'},
+    {icon:'✏️',title:'Update Aadhaar Online',desc:'MyAadhaar login से उपलब्ध online address / document update सेवाएँ खोलें।',url:LINKS.update,cta:'Login to MyAadhaar'},
+    {icon:'📱',title:'Verify Mobile / Email',desc:'देखें कि आपका mobile number या email Aadhaar में registered है या नहीं।',url:LINKS.verifyMobile,cta:'Verify Mobile / Email'},
+    {icon:'🪪',title:'Verify Aadhaar Number',desc:'Aadhaar number valid और active है या नहीं, official MyAadhaar service से check करें।',url:LINKS.verifyAadhaar,cta:'Verify Aadhaar'},
+    {icon:'🔎',title:'Retrieve Aadhaar / EID',desc:'Lost / forgotten Aadhaar number या Enrolment ID retrieve करें।',url:LINKS.retrieve,cta:'Retrieve UID / EID'},
+    {icon:'📍',title:'Update / Link Mobile Number',desc:'Mobile update के उपलब्ध official UIDAI विकल्प खोलें।',url:LINKS.update,cta:'Open MyAadhaar'}
   ];
 
-  function openOfficial(url) {
-    if (!url) return;
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }
-
-  function ensurePanel() {
-    let panel = document.getElementById(PANEL_ID);
-    if (panel) return panel;
-
-    const style = document.createElement('style');
-    style.id = 'smhAadhaarUidaiStyle';
-    style.textContent = `
-      #${PANEL_ID}{position:fixed;inset:0;z-index:32000;background:#f4f7fb;display:none;overflow:auto;font-family:Arial,Helvetica,sans-serif;color:#172033}
-      #${PANEL_ID}.show{display:block}
-      #${PANEL_ID} .au-shell{min-height:100%;max-width:1120px;margin:0 auto;background:#fff}
-      #${PANEL_ID} .au-head{position:sticky;top:0;z-index:5;background:linear-gradient(135deg,#0f5fc7,#173f91);color:#fff;padding:18px 56px 16px 18px;box-shadow:0 4px 14px rgba(10,45,110,.18)}
-      #${PANEL_ID} .au-head small{display:block;font-weight:800;opacity:.85;margin-bottom:4px}
-      #${PANEL_ID} .au-head h2{margin:0;font-size:25px}
-      #${PANEL_ID} .au-head p{margin:6px 0 0;font-size:13px;line-height:1.5;opacity:.94}
-      #${PANEL_ID} .au-close{position:absolute;right:14px;top:14px;width:38px;height:38px;border:0;border-radius:50%;background:#fff;color:#123;font-size:24px;cursor:pointer}
-      #${PANEL_ID} .au-login{margin:16px;padding:16px;border-radius:18px;background:#eef5ff;border:1px solid #cfe0fa;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
-      #${PANEL_ID} .au-login strong{font-size:17px}.au-login span{font-size:12px;color:#5f6c7b;display:block;margin-top:4px}
-      #${PANEL_ID} .au-primary{border:0;border-radius:12px;background:#1557d6;color:#fff;padding:12px 16px;font-weight:900;cursor:pointer}
-      #${PANEL_ID} .au-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0 16px 18px}
-      #${PANEL_ID} .au-card{border:1px solid #e1e7f0;border-radius:18px;padding:16px;background:#fff;box-shadow:0 8px 24px rgba(30,55,95,.06);display:flex;flex-direction:column;min-height:180px}
-      #${PANEL_ID} .au-icon{font-size:28px}.au-card h3{margin:9px 0 6px;font-size:16px}.au-card p{margin:0;color:#667085;font-size:12.5px;line-height:1.55;flex:1}
-      #${PANEL_ID} .au-action{margin-top:14px;width:100%;border:1px solid #c7d6ef;border-radius:10px;background:#f8fbff;color:#1557d6;padding:10px 11px;font-weight:900;cursor:pointer}
-      #${PANEL_ID} .au-note{margin:0 16px 18px;padding:13px 14px;border-radius:14px;background:#fff8dd;border:1px solid #edd98a;font-size:12px;line-height:1.6;color:#665200}
-      #${PANEL_ID} .au-foot{padding:14px 16px 22px;color:#667085;font-size:11px;text-align:center}
-      @media(max-width:820px){#${PANEL_ID} .au-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-      @media(max-width:560px){#${PANEL_ID} .au-grid{grid-template-columns:1fr;padding:0 10px 14px}#${PANEL_ID} .au-login{margin:12px 10px}#${PANEL_ID} .au-note{margin:0 10px 14px}#${PANEL_ID} .au-head h2{font-size:21px}}
-    `;
-    document.head.appendChild(style);
-
-    panel = document.createElement('section');
-    panel.id = PANEL_ID;
-    panel.innerHTML = `
-      <div class="au-shell">
-        <header class="au-head">
-          <small>Official UIDAI Services</small>
-          <h2>आधार सेवाएँ</h2>
-          <p>हमारे portal से सही UIDAI / MyAadhaar service तक जाएँ। Aadhaar OTP, login और update UIDAI की official website पर ही होगा।</p>
-          <button type="button" class="au-close" aria-label="Close">×</button>
-        </header>
-        <div class="au-login">
-          <div><strong>MyAadhaar Login</strong><span>Aadhaar number + registered mobile OTP से login करें।</span></div>
-          <button type="button" class="au-primary" data-url="${LINKS.login}">Open MyAadhaar Login</button>
-        </div>
-        <div class="au-grid">
-          ${SERVICES.map(item => `
-            <article class="au-card">
-              <div class="au-icon">${item.icon}</div>
-              <h3>${item.title}</h3>
-              <p>${item.desc}</p>
-              <button type="button" class="au-action" data-url="${item.url}">${item.cta} ↗</button>
-            </article>
-          `).join('')}
-        </div>
-        <div class="au-note"><b>महत्वपूर्ण:</b> Aadhaar में नया mobile number link/update करने की सुविधा online उपलब्ध नहीं है। UIDAI के अनुसार इसके लिए Aadhaar Enrolment/Update Centre जाना होता है। Online services के लिए registered mobile number आवश्यक हो सकता है।</div>
-        <div class="au-foot">यह panel केवल official UIDAI/MyAadhaar links खोलता है। Multi Hub आपका Aadhaar number, OTP या UIDAI password collect नहीं करता।</div>
-      </div>`;
-
-    panel.querySelector('.au-close').addEventListener('click', closePanel);
-    panel.addEventListener('click', event => {
-      const btn = event.target.closest('[data-url]');
-      if (!btn) return;
-      event.preventDefault();
-      openOfficial(btn.dataset.url);
-    });
-    document.body.appendChild(panel);
-    return panel;
-  }
-
-  function openPanel() {
-    ensurePanel().classList.add('show');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closePanel() {
-    document.getElementById(PANEL_ID)?.classList.remove('show');
-    document.body.style.overflow = '';
-  }
-
-  document.addEventListener('click', event => {
-    const card = event.target.closest('.portal-service-card');
-    if (!card) return;
-    const title = String(card.querySelector('strong')?.textContent || card.textContent || '').replace(/\s+/g, ' ').trim();
-    if (title !== TARGET_NAME) return;
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-    openPanel();
-  }, true);
-
-  window.openAadhaarUidaiServices = openPanel;
+  function openOfficial(url){if(!url)return;window.open(url,'_blank','noopener,noreferrer');}
+  function ensurePanel(){let panel=document.getElementById(PANEL_ID);if(panel)return panel;const style=document.createElement('style');style.id='smhAadhaarUidaiStyle';style.textContent=`#${PANEL_ID}{position:fixed;inset:0;z-index:32000;background:#f4f7fb;display:none;overflow:auto;font-family:Arial,Helvetica,sans-serif;color:#172033}#${PANEL_ID}.show{display:block}#${PANEL_ID} .au-shell{min-height:100%;max-width:1120px;margin:0 auto;background:#fff}#${PANEL_ID} .au-head{position:sticky;top:0;z-index:5;background:linear-gradient(135deg,#0f5fc7,#173f91);color:#fff;padding:18px 56px 16px 18px;box-shadow:0 4px 14px rgba(10,45,110,.18)}#${PANEL_ID} .au-head small{display:block;font-weight:800;opacity:.85;margin-bottom:4px}#${PANEL_ID} .au-head h2{margin:0;font-size:25px}#${PANEL_ID} .au-head p{margin:6px 0 0;font-size:13px;line-height:1.5;opacity:.94}#${PANEL_ID} .au-close{position:absolute;right:14px;top:14px;width:38px;height:38px;border:0;border-radius:50%;background:#fff;color:#123;font-size:24px;cursor:pointer}#${PANEL_ID} .au-login{margin:16px;padding:16px;border-radius:18px;background:#eef5ff;border:1px solid #cfe0fa;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}#${PANEL_ID} .au-login strong{font-size:17px}.au-login span{font-size:12px;color:#5f6c7b;display:block;margin-top:4px}#${PANEL_ID} .au-primary{border:0;border-radius:12px;background:#1557d6;color:#fff;padding:12px 16px;font-weight:900;cursor:pointer}#${PANEL_ID} .au-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0 16px 18px}#${PANEL_ID} .au-card{border:1px solid #e1e7f0;border-radius:18px;padding:16px;background:#fff;box-shadow:0 8px 24px rgba(30,55,95,.06);display:flex;flex-direction:column;min-height:180px}#${PANEL_ID} .au-icon{font-size:28px}.au-card h3{margin:9px 0 6px;font-size:16px}.au-card p{margin:0;color:#667085;font-size:12.5px;line-height:1.55;flex:1}#${PANEL_ID} .au-action{margin-top:14px;width:100%;border:1px solid #c7d6ef;border-radius:10px;background:#f8fbff;color:#1557d6;padding:10px 11px;font-weight:900;cursor:pointer}#${PANEL_ID} .au-note{margin:0 16px 18px;padding:13px 14px;border-radius:14px;background:#fff8dd;border:1px solid #edd98a;font-size:12px;line-height:1.6;color:#665200}#${PANEL_ID} .au-foot{padding:14px 16px 22px;color:#667085;font-size:11px;text-align:center}@media(max-width:820px){#${PANEL_ID} .au-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){#${PANEL_ID} .au-grid{grid-template-columns:1fr;padding:0 10px 14px}#${PANEL_ID} .au-login{margin:12px 10px}#${PANEL_ID} .au-note{margin:0 10px 14px}#${PANEL_ID} .au-head h2{font-size:21px}}`;document.head.appendChild(style);panel=document.createElement('section');panel.id=PANEL_ID;panel.innerHTML=`<div class="au-shell"><header class="au-head"><small>Official UIDAI Services</small><h2>आधार सेवाएँ</h2><p>हमारे portal से सही UIDAI / MyAadhaar service तक जाएँ। Aadhaar OTP, login और verification UIDAI की official website पर ही होगा।</p><button type="button" class="au-close" aria-label="Close">×</button></header><div class="au-login"><div><strong>MyAadhaar Login</strong><span>Aadhaar number + registered mobile OTP से login करें।</span></div><button type="button" class="au-primary" data-url="${LINKS.login}">Open MyAadhaar Login</button></div><div class="au-grid">${SERVICES.map(item=>`<article class="au-card"><div class="au-icon">${item.icon}</div><h3>${item.title}</h3><p>${item.desc}</p><button type="button" class="au-action" data-url="${item.url}">${item.cta} ↗</button></article>`).join('')}</div><div class="au-note"><b>महत्वपूर्ण:</b> Aadhaar verification और registered mobile/email verification UIDAI/MyAadhaar पर ही पूरी होगी। Multi Hub Aadhaar number या OTP collect नहीं करता।</div><div class="au-foot">Official UIDAI/MyAadhaar links only.</div></div>`;panel.querySelector('.au-close').addEventListener('click',closePanel);panel.addEventListener('click',event=>{const btn=event.target.closest('[data-url]');if(!btn)return;event.preventDefault();openOfficial(btn.dataset.url);});document.body.appendChild(panel);return panel;}
+  function openPanel(){ensurePanel().classList.add('show');document.body.style.overflow='hidden';}
+  function closePanel(){document.getElementById(PANEL_ID)?.classList.remove('show');document.body.style.overflow='';}
+  document.addEventListener('click',event=>{const card=event.target.closest('.portal-service-card');if(!card)return;const title=String(card.querySelector('strong')?.textContent||card.textContent||'').replace(/\s+/g,' ').trim();if(title!==TARGET_NAME)return;event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();openPanel();},true);
+  window.openAadhaarUidaiServices=openPanel;
 })();
