@@ -109,12 +109,13 @@ function openTool(name){
     'JPG to PDF': 'jpg-pdf',
     'Merge PDF': 'merge-pdf',
     'Photo Resize': 'resize',
-    'ID Card Print': 'id-card'
+    'ID Card Print': 'id-card-print.html'
   };
 
   if(map[name]){
-    window.location.href =
-      `tools.html#${map[name]}`;
+    window.location.href = map[name].endsWith('.html')
+      ? map[name]
+      : `tools.html#${map[name]}`;
     return;
   }
 
