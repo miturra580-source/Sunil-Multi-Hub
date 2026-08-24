@@ -39,12 +39,11 @@
 
   function rebuildTrending(panel){
     const trend=panel.querySelector('.gj-trending');
-    const list=[...panel.querySelectorAll('.gj-list .gj-item')].slice(0,16);
+    const list=[...panel.querySelectorAll('.gj-list .gj-item')].slice(0,8);
     if(!trend||list.length<1) return;
     const existing=[...trend.querySelectorAll('button')];
-    if(existing.length>=12 && trend.dataset.enhanced==='1') return;
-    const n=Math.min(Math.max(list.length,12),16);
-    const chosen=list.slice(0,n);
+    if(existing.length===8 && trend.dataset.enhanced==='1') return;
+    const chosen=list.slice(0,8);
     trend.innerHTML=chosen.map(b=>`<button type="button" data-url="${(b.dataset.url||'').replace(/"/g,'&quot;')}">${b.textContent.trim()}</button>`).join('');
     trend.dataset.enhanced='1';
     trend.title='Latest updates refresh automatically from live source';
