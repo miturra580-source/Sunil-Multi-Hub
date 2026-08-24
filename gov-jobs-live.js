@@ -71,6 +71,20 @@
       const when=data.fetched_at?new Date(data.fetched_at).toLocaleString('en-IN'):'';p.querySelector('.gj-status').textContent=`Live detail • ${when}`;
     }catch(err){p.querySelector('.gj-status').textContent='Detail load नहीं हो सका।';p.querySelector('.gj-detail').innerHTML=`<div class="gj-empty">${esc(err?.message||'Please try Refresh.')}</div>`;}}
 
-  function open(){ensurePanel().classList.add('show');document.body.style.overflow='hidden';showFeed();load();}function close(){panel?.classList.remove('show');document.body.style.overflow='';}
-  document.addEventListener('click',e=>{const card=e.target.closest?.('.portal-service-card');if(!card||!CARD_RE.test(card.textContent||''))return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();open();},true);window.openGovernmentJobsLive=open;
+  function open(){ensurePanel().classList.add('show');document.body.style.overflow='hidden';showFeed();load();}
+  function close(){panel?.classList.remove('show');document.body.style.overflow='';}
+  function openCategory(key,force=false){
+    const valid=NAV.some(([k])=>k===key&&k!=='home');
+    if(!valid)return Promise.resolve();
+    active=key;
+    const p=ensurePanel();
+    p.querySelectorAll('.gj-nav button').forEach(x=>x.classList.toggle('active',x.dataset.k===key));
+    showFeed();
+    return load(force);
+  }
+  document.addEventListener('click',e=>{const card=e.target.closest?.('.portal-service-card');if(!card||!CARD_RE.test(card.textContent||''))return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();open();},true);
+  window.openGovernmentJobsLive=open;
+  window.openGovernmentJobDetail=(url,force=false)=>loadDetail(url,force);
+  window.openGovernmentJobCategory=(key,force=false)=>openCategory(key,force);
+  window.showGovernmentJobsFeed=showFeed;
 })();
