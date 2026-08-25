@@ -40,6 +40,17 @@
       <div class="crop-stage"><canvas id="cropCanvas" width="856" height="540"></canvas><div id="emptyCrop">ऊपर से image चुनें</div></div>
       <div class="controls">
         <label>Zoom <input id="zoom" type="range" min="1" max="3" value="1" step="0.01"></label>
+        <div class="button-row preset-row" aria-label="Card size presets">
+          <button class="btn secondary preset-btn" data-w="85.6" data-h="54" type="button">CR80 / PVC</button>
+          <button class="btn secondary preset-btn" data-w="86" data-h="54" type="button">Aadhaar</button>
+          <button class="btn secondary preset-btn" data-w="85.6" data-h="53.98" type="button">PAN / Voter</button>
+        </div>
+        <div class="button-row filter-row" aria-label="Document scan filters">
+          <button class="btn secondary filter-btn active" data-filter="none" type="button">Original</button>
+          <button class="btn secondary filter-btn" data-filter="scan" type="button">Scan Enhance</button>
+          <button class="btn secondary filter-btn" data-filter="mono" type="button">B&amp;W Text</button>
+          <button class="btn secondary filter-btn" data-filter="color" type="button">Color Enhance</button>
+        </div>
         <div class="button-row">
           <button id="leftBtn" class="btn secondary" type="button">↺ Rotate</button>
           <button id="rightBtn" class="btn secondary" type="button">↻ Rotate</button>
