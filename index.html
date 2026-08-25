@@ -34,6 +34,7 @@
         <a href="#services" data-hi="सेवाएँ" data-en="Services">सेवाएँ</a>
         <a href="#tools" data-hi="ऑनलाइन टूल्स" data-en="Online Tools">ऑनलाइन टूल्स</a>
         <a href="#pricing" data-hi="प्लान" data-en="Plans">प्लान</a>
+        <a class="auto-print-nav" href="auto-print.html" data-hi="🖨️ ऑटो प्रिंट" data-en="🖨️ Auto Print">🖨️ ऑटो प्रिंट</a>
         <a href="#contact" data-hi="संपर्क" data-en="Contact">संपर्क</a>
         <a class="login-link" href="auth.html" data-hi="लॉगिन" data-en="Login" data-hi="लॉगिन" data-en="Login">लॉगिन</a>
       <a href="admin.html" data-hi="एडमिन" data-en="Admin">एडमिन</a></nav>
@@ -72,6 +73,7 @@
             <span class="live-dot">LIVE</span>
           </div>
           <div class="quick-grid">
+            <button onclick="location.href='auto-print.html'"><span>🖨️</span><b data-hi="ऑटो प्रिंट" data-en="Auto Print">ऑटो प्रिंट</b></button>
             <button onclick="scrollToCard('idprint')"><span>🪪</span><b data-hi="कार्ड प्रिंट" data-en="Card Print">कार्ड प्रिंट</b></button>
             <button onclick="scrollToCard('certificate')"><span>📄</span><b data-hi="प्रमाण पत्र" data-en="Certificates">प्रमाण पत्र</b></button>
             <button onclick="scrollToCard('passport')"><span>📸</span><b data-hi="पासपोर्ट फोटो" data-en="Passport Photo">पासपोर्ट फोटो</b></button>
@@ -102,6 +104,12 @@
         </div>
 
         <div class="cards service-cards" id="serviceCards">
+          <article class="service-card auto-print-feature" data-search="auto print qr shop printer automatic ऑटो प्रिंट">
+            <div class="icon">🖨️</div>
+            <div><span class="tag">3 DAYS FREE</span><h3 data-hi="MULTI HUB 24 ऑटो प्रिंट" data-en="MULTI HUB 24 Auto Print">MULTI HUB 24 ऑटो प्रिंट</h3>
+            <p data-hi="Customer QR, manual payment approval और Windows Agent से automatic printing। फिर ₹149/माह।" data-en="Customer QR, manual payment approval and automatic printing through the Windows Agent. Then ₹149/month.">Customer QR, manual payment approval और Windows Agent से automatic printing। फिर ₹149/माह।</p></div>
+            <button class="card-arrow" onclick="location.href='auto-print.html'">→</button>
+          </article>
           <article class="service-card" id="idprint" data-search="aadhar aadhaar pan voter id card print pvc">
             <div class="icon">🪪</div>
             <div><span class="tag">PRINT</span><h3 data-hi="आधार • PAN • वोटर ID प्रिंट" data-en="Aadhaar • PAN • Voter ID Print">आधार • PAN • वोटर ID प्रिंट</h3>
