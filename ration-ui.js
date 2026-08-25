@@ -1,4 +1,4 @@
-/* SUNIL MULTI HUB - NFSA style ration card application UI */
+/* MULTI HUB 24 - NFSA style ration card application UI */
 (function(){
   const isRation=()=>{
     const s=(window.activeService?.name||'')+' '+(window.activeVariant?.name||'');
