@@ -31,14 +31,16 @@ Deno.serve(async(req)=>{
    const {data:job,error:je}=await admin.from("print_jobs").select("id,amount").eq("id",jobId).eq("user_id",agent.user_id).eq("payment_status","pending").eq("status","pending").maybeSingle();
    if(je)throw je;if(!job)return reply({error:"Pending job not found"},404);
    if(Number(received.toFixed(2))!==Number(Number(job.amount).toFixed(2)))return reply({error:"Payment mismatch. Exact amount मिलने पर ही approve करें"},409);
-   const reference=String(b.payment_reference||("MANUAL-EXACT-"+received.toFixed(2))).slice(0,180);
+   const suppliedReference=String(b.payment_reference||"").trim();
+   const reference=(suppliedReference||("MANUAL-"+jobId+"-"+received.toFixed(2))).slice(0,180);
    const {data,error}=await admin.from("print_jobs").update({payment_status:"paid",payment_reference:reference,status:"approved",updated_at:new Date().toISOString()}).eq("id",jobId).eq("user_id",agent.user_id).eq("payment_status","pending").eq("status","pending").select("id").maybeSingle();
+   if(error?.code==="23505")return reply({error:"यह UPI transaction ID पहले इस्तेमाल हो चुकी है। Reference जाँचकर दोबारा approve करें।"},409);
    if(error)throw error;if(!data)return reply({error:"Job already updated"},409);return reply({ok:true,job_id:jobId,status:"approved"});
   }
   if(action==="reject_payment"){
    const jobId=String(b.job_id||"");if(!/^[0-9a-f-]{36}$/i.test(jobId))return reply({error:"Invalid job id"},400);
    const reason=String(b.error||"Payment not received").slice(0,500);
-   const {data,error}=await admin.from("print_jobs").update({payment_status:"rejected",status:"rejected",error_message:reason,updated_at:new Date().toISOString()}).eq("id",jobId).eq("user_id",agent.user_id).eq("payment_status","pending").eq("status","pending").select("id").maybeSingle();
+   const {data,error}=await admin.from("print_jobs").update({payment_status:"rejected",status:"cancelled",error_message:reason,updated_at:new Date().toISOString()}).eq("id",jobId).eq("user_id",agent.user_id).eq("payment_status","pending").eq("status","pending").select("id").maybeSingle();
    if(error)throw error;if(!data)return reply({error:"Job already updated"},409);return reply({ok:true,job_id:jobId,status:"rejected"});
   }
   if(action==="claim"){
@@ -58,5 +60,8 @@ Deno.serve(async(req)=>{
    if(error)throw error;if(!data)return reply({error:"Job not claimed by this agent"},409);return reply({ok:true,job_id:jobId,status});
   }
   return reply({error:"Unknown action"},400);
- }catch(error){return reply({error:error instanceof Error?error.message:"Server error"},500)}
+ }catch(error){
+  const message=error instanceof Error?error.message:(error&&typeof error==="object"&&"message" in error?String((error as {message?:unknown}).message||"Server error"):"Server error");
+  return reply({error:message},500)
+ }
 });
