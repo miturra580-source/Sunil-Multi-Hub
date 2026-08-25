@@ -43,6 +43,6 @@ jobs:
         with:
           tag_name: auto-print-agent-latest
           name: MULTI HUB 24 Auto Print Agent
-          body: Portable Windows Agent for MULTI HUB 24 Auto Print. Extract the ZIP, run SunilAutoPrintAgent.exe, paste the one-time Device Token, select the printer, and start the agent.
+          body: Portable Windows Agent for MULTI HUB 24 Auto Print. Extract the ZIP, run MultiHub24AutoPrintAgent.exe, paste the one-time Device Token, select the printer, and start the agent.
           make_latest: true
           files: MULTI-HUB-24-Auto-Print-Agent.zip
