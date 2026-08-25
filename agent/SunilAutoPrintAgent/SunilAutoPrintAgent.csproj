@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration><Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{7A892D38-AB66-49C1-A5D4-DF79D7401107}</ProjectGuid><OutputType>WinExe</OutputType>
-    <RootNamespace>SunilAutoPrintAgent</RootNamespace><AssemblyName>SunilAutoPrintAgent</AssemblyName>
+    <RootNamespace>SunilAutoPrintAgent</RootNamespace><AssemblyName>MultiHub24AutoPrintAgent</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion><FileAlignment>512</FileAlignment><AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects><LangVersion>7.3</LangVersion><Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'"><Optimize>true</Optimize><OutputPath>bin\Release\</OutputPath><DefineConstants>TRACE</DefineConstants></PropertyGroup>
