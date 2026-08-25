@@ -1,5 +1,5 @@
 /* =========================================================
-   SUNIL MULTI HUB
+   MULTI HUB 24
    CUSTOMER PORTAL
    Dynamic Services + PAN Variants + Conditional Forms
 ========================================================= */
@@ -1701,7 +1701,7 @@ function renderVariantPrice() {
         Official e-PAN Service: Free
       </strong>
       <br>
-      SUNIL MULTI HUB Assistance Fee:
+      MULTI HUB 24 Assistance Fee:
       ${money(fee)}
     `;
 
