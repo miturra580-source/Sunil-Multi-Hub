@@ -40,7 +40,7 @@ document.getElementById('jpgPdfBtn').onclick=async()=>{
     const w=img.width*ratio,h=img.height*ratio;
     pdf.addImage(data,'JPEG',(pageW-w)/2,(pageH-h)/2,w,h,undefined,'FAST');
   }
-  pdf.save('sunil-multi-hub-images.pdf'); showToast('PDF तैयार है');
+  pdf.save('multi-hub-24-images.pdf'); showToast('PDF तैयार है');
 };
 
 // Merge PDF
@@ -53,7 +53,7 @@ document.getElementById('mergePdfBtn').onclick=async()=>{
     const src=await PDFLib.PDFDocument.load(await file.arrayBuffer());
     const pages=await out.copyPages(src,src.getPageIndices()); pages.forEach(p=>out.addPage(p));
   }
-  downloadBlob(new Blob([await out.save()],{type:'application/pdf'}),'sunil-multi-hub-merged.pdf');
+  downloadBlob(new Blob([await out.save()],{type:'application/pdf'}),'multi-hub-24-merged.pdf');
   showToast('PDF merge हो गया');
 };
 
