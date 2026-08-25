@@ -16,7 +16,7 @@ Windows desktop agent for MULTI HUB 24.
 1. Open `SunilAutoPrintAgent.csproj` in Visual Studio 2019 or 2022.
 2. Restore NuGet package Newtonsoft.Json 13.0.3.
 3. Build Release / Any CPU (Prefer 32-bit is enabled).
-4. Put `SumatraPDF.exe` beside `SunilAutoPrintAgent.exe` for silent PDF printing.
+4. Put `SumatraPDF.exe` beside `MultiHub24AutoPrintAgent.exe` for silent PDF printing.
 5. Package both files with the installer.
 
 ## Pairing
