@@ -24,7 +24,10 @@ jobs:
       - name: Add PDF printing engine and release notes
         shell: pwsh
         run: |
-          Invoke-WebRequest "https://www.sumatrapdfreader.org/dl/rel/3.5.2/SumatraPDF-3.5.2-32.exe" -OutFile agent/SunilAutoPrintAgent/bin/Release/SumatraPDF.exe
+          choco install sumatrapdf.install -y --no-progress
+          $sumatra = Get-ChildItem "C:\Program Files\SumatraPDF\SumatraPDF.exe","C:\Program Files (x86)\SumatraPDF\SumatraPDF.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $sumatra) { throw "Installed SumatraPDF.exe was not found" }
+          Copy-Item $sumatra.FullName agent/SunilAutoPrintAgent/bin/Release/SumatraPDF.exe
           Copy-Item agent/SunilAutoPrintAgent/README.md agent/SunilAutoPrintAgent/bin/Release/README.md
       - name: Create portable ZIP
         shell: pwsh
