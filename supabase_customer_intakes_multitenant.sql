@@ -1,4 +1,4 @@
--- SUNIL MULTI HUB: multi-tenant CSC customer self-form schema
+-- MULTI HUB 24: multi-tenant CSC customer self-form schema
 create table if not exists public.customer_intakes (
  id uuid primary key default gen_random_uuid(), owner_id uuid references public.profiles(id) on delete cascade,
  application_no text not null unique, service_name text not null, full_name text not null,
