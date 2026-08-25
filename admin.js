@@ -1,5 +1,5 @@
 /* =========================================================
-   SUNIL MULTI HUB
+   MULTI HUB 24
    COMPLETE ADMIN PANEL
 ========================================================= */
 
@@ -2084,7 +2084,7 @@ async function loadPaymentSettings() {
 
   if (paymentPayeeName) {
     paymentPayeeName.value =
-      settings.payee_name || 'SUNIL MULTI HUB';
+      settings.payee_name || 'MULTI HUB 24';
   }
 
   if (paymentMinimumAmount) {
@@ -2261,7 +2261,7 @@ async function saveWalletPaymentSettings() {
 
       payee_name:
         paymentPayeeName?.value.trim() ||
-        'SUNIL MULTI HUB',
+        'MULTI HUB 24',
 
       qr_storage_path:
         qrPath,
