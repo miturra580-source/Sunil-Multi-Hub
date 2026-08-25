@@ -31,3 +31,6 @@ The token is encrypted with Windows DPAPI for the current Windows user. It is ne
 ## Current phase
 
 The API, secure pairing, heartbeat, queue claim, private signed downloads, image/ID printing and job completion are implemented. Installer signing, Windows startup registration, tray icon and bundled PDF renderer are the remaining packaging tasks.
+
+
+Build release: Manual UPI approval release — 2026-08-25.
