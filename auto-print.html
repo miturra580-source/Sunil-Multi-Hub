@@ -20,8 +20,8 @@
 
 <section class="ap-panel" id="gateway"><div class="panel-grid"><form class="ap-card" id="gatewayForm"><span class="badge warn">ENCRYPTED SETUP</span><h2>Payment Gateway Connect करें</h2><p>दुकानदार अपना approved merchant account चुने। Secret browser या public database में save नहीं होगा।</p>
 <label>Provider<select id="gatewayProvider"><option value="phonepe">PhonePe Payment Gateway</option><option value="paytm">Paytm Payment Gateway</option><option value="razorpay">Razorpay</option><option value="cashfree">Cashfree Payments</option></select></label>
-<label>Environment<select id="gatewayEnvironment"><option value="sandbox">Sandbox / Test</option><option value="production">Production / Live</option></select></label><label>Merchant ID<input id="gatewayMerchantId" required autocomplete="off" placeholder="Provider से मिला Merchant ID"></label>
-<label>Display/Shop Name<input id="gatewayDisplayName" autocomplete="organization" placeholder="आपकी दुकान का नाम"></label>
+<div id="gatewaySetupGuide" class="gateway-setup-guide"></div><label>Environment<select id="gatewayEnvironment"><option value="sandbox">Sandbox / Test</option><option value="production">Production / Live</option></select></label><label>Merchant ID <small class="field-help" id="merchantIdHelp">Provider dashboard के Developer Settings में मिलेगा।</small><input id="gatewayMerchantId" required autocomplete="off" placeholder="Provider से मिला Merchant ID"></label>
+<label>Display/Shop Name <small class="field-help">यह अपनी दुकान का नाम है—आप स्वयं भरें।</small><input id="gatewayDisplayName" autocomplete="organization" placeholder="आपकी दुकान का नाम"></label>
 <div id="gatewayCredentialFields"></div>
 <label class="confirm"><input id="gatewayConsent" type="checkbox" required> यह मेरा/मेरी दुकान का approved merchant account है और मुझे इसे जोड़ने का अधिकार है।</label>
 <button class="btn primary" id="saveGateway" type="submit">Encrypt & Save Credentials</button>
