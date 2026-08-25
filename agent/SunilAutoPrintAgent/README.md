@@ -1,6 +1,6 @@
-# SUNIL Auto Print Agent
+# MULTI HUB 24 Auto Print Agent
 
-Windows desktop agent for SUNIL MULTI HUB.
+Windows desktop agent for MULTI HUB 24.
 
 ## Compatibility
 
@@ -21,7 +21,7 @@ Windows desktop agent for SUNIL MULTI HUB.
 
 ## Pairing
 
-1. In SUNIL MULTI HUB open Auto Print > Install.
+1. In MULTI HUB 24 open Auto Print > Install.
 2. Click **Pair this PC**.
 3. Copy the one-time Device Token.
 4. Start Agent, paste the token, select the printer and click **Save & Start**.
