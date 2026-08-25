@@ -1,0 +1,31 @@
+name: Build Auto Print Agent
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "agent/SunilAutoPrintAgent/**"
+      - ".github/workflows/build-auto-print-agent.yml"
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+      - name: Restore packages
+        run: nuget restore agent/SunilAutoPrintAgent/packages.config -PackagesDirectory agent/packages
+      - name: Build Release
+        run: msbuild agent/SunilAutoPrintAgent/SunilAutoPrintAgent.csproj /p:Configuration=Release /p:Platform=AnyCPU
+      - name: Add release notes
+        shell: pwsh
+        run: |
+          Copy-Item agent/SunilAutoPrintAgent/README.md agent/SunilAutoPrintAgent/bin/Release/README.md
+      - name: Upload Agent
+        uses: actions/upload-artifact@v4
+        with:
+          name: SUNIL-Auto-Print-Agent
+          path: agent/SunilAutoPrintAgent/bin/Release/
+          if-no-files-found: error
