@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         SUNIL MULTI HUB eDistrict Autofill
+// @name         MULTI HUB 24 eDistrict Autofill
 // @namespace    https://sunil-multi-hub.vercel.app/
 // @version      1.1.0
-// @description  Autofill eDistrict forms from SUNIL MULTI HUB copied application data. Does not bypass OTP/CAPTCHA or submit forms.
+// @description  Autofill eDistrict forms from MULTI HUB 24 copied application data. Does not bypass OTP/CAPTCHA or submit forms.
 // @match        https://edistrict.up.gov.in/*
 // @grant        GM_addStyle
 // ==/UserScript==
@@ -83,7 +83,7 @@
       }
       toast(`SMH Autofill: ${filled} fields filled${missing.length?`, ${missing.length} fields manual`:''}. OTP/CAPTCHA manually complete करें।`);
     }catch(e){
-      toast('Clipboard में SUNIL MULTI HUB Autofill JSON copy करें, फिर दोबारा Autofill दबाएँ।');
+      toast('Clipboard में MULTI HUB 24 Autofill JSON copy करें, फिर दोबारा Autofill दबाएँ।');
     }
   }
   function install(){
