@@ -1,5 +1,7 @@
 window.SMH_CONFIG = {
-  publicSiteUrl: "https://sunil-multi-hub.vercel.app",
+  publicSiteUrl: location.hostname.endsWith("github.io")
+    ? "https://miturra580-source.github.io/Sunil-Multi-Hub"
+    : "https://sunil-multi-hub.vercel.app",
   supabaseUrl: "https://zktobzhvyxiclvyqnjco.supabase.co",
   supabaseAnonKey: "sb_publishable_IvYEQWxo1jrQo8O5gayraw_wXAJj7JH"
 };
