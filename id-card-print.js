@@ -5,17 +5,20 @@ const crop=$('cropCanvas'),ctx=crop.getContext('2d'),sheet=$('sheetCanvas'),sctx
 let timer;
 function toast(m){$('toast').textContent=m;$('toast').classList.add('show');clearTimeout(timer);timer=setTimeout(()=>$('toast').classList.remove('show'),2500)}
 function readImage(file){return new Promise((resolve,reject)=>{if(!file||!/^image\/(jpeg|png|webp)$/.test(file.type))return reject(new Error('JPG, PNG या WEBP image चुनें'));if(file.size>15*1024*1024)return reject(new Error('Image 15 MB से छोटी रखें'));const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=r.result};r.onerror=reject;r.readAsDataURL(file)})}
-function fresh(img){const cover=Math.max(crop.width/img.width,crop.height/img.height);return{img,scale:cover,base:cover,x:(crop.width-img.width*cover)/2,y:(crop.height-img.height*cover)/2,rotation:0}}
+function fresh(img){const cover=Math.max(crop.width/img.width,crop.height/img.height);return{img,scale:cover,base:cover,x:(crop.width-img.width*cover)/2,y:(crop.height-img.height*cover)/2,rotation:0,filter:'none'}}
 async function load(side,file){try{const img=await readImage(file);state[side]=fresh(img);$(side+'Name').textContent=file.name;state.active=side;setTab();$('zoom').value=1;drawCrop();drawSheet()}catch(e){toast(e.message||'Image नहीं खुली')}}
 $('frontInput').onchange=e=>load('front',e.target.files[0]);$('backInput').onchange=e=>load('back',e.target.files[0]);
 document.querySelectorAll('.side-tabs button').forEach(b=>b.onclick=()=>{state.active=b.dataset.side;setTab();syncZoom();drawCrop()});
 function setTab(){document.querySelectorAll('.side-tabs button').forEach(b=>b.classList.toggle('active',b.dataset.side===state.active))}
 function syncZoom(){const s=state[state.active];$('zoom').value=s?s.scale/s.base:1}
-function drawOne(c,target){c.save();c.fillStyle='#fff';c.fillRect(0,0,c.canvas.width,c.canvas.height);if(target){const w=target.img.width*target.scale,h=target.img.height*target.scale;c.translate(target.x+w/2,target.y+h/2);c.rotate(target.rotation*Math.PI/180);c.drawImage(target.img,-w/2,-h/2,w,h)}c.restore()}
+function filterCss(name){return name==='scan'?'grayscale(.25) contrast(1.35) brightness(1.08)':name==='mono'?'grayscale(1) contrast(1.65) brightness(1.12)':name==='color'?'contrast(1.18) saturate(1.22) brightness(1.04)':'none'}
+function drawOne(c,target){c.save();c.fillStyle='#fff';c.fillRect(0,0,c.canvas.width,c.canvas.height);if(target){const w=target.img.width*target.scale,h=target.img.height*target.scale;c.filter=filterCss(target.filter);c.translate(target.x+w/2,target.y+h/2);c.rotate(target.rotation*Math.PI/180);c.drawImage(target.img,-w/2,-h/2,w,h)}c.restore()}
 function drawCrop(){const s=state[state.active];drawOne(ctx,s);$('emptyCrop').style.display=s?'none':'grid'}
 $('zoom').oninput=e=>{const s=state[state.active];if(!s)return;const old=s.scale;s.scale=s.base*+e.target.value;const ratio=s.scale/old;s.x=crop.width/2-(crop.width/2-s.x)*ratio;s.y=crop.height/2-(crop.height/2-s.y)*ratio;drawCrop();drawSheet()};
 function rotate(delta){const s=state[state.active];if(!s)return;s.rotation=(s.rotation+delta)%360;drawCrop();drawSheet()}
 $('leftBtn').onclick=()=>rotate(-90);$('rightBtn').onclick=()=>rotate(90);
+document.querySelectorAll('.preset-btn').forEach(b=>b.onclick=()=>{$('cardW').value=b.dataset.w;$('cardH').value=b.dataset.h;drawSheet();toast(b.textContent+' size लागू')});
+document.querySelectorAll('.filter-btn').forEach(b=>b.onclick=()=>{const s=state[state.active];if(!s)return toast('पहले '+state.active+' image चुनें');s.filter=b.dataset.filter;document.querySelectorAll('.filter-btn').forEach(x=>x.classList.toggle('active',x===b));drawCrop();drawSheet()});
 $('resetBtn').onclick=()=>{const s=state[state.active];if(!s)return;state[state.active]=fresh(s.img);syncZoom();drawCrop();drawSheet()};
 function point(e){const r=crop.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return{x:(t.clientX-r.left)*crop.width/r.width,y:(t.clientY-r.top)*crop.height/r.height}}
 function start(e){if(!state[state.active])return;const p=point(e);state.drag=true;state.lastX=p.x;state.lastY=p.y;e.preventDefault()}
