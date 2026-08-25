@@ -31,18 +31,18 @@ jobs:
           Copy-Item agent/SunilAutoPrintAgent/README.md agent/SunilAutoPrintAgent/bin/Release/README.md
       - name: Create portable ZIP
         shell: pwsh
-        run: Compress-Archive -Path agent/SunilAutoPrintAgent/bin/Release/* -DestinationPath SUNIL-Auto-Print-Agent.zip -Force
+        run: Compress-Archive -Path agent/SunilAutoPrintAgent/bin/Release/* -DestinationPath MULTI-HUB-24-Auto-Print-Agent.zip -Force
       - name: Upload Agent
         uses: actions/upload-artifact@v4
         with:
-          name: SUNIL-Auto-Print-Agent
+          name: MULTI-HUB-24-Auto-Print-Agent
           path: agent/SunilAutoPrintAgent/bin/Release/
           if-no-files-found: error
       - name: Publish latest Windows Agent
         uses: softprops/action-gh-release@v2
         with:
           tag_name: auto-print-agent-latest
-          name: SUNIL Auto Print Agent
-          body: Portable Windows Agent for SUNIL MULTI HUB Auto Print. Extract the ZIP, run SunilAutoPrintAgent.exe, paste the one-time Device Token, select the printer, and start the agent.
+          name: MULTI HUB 24 Auto Print Agent
+          body: Portable Windows Agent for MULTI HUB 24 Auto Print. Extract the ZIP, run SunilAutoPrintAgent.exe, paste the one-time Device Token, select the printer, and start the agent.
           make_latest: true
-          files: SUNIL-Auto-Print-Agent.zip
+          files: MULTI-HUB-24-Auto-Print-Agent.zip
