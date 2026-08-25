@@ -5,6 +5,8 @@ on:
     paths:
       - "agent/SunilAutoPrintAgent/**"
       - ".github/workflows/build-auto-print-agent.yml"
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: windows-latest
@@ -19,13 +21,32 @@ jobs:
         run: nuget restore agent/SunilAutoPrintAgent/packages.config -PackagesDirectory agent/packages
       - name: Build Release
         run: msbuild agent/SunilAutoPrintAgent/SunilAutoPrintAgent.csproj /p:Configuration=Release /p:Platform=AnyCPU
-      - name: Add release notes
+      - name: Add PDF printing engine and release notes
         shell: pwsh
         run: |
+          $release = Invoke-RestMethod "https://api.github.com/repos/sumatrapdfreader/sumatrapdf/releases/latest"
+          $asset = $release.assets | Where-Object { $_.name -match "SumatraPDF-.*-32\.zip$" } | Select-Object -First 1
+          if (-not $asset) { throw "SumatraPDF 32-bit portable package not found" }
+          Invoke-WebRequest $asset.browser_download_url -OutFile "$env:RUNNER_TEMP\sumatra.zip"
+          Expand-Archive "$env:RUNNER_TEMP\sumatra.zip" "$env:RUNNER_TEMP\sumatra" -Force
+          $sumatra = Get-ChildItem "$env:RUNNER_TEMP\sumatra" -Recurse -Filter "SumatraPDF.exe" | Select-Object -First 1
+          if (-not $sumatra) { throw "SumatraPDF.exe missing from downloaded package" }
+          Copy-Item $sumatra.FullName agent/SunilAutoPrintAgent/bin/Release/SumatraPDF.exe
           Copy-Item agent/SunilAutoPrintAgent/README.md agent/SunilAutoPrintAgent/bin/Release/README.md
+      - name: Create portable ZIP
+        shell: pwsh
+        run: Compress-Archive -Path agent/SunilAutoPrintAgent/bin/Release/* -DestinationPath SUNIL-Auto-Print-Agent.zip -Force
       - name: Upload Agent
         uses: actions/upload-artifact@v4
         with:
           name: SUNIL-Auto-Print-Agent
           path: agent/SunilAutoPrintAgent/bin/Release/
           if-no-files-found: error
+      - name: Publish latest Windows Agent
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: auto-print-agent-latest
+          name: SUNIL Auto Print Agent
+          body: Portable Windows Agent for SUNIL MULTI HUB Auto Print. Extract the ZIP, run SunilAutoPrintAgent.exe, paste the one-time Device Token, select the printer, and start the agent.
+          make_latest: true
+          files: SUNIL-Auto-Print-Agent.zip
