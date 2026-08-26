@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0b4fd8">
-  <title>ID Card Print — MULTI HUB 24</title>
-  <meta name="description" content="Aadhaar, PAN, Voter ID और अन्य ID cards को सही size में A4 PDF, JPG या direct print के लिए तैयार करें।">
+  <title>Smart ID Print — MULTI HUB 24</title>
+  <meta name="description" content="Aadhaar, PAN, Voter ID और अन्य ID cards को crop, enhance और standard CR80 size में A4 PDF, JPG या direct print के लिए तैयार करें।">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,69 +15,110 @@
 </head>
 <body>
 <header class="site-header"><div class="container nav">
-  <a href="index.html" class="brand"><span class="brand-mark">M24</span><span><strong>MULTI HUB 24</strong><small>ID Card Print</small></span></a>
+  <a href="index.html" class="brand"><span class="brand-mark">M24</span><span><strong>MULTI HUB 24</strong><small>Smart ID Print</small></span></a>
   <a class="btn secondary" href="index.html">← Home</a>
 </div></header>
+
 <main class="id-tool">
   <section class="id-hero"><div class="container">
-    <span class="eyebrow">FREE • BROWSER-BASED • PRIVATE</span>
+    <span class="eyebrow">FREE • PRO CONTROLS • PRIVATE</span>
     <h1>🪪 Smart ID Card Print</h1>
-    <p>Front और Back फोटो चुनें, crop/rotate ठीक करें और standard ID-card size में A4 PDF, JPG या direct print निकालें।</p>
+    <p>Front/Back image चुनें, crop और scan-quality ठीक करें, फिर exact card size में A4 PDF, HD JPG या direct print निकालें।</p>
+    <div class="feature-chips"><span>CR80 / PVC</span><span>HD Export</span><span>Crop Marks</span><span>Multi-page PDF</span></div>
     <div class="privacy">🔒 आपकी images इसी browser में process होती हैं—किसी server पर upload नहीं होतीं।</div>
   </div></section>
 
   <div class="container workspace">
     <section class="editor-card">
-      <div class="step-title"><span>1</span><div><h2>Card images चुनें</h2><p>Front और Back साथ में या अलग-अलग चुन सकते हैं।</p></div></div>
+      <div class="step-title"><span>1</span><div><h2>Card images चुनें</h2><p>Front और Back साथ में या अलग-अलग चुन सकते हैं। Drop भी कर सकते हैं।</p></div></div>
       <div class="upload-grid">
-        <label class="upload-box"><strong>Front Side</strong><span id="frontName">फोटो चुनें</span><input id="frontInput" type="file" accept="image/jpeg,image/png,image/webp"></label>
-        <label class="upload-box"><strong>Back Side</strong><span id="backName">फोटो चुनें</span><input id="backInput" type="file" accept="image/jpeg,image/png,image/webp"></label>
+        <label class="upload-box" data-drop="front"><strong>Front Side</strong><span id="frontName">फोटो चुनें / Drop करें</span><small>JPG, PNG, WEBP • max 15MB</small><input id="frontInput" type="file" accept="image/jpeg,image/png,image/webp"></label>
+        <label class="upload-box" data-drop="back"><strong>Back Side</strong><span id="backName">फोटो चुनें / Drop करें</span><small>JPG, PNG, WEBP • max 15MB</small><input id="backInput" type="file" accept="image/jpeg,image/png,image/webp"></label>
       </div>
       <label class="switch-row"><input id="singleSide" type="checkbox"><span>Single Side Mode — केवल Front print करें</span></label>
 
-      <div class="step-title compact"><span>2</span><div><h2>Crop और layout</h2><p>जिस side को बदलना है उसे चुनकर controls इस्तेमाल करें।</p></div></div>
-      <div class="side-tabs"><button class="active" data-side="front">Front</button><button data-side="back">Back</button></div>
-      <div class="crop-stage"><canvas id="cropCanvas" width="856" height="540"></canvas><div id="emptyCrop">ऊपर से image चुनें</div></div>
+      <div class="step-title compact"><span>2</span><div><h2>Crop & Fine-Tune</h2><p>Side चुनें और professional image controls इस्तेमाल करें।</p></div></div>
+      <div class="editor-toolbar">
+        <div class="side-tabs"><button class="active" data-side="front" type="button">Front</button><button data-side="back" type="button">Back</button></div>
+        <button id="bigScreenBtn" class="mini-btn" type="button">⛶ Big Screen</button>
+      </div>
+      <div class="crop-stage" id="cropStage"><canvas id="cropCanvas" width="856" height="540"></canvas><div id="emptyCrop">ऊपर से image चुनें</div></div>
+
       <div class="controls">
-        <label>Zoom <input id="zoom" type="range" min="1" max="3" value="1" step="0.01"></label>
-        <div class="button-row preset-row" aria-label="Card size presets">
-          <button class="btn secondary preset-btn" data-w="85.6" data-h="54" type="button">CR80 / PVC</button>
-          <button class="btn secondary preset-btn" data-w="86" data-h="54" type="button">Aadhaar</button>
-          <button class="btn secondary preset-btn" data-w="85.6" data-h="53.98" type="button">PAN / Voter</button>
+        <label class="range-row"><span>Crop Scale</span><input id="zoom" type="range" min="1" max="4" value="1" step="0.01"><output id="zoomOut">100%</output></label>
+
+        <div class="control-group">
+          <strong>Auto-Crop Preset</strong>
+          <div class="button-row preset-row" aria-label="Card size presets">
+            <button class="btn secondary preset-btn active" data-w="85.6" data-h="53.98" type="button">CR80 / PVC</button>
+            <button class="btn secondary preset-btn" data-w="85.6" data-h="54" type="button">Aadhaar</button>
+            <button class="btn secondary preset-btn" data-w="85.6" data-h="53.98" type="button">PAN / Voter</button>
+            <button id="centerBtn" class="btn secondary" type="button">Center Crop</button>
+          </div>
         </div>
-        <div class="button-row filter-row" aria-label="Document scan filters">
-          <button class="btn secondary filter-btn active" data-filter="none" type="button">Original</button>
-          <button class="btn secondary filter-btn" data-filter="scan" type="button">Scan Enhance</button>
-          <button class="btn secondary filter-btn" data-filter="mono" type="button">B&amp;W Text</button>
-          <button class="btn secondary filter-btn" data-filter="color" type="button">Color Enhance</button>
+
+        <div class="control-group">
+          <strong>Document Scan Filters</strong>
+          <div class="button-row filter-row" aria-label="Document scan filters">
+            <button class="btn secondary filter-btn active" data-filter="none" type="button">Original</button>
+            <button class="btn secondary filter-btn" data-filter="scan" type="button">Scan Document</button>
+            <button class="btn secondary filter-btn" data-filter="mono" type="button">B&amp;W Text</button>
+            <button class="btn secondary filter-btn" data-filter="color" type="button">Color Enhance</button>
+          </div>
+          <div class="button-row utility-row">
+            <button id="autoEnhanceBtn" class="btn secondary" type="button">✨ Auto Enhance</button>
+            <button id="invertBtn" class="btn secondary toggle-btn" type="button">◐ Invert Colors</button>
+          </div>
         </div>
-        <div class="button-row">
-          <button id="leftBtn" class="btn secondary" type="button">↺ Rotate</button>
-          <button id="rightBtn" class="btn secondary" type="button">↻ Rotate</button>
-          <button id="resetBtn" class="btn secondary" type="button">Reset Crop</button>
+
+        <div class="control-group image-settings">
+          <strong>Image Settings</strong>
+          <label class="range-row"><span>Brightness</span><input id="brightness" type="range" min="50" max="160" value="100" step="1"><output id="brightnessOut">100%</output></label>
+          <label class="range-row"><span>Contrast</span><input id="contrast" type="range" min="50" max="180" value="100" step="1"><output id="contrastOut">100%</output></label>
+          <label class="range-row"><span>Saturation</span><input id="saturation" type="range" min="0" max="180" value="100" step="1"><output id="saturationOut">100%</output></label>
         </div>
-        <p class="hint">मोबाइल/कंप्यूटर पर image को drag करके position बदलें।</p>
+
+        <div class="control-group">
+          <strong>Transform & Mirror</strong>
+          <div class="button-row">
+            <button id="leftBtn" class="btn secondary" type="button">↺ Rotate L</button>
+            <button id="rightBtn" class="btn secondary" type="button">↻ Rotate R</button>
+            <button id="flipHBtn" class="btn secondary toggle-btn" type="button">↔ Flip Horiz</button>
+            <button id="flipVBtn" class="btn secondary toggle-btn" type="button">↕ Flip Vert</button>
+            <button id="resetBtn" class="btn secondary" type="button">Reset</button>
+          </div>
+        </div>
+        <p class="hint">मोबाइल/कंप्यूटर पर image को drag करके position बदलें। Export में वही crop और enhancement लागू होगी।</p>
       </div>
 
-      <div class="step-title compact"><span>3</span><div><h2>Print settings</h2><p>Default CR80 standard card size है।</p></div></div>
+      <div class="step-title compact"><span>3</span><div><h2>Print Sheet Settings</h2><p>A4 sheet पर size, spacing और finishing तय करें।</p></div></div>
       <div class="settings-grid">
         <label>Card width (mm)<input id="cardW" type="number" value="85.6" min="20" max="190" step="0.1"></label>
-        <label>Card height (mm)<input id="cardH" type="number" value="54" min="20" max="277" step="0.1"></label>
-        <label>Copies<select id="copies"><option>1</option><option>2</option><option>4</option><option>6</option><option>8</option></select></label>
-        <label>Gap (mm)<input id="gap" type="number" value="6" min="0" max="30" step="1"></label>
+        <label>Card height (mm)<input id="cardH" type="number" value="53.98" min="20" max="277" step="0.01"></label>
+        <label>Copies<select id="copies"><option>1</option><option>2</option><option>4</option><option>6</option><option selected>8</option><option>10</option><option>12</option><option>20</option></select></label>
+        <label>Margin (mm)<input id="margin" type="number" value="10" min="0" max="40" step="1"></label>
+        <label>Gap Horiz (mm)<input id="gapH" type="number" value="5" min="0" max="30" step="1"></label>
+        <label>Gap Vert (mm)<input id="gapV" type="number" value="5" min="0" max="30" step="1"></label>
       </div>
+      <div class="finish-options">
+        <label><input id="cropMarks" type="checkbox"> Add corner crop marks</label>
+        <label><input id="thinBorder" type="checkbox" checked> Thin card borders</label>
+        <label><input id="roundedCorners" type="checkbox"> Rounded corners</label>
+      </div>
+
       <div class="action-row">
-        <button id="pdfBtn" class="btn primary" type="button">⬇ Download PDF</button>
-        <button id="jpgBtn" class="btn secondary" type="button">⬇ Download JPG</button>
-        <button id="printBtn" class="btn secondary" type="button">🖨 Print</button>
+        <button id="pdfBtn" class="btn primary" type="button">⬇ PDF All Pages</button>
+        <button id="jpgBtn" class="btn secondary" type="button">⬇ HD JPG Page</button>
+        <button id="printBtn" class="btn secondary" type="button">🖨 Print All</button>
         <button id="clearBtn" class="btn danger" type="button">Clear</button>
       </div>
     </section>
 
     <aside class="preview-card">
-      <div><span class="eyebrow">A4 PREVIEW</span><h2>Print Sheet</h2></div>
+      <div class="preview-head"><div><span class="eyebrow">A4 PREVIEW</span><h2>Print Queue</h2><p id="queueInfo">No cards loaded</p></div><span class="hd-badge">HD 300 DPI</span></div>
       <canvas id="sheetCanvas" width="794" height="1123"></canvas>
-      <p>Print करते समय paper A4, scale 100% / Actual Size और margins None रखें।</p>
+      <div class="page-nav"><button id="prevPage" type="button" class="mini-btn">← Prev</button><strong id="pageLabel">Page 1 / 1</strong><button id="nextPage" type="button" class="mini-btn">Next →</button></div>
+      <p>Print करते समय paper A4, scale 100% / Actual Size और margins None रखें। PDF में जरूरत के हिसाब से pages अपने-आप बनेंगे।</p>
     </aside>
   </div>
 </main>
