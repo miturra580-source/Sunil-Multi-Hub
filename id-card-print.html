@@ -23,21 +23,21 @@
   <section class="id-hero"><div class="container">
     <span class="eyebrow">FREE • PRO CONTROLS • PRIVATE</span>
     <h1>🪪 Smart ID Card Print</h1>
-    <p>Front/Back image चुनें, crop और scan-quality ठीक करें, फिर exact card size में A4 PDF, HD JPG या direct print निकालें।</p>
-    <div class="feature-chips"><span>CR80 / PVC</span><span>HD Export</span><span>Crop Marks</span><span>Single Print / Page</span></div>
+    <p>Front image चुनें, Back में वही image अपने-आप आ जाएगी। दोनों sides को अलग-अलग crop/adjust करके एक ही A4 page पर print करें।</p>
+    <div class="feature-chips"><span>CR80 / PVC</span><span>HD Export</span><span>Auto Back Copy</span><span>Front + Back / Same Page</span></div>
     <div class="privacy">🔒 आपकी images इसी browser में process होती हैं—किसी server पर upload नहीं होतीं।</div>
   </div></section>
 
   <div class="container workspace">
     <section class="editor-card">
-      <div class="step-title"><span>1</span><div><h2>Card images चुनें</h2><p>Front और Back साथ में या अलग-अलग चुन सकते हैं। Drop भी कर सकते हैं।</p></div></div>
+      <div class="step-title"><span>1</span><div><h2>Card images चुनें</h2><p>Front चुनते ही वही image Back में auto-copy होगी। अगर Back अलग है तो Back Side में नई photo चुनकर replace करें।</p></div></div>
       <div class="upload-grid">
-        <label class="upload-box" data-drop="front"><strong>Front Side</strong><span id="frontName">फोटो चुनें / Drop करें</span><small>JPG, PNG, WEBP • max 15MB</small><input id="frontInput" type="file" accept="image/jpeg,image/png,image/webp"></label>
-        <label class="upload-box" data-drop="back"><strong>Back Side</strong><span id="backName">फोटो चुनें / Drop करें</span><small>JPG, PNG, WEBP • max 15MB</small><input id="backInput" type="file" accept="image/jpeg,image/png,image/webp"></label>
+        <label class="upload-box" data-drop="front"><strong>Front Side</strong><span id="frontName">फोटो चुनें / Drop करें</span><small>Front चुनते ही Back भी auto-fill होगा</small><input id="frontInput" type="file" accept="image/jpeg,image/png,image/webp"></label>
+        <label class="upload-box" data-drop="back"><strong>Back Side</strong><span id="backName">Front upload पर auto-copy होगा</span><small>अलग Back हो तो यहाँ नई photo चुनें</small><input id="backInput" type="file" accept="image/jpeg,image/png,image/webp"></label>
       </div>
       <label class="switch-row"><input id="singleSide" type="checkbox"><span>Single Side Mode — केवल Front print करें</span></label>
 
-      <div class="step-title compact"><span>2</span><div><h2>Crop & Fine-Tune</h2><p>Side चुनें और professional image controls इस्तेमाल करें।</p></div></div>
+      <div class="step-title compact"><span>2</span><div><h2>Crop & Fine-Tune</h2><p>Front और Back tab अलग-अलग चुनें। Auto-copy होने के बाद भी दोनों की crop/zoom settings स्वतंत्र रहेंगी।</p></div></div>
       <div class="editor-toolbar">
         <div class="side-tabs"><button class="active" data-side="front" type="button">Front</button><button data-side="back" type="button">Back</button></div>
         <button id="bigScreenBtn" class="mini-btn" type="button">⛶ Big Screen</button>
@@ -88,17 +88,17 @@
             <button id="resetBtn" class="btn secondary" type="button">Reset</button>
           </div>
         </div>
-        <p class="hint">मोबाइल/कंप्यूटर पर image को drag करके position बदलें। Export में वही crop और enhancement लागू होगी।</p>
+        <p class="hint">Front और Back को अलग-अलग drag करके सही हिस्सा set करें। Export में वही crop और enhancement लागू होगी।</p>
       </div>
 
-      <div class="step-title compact"><span>3</span><div><h2>Print Sheet Settings</h2><p>हर A4 page पर केवल एक ID-card side आएगी। Front और Back अलग pages पर print होंगे।</p></div></div>
+      <div class="step-title compact"><span>3</span><div><h2>Print Sheet Settings</h2><p>एक A4 page के ऊपर Front बाईं तरफ और Back दाईं तरफ रहेगा। Copies बढ़ाने पर हर नई pair अगले A4 page पर जाएगी।</p></div></div>
       <div class="settings-grid">
         <label>Card width (mm)<input id="cardW" type="number" value="85.6" min="20" max="190" step="0.1"></label>
         <label>Card height (mm)<input id="cardH" type="number" value="53.98" min="20" max="277" step="0.01"></label>
-        <label>Copies<select id="copies"><option selected>1</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>20</option></select></label>
-        <label>Margin (mm)<input id="margin" type="number" value="10" min="0" max="40" step="1"></label>
-        <label>Gap Horiz (mm)<input id="gapH" type="number" value="5" min="0" max="30" step="1"></label>
-        <label>Gap Vert (mm)<input id="gapV" type="number" value="5" min="0" max="30" step="1"></label>
+        <label>Copies / Pairs<select id="copies"><option selected>1</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>20</option></select></label>
+        <label>Top / Side Margin (mm)<input id="margin" type="number" value="10" min="0" max="40" step="1"></label>
+        <label>Front–Back Gap (mm)<input id="gapH" type="number" value="8" min="0" max="30" step="1"></label>
+        <input id="gapV" type="hidden" value="5">
       </div>
       <div class="finish-options">
         <label><input id="cropMarks" type="checkbox"> Add corner crop marks</label>
@@ -115,10 +115,10 @@
     </section>
 
     <aside class="preview-card">
-      <div class="preview-head"><div><span class="eyebrow">A4 PREVIEW</span><h2>Print Queue</h2><p id="queueInfo">No cards loaded</p></div><span class="hd-badge">HD 300 DPI</span></div>
+      <div class="preview-head"><div><span class="eyebrow">A4 PREVIEW</span><h2>Front + Back Print</h2><p id="queueInfo">No cards loaded</p></div><span class="hd-badge">HD 300 DPI</span></div>
       <canvas id="sheetCanvas" width="794" height="1123"></canvas>
       <div class="page-nav"><button id="prevPage" type="button" class="mini-btn">← Prev</button><strong id="pageLabel">Page 1 / 1</strong><button id="nextPage" type="button" class="mini-btn">Next →</button></div>
-      <p>हर A4 page पर एक ही card side आएगी। Front और Back अलग-अलग pages पर रहेंगे। Print करते समय scale 100% / Actual Size रखें।</p>
+      <p>Normal mode में Front बाईं तरफ और Back दाईं तरफ एक ही A4 page के ऊपर print होंगे। Print करते समय scale 100% / Actual Size रखें।</p>
     </aside>
   </div>
 </main>
@@ -126,29 +126,70 @@
 <script src="id-card-print.js"></script>
 <script>
 (function () {
-  if (typeof metrics !== 'function' || typeof layoutPage !== 'function') return;
+  load = async function (side, file) {
+    try {
+      const img = await readImage(file);
+      if (side === 'front') {
+        state.front = fresh(img);
+        state.back = fresh(img);
+        $('frontName').textContent = file.name;
+        $('backName').textContent = file.name + ' • Auto copy';
+        state.active = 'front';
+        toast('Front loaded • Back में same image auto-copy हो गई');
+      } else {
+        state.back = fresh(img);
+        $('backName').textContent = file.name;
+        state.active = 'back';
+        toast('Back image replace हो गई');
+      }
+      state.page = 0;
+      setTab();
+      syncControls();
+      drawCrop();
+      drawSheet();
+    } catch (error) {
+      toast(error.message || 'Image नहीं खुली');
+    }
+  };
 
-  metrics = function (pageW = A4_W, pageH = A4_H) {
-    const o = settings();
-    return { ...o, cols: 1, rows: 1, capacity: 1 };
+  pageCount = function () {
+    if (!state.front && !state.back) return 1;
+    return Math.max(1, settings().copies);
   };
 
   layoutPage = function (draw, pageIndex, pageW = A4_W, pageH = A4_H) {
-    const items = printItems();
-    const o = metrics(pageW, pageH);
-    const item = items[pageIndex];
-    const current = item ? [item] : [];
+    const o = settings();
+    const pairs = (!state.front && !state.back) ? 0 : Math.max(1, o.copies);
+    const hasFront = !!state.front;
+    const hasBack = !o.single && !!state.back;
+    const sideCount = (hasFront ? 1 : 0) + (hasBack ? 1 : 0);
 
-    if (item) {
-      const x = Math.max(0, (pageW - o.w) / 2);
-      const y = Math.max(0, (pageH - o.h) / 2);
-      draw(item, x, y, o.w, o.h, o);
+    if (pageIndex >= pairs || sideCount === 0) {
+      return { totalItems: 0, pageItems: 0, pages: Math.max(1, pairs), options: o };
+    }
+
+    let gap = hasFront && hasBack ? o.gapH : 0;
+    const usableWidth = Math.max(o.w, pageW - o.margin * 2);
+    if (hasFront && hasBack && (o.w * 2 + gap) > usableWidth) {
+      gap = Math.max(0, usableWidth - o.w * 2);
+    }
+
+    const totalWidth = sideCount === 2 ? o.w * 2 + gap : o.w;
+    const xStart = Math.max(o.margin, (pageW - totalWidth) / 2);
+    const y = Math.min(pageH - o.h, Math.max(0, o.margin));
+
+    if (hasFront) {
+      draw({ side: 'front', target: state.front }, xStart, y, o.w, o.h, o);
+    }
+    if (hasBack) {
+      const backX = hasFront ? xStart + o.w + gap : xStart;
+      draw({ side: 'back', target: state.back }, backX, y, o.w, o.h, o);
     }
 
     return {
-      totalItems: items.length,
-      pageItems: current.length,
-      pages: Math.max(1, items.length),
+      totalItems: sideCount * pairs,
+      pageItems: sideCount,
+      pages: Math.max(1, pairs),
       options: o
     };
   };
