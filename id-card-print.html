@@ -24,7 +24,7 @@
     <span class="eyebrow">FREE • PRO CONTROLS • PRIVATE</span>
     <h1>🪪 Smart ID Card Print</h1>
     <p>Front/Back image चुनें, crop और scan-quality ठीक करें, फिर exact card size में A4 PDF, HD JPG या direct print निकालें।</p>
-    <div class="feature-chips"><span>CR80 / PVC</span><span>HD Export</span><span>Crop Marks</span><span>Multi-page PDF</span></div>
+    <div class="feature-chips"><span>CR80 / PVC</span><span>HD Export</span><span>Crop Marks</span><span>Single Print / Page</span></div>
     <div class="privacy">🔒 आपकी images इसी browser में process होती हैं—किसी server पर upload नहीं होतीं।</div>
   </div></section>
 
@@ -91,11 +91,11 @@
         <p class="hint">मोबाइल/कंप्यूटर पर image को drag करके position बदलें। Export में वही crop और enhancement लागू होगी।</p>
       </div>
 
-      <div class="step-title compact"><span>3</span><div><h2>Print Sheet Settings</h2><p>A4 sheet पर size, spacing और finishing तय करें।</p></div></div>
+      <div class="step-title compact"><span>3</span><div><h2>Print Sheet Settings</h2><p>हर A4 page पर केवल एक ID-card side आएगी। Front और Back अलग pages पर print होंगे।</p></div></div>
       <div class="settings-grid">
         <label>Card width (mm)<input id="cardW" type="number" value="85.6" min="20" max="190" step="0.1"></label>
         <label>Card height (mm)<input id="cardH" type="number" value="53.98" min="20" max="277" step="0.01"></label>
-        <label>Copies<select id="copies"><option>1</option><option>2</option><option>4</option><option>6</option><option selected>8</option><option>10</option><option>12</option><option>20</option></select></label>
+        <label>Copies<select id="copies"><option selected>1</option><option>2</option><option>4</option><option>6</option><option>8</option><option>10</option><option>12</option><option>20</option></select></label>
         <label>Margin (mm)<input id="margin" type="number" value="10" min="0" max="40" step="1"></label>
         <label>Gap Horiz (mm)<input id="gapH" type="number" value="5" min="0" max="30" step="1"></label>
         <label>Gap Vert (mm)<input id="gapV" type="number" value="5" min="0" max="30" step="1"></label>
@@ -118,11 +118,44 @@
       <div class="preview-head"><div><span class="eyebrow">A4 PREVIEW</span><h2>Print Queue</h2><p id="queueInfo">No cards loaded</p></div><span class="hd-badge">HD 300 DPI</span></div>
       <canvas id="sheetCanvas" width="794" height="1123"></canvas>
       <div class="page-nav"><button id="prevPage" type="button" class="mini-btn">← Prev</button><strong id="pageLabel">Page 1 / 1</strong><button id="nextPage" type="button" class="mini-btn">Next →</button></div>
-      <p>Print करते समय paper A4, scale 100% / Actual Size और margins None रखें। PDF में जरूरत के हिसाब से pages अपने-आप बनेंगे।</p>
+      <p>हर A4 page पर एक ही card side आएगी। Front और Back अलग-अलग pages पर रहेंगे। Print करते समय scale 100% / Actual Size रखें।</p>
     </aside>
   </div>
 </main>
 <div class="toast" id="toast"></div>
 <script src="id-card-print.js"></script>
+<script>
+(function () {
+  if (typeof metrics !== 'function' || typeof layoutPage !== 'function') return;
+
+  metrics = function (pageW = A4_W, pageH = A4_H) {
+    const o = settings();
+    return { ...o, cols: 1, rows: 1, capacity: 1 };
+  };
+
+  layoutPage = function (draw, pageIndex, pageW = A4_W, pageH = A4_H) {
+    const items = printItems();
+    const o = metrics(pageW, pageH);
+    const item = items[pageIndex];
+    const current = item ? [item] : [];
+
+    if (item) {
+      const x = Math.max(0, (pageW - o.w) / 2);
+      const y = Math.max(0, (pageH - o.h) / 2);
+      draw(item, x, y, o.w, o.h, o);
+    }
+
+    return {
+      totalItems: items.length,
+      pageItems: current.length,
+      pages: Math.max(1, items.length),
+      options: o
+    };
+  };
+
+  state.page = 0;
+  drawSheet();
+})();
+</script>
 </body>
 </html>
