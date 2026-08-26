@@ -62,8 +62,8 @@
           <div class="button-row filter-row" aria-label="Document scan filters">
             <button class="btn secondary filter-btn active" data-filter="none" type="button">Original</button>
             <button class="btn secondary filter-btn" data-filter="scan" type="button">Scan Document</button>
-            <button class="btn secondary filter-btn" data-filter="mono" type="button">B&amp;W Text</button>
-            <button class="btn secondary filter-btn" data-filter="color" type="button">Color Enhance</button>
+            <button class="btn secondary filter-btn" data-filter="mono" data-apply="both" type="button">B&amp;W Both</button>
+            <button class="btn secondary filter-btn" data-filter="color" data-apply="both" type="button">Colour Both</button>
           </div>
           <div class="button-row utility-row">
             <button id="autoEnhanceBtn" class="btn secondary" type="button">✨ Auto Enhance</button>
@@ -193,6 +193,20 @@
       options: o
     };
   };
+
+  document.querySelectorAll('.filter-btn[data-apply="both"]').forEach(button => {
+    button.addEventListener('click', function (event) {
+      event.stopImmediatePropagation();
+      const filterName = button.dataset.filter;
+      if (!state.front && !state.back) return toast('पहले Front या Back image चुनें');
+      if (state.front) state.front.filter = filterName;
+      if (state.back) state.back.filter = filterName;
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.toggle('active', btn === button));
+      drawCrop();
+      drawSheet();
+      toast(filterName === 'mono' ? 'B&W दोनों sides पर लागू हो गया' : 'Colour दोनों sides पर लागू हो गया');
+    }, true);
+  });
 
   state.page = 0;
   drawSheet();
