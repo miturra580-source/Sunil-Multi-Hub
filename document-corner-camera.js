@@ -67,23 +67,63 @@
   async function openCornerEditor(file,onDone){
     let img;try{img=await fileToImage(file)}catch(e){alert(e.message);return}
     const overlay=document.createElement('div');overlay.className='m24-corner-overlay';
-    overlay.innerHTML='<div class="m24-corner-card"><div class="m24-corner-head"><div><h3>✥ Corner Edit / Document Straighten</h3><p>Corner dot से कोना set करें, बीच के <b>SIZE</b> point से छोटा-बड़ा करें, और नीले box के अंदर drag करके पूरा box move करें।</p></div><button type="button" data-close style="border:0;background:#eef2f7;border-radius:9px;padding:8px 11px;font-weight:900">✕</button></div><div class="m24-corner-stage"><canvas></canvas></div><div class="m24-corner-actions"><button type="button" data-smaller>− Size</button><button type="button" data-bigger>+ Size</button><button type="button" data-reset>Reset</button><button type="button" data-auto>Auto Corners</button><button type="button" class="apply" data-apply>✓ Straighten & Crop</button></div><p class="m24-corner-help"><span class="m24-size-note">Move:</span> नीले selection के अंदर खाली जगह पर finger रखकर पूरे box को ID के ऊपर ले जाएँ। Corner 1-4 से border fine-tune करें।</p></div>';
+    overlay.innerHTML='<div class="m24-corner-card"><div class="m24-corner-head"><div><h3>✥ Corner Edit / Document Straighten</h3><p>Corner dots से कोना set करें। TOP / RIGHT / BOTTOM / LEFT handles से हर side अलग छोटा-बड़ा करें। SIZE से पूरा box resize और अंदर drag से पूरा box move करें।</p></div><button type="button" data-close style="border:0;background:#eef2f7;border-radius:9px;padding:8px 11px;font-weight:900">✕</button></div><div class="m24-corner-stage"><canvas></canvas></div><div class="m24-corner-actions"><button type="button" data-smaller>− Size</button><button type="button" data-bigger>+ Size</button><button type="button" data-reset>Reset</button><button type="button" data-auto>Auto Corners</button><button type="button" class="apply" data-apply>✓ Straighten & Crop</button></div><p class="m24-corner-help"><span class="m24-size-note">Tip:</span> TOP/RIGHT/BOTTOM/LEFT handle पकड़कर सिर्फ उसी edge को अंदर-बाहर करें। नीले box के अंदर खाली जगह पर drag करके पूरा selection move करें।</p></div>';
     document.body.appendChild(overlay);
     const canvas=overlay.querySelector('canvas'),ctx=canvas.getContext('2d');
     const maxW=1200,maxH=900,scale=Math.min(maxW/img.width,maxH/img.height,1);canvas.width=Math.max(320,Math.round(img.width*scale));canvas.height=Math.max(220,Math.round(img.height*scale));
     let pts=[];function defaults(){const m=.08;pts=[{x:canvas.width*m,y:canvas.height*m},{x:canvas.width*(1-m),y:canvas.height*m},{x:canvas.width*(1-m),y:canvas.height*(1-m)},{x:canvas.width*m,y:canvas.height*(1-m)}]}
-    defaults();let active=-1,dragMode=null,startPts=null,startP=null,startCenter=null;
+    defaults();let active=-1,dragMode=null,startPts=null,startP=null,startCenter=null,edgeIndex=-1;
     function center(){return{x:pts.reduce((a,p)=>a+p.x,0)/4,y:pts.reduce((a,p)=>a+p.y,0)/4}}
+    function edgeCenters(){return[
+      {x:(pts[0].x+pts[1].x)/2,y:(pts[0].y+pts[1].y)/2,label:'TOP'},
+      {x:(pts[1].x+pts[2].x)/2,y:(pts[1].y+pts[2].y)/2,label:'RIGHT'},
+      {x:(pts[2].x+pts[3].x)/2,y:(pts[2].y+pts[3].y)/2,label:'BOTTOM'},
+      {x:(pts[3].x+pts[0].x)/2,y:(pts[3].y+pts[0].y)/2,label:'LEFT'}
+    ]}
     function clampPt(p){return{x:Math.max(0,Math.min(canvas.width,p.x)),y:Math.max(0,Math.min(canvas.height,p.y))}}
     function resizeSelection(factor,basePts,origin){pts=basePts.map(p=>clampPt({x:origin.x+(p.x-origin.x)*factor,y:origin.y+(p.y-origin.y)*factor}))}
     function pointInPolygon(p){let inside=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const a=pts[i],b=pts[j];const hit=((a.y>p.y)!==(b.y>p.y))&&(p.x<(b.x-a.x)*(p.y-a.y)/((b.y-a.y)||1e-9)+a.x);if(hit)inside=!inside}return inside}
     function moveWholeBox(dx,dy){let moved=startPts.map(p=>({x:p.x+dx,y:p.y+dy}));let minX=Math.min(...moved.map(p=>p.x)),maxX=Math.max(...moved.map(p=>p.x)),minY=Math.min(...moved.map(p=>p.y)),maxY=Math.max(...moved.map(p=>p.y));let fixX=0,fixY=0;if(minX<0)fixX=-minX;else if(maxX>canvas.width)fixX=canvas.width-maxX;if(minY<0)fixY=-minY;else if(maxY>canvas.height)fixY=canvas.height-maxY;pts=moved.map(p=>({x:p.x+fixX,y:p.y+fixY}))}
-    function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);ctx.save();ctx.strokeStyle='#0b4fd8';ctx.lineWidth=Math.max(3,canvas.width/260);ctx.fillStyle='rgba(11,79,216,.12)';ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<4;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath();ctx.fill();ctx.stroke();pts.forEach((p,i)=>{ctx.beginPath();ctx.fillStyle='#fff';ctx.arc(p.x,p.y,13,0,Math.PI*2);ctx.fill();ctx.lineWidth=6;ctx.strokeStyle='#0b4fd8';ctx.stroke();ctx.fillStyle='#0b4fd8';ctx.font='bold 13px sans-serif';ctx.fillText(String(i+1),p.x+16,p.y-14)});const c=center();ctx.beginPath();ctx.fillStyle='#fff3cd';ctx.arc(c.x,c.y,15,0,Math.PI*2);ctx.fill();ctx.lineWidth=6;ctx.strokeStyle='#f59e0b';ctx.stroke();ctx.fillStyle='#111827';ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.fillText('SIZE',c.x,c.y-22);ctx.restore()}
+    function drawHandle(p,label,color='#16a34a'){
+      ctx.beginPath();ctx.fillStyle='#fff';ctx.arc(p.x,p.y,12,0,Math.PI*2);ctx.fill();ctx.lineWidth=5;ctx.strokeStyle=color;ctx.stroke();ctx.fillStyle=color;ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText(label,p.x,p.y-18)
+    }
+    function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);ctx.save();ctx.strokeStyle='#0b4fd8';ctx.lineWidth=Math.max(3,canvas.width/260);ctx.fillStyle='rgba(11,79,216,.12)';ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<4;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath();ctx.fill();ctx.stroke();
+      pts.forEach((p,i)=>{ctx.beginPath();ctx.fillStyle='#fff';ctx.arc(p.x,p.y,13,0,Math.PI*2);ctx.fill();ctx.lineWidth=6;ctx.strokeStyle='#0b4fd8';ctx.stroke();ctx.fillStyle='#0b4fd8';ctx.font='bold 13px sans-serif';ctx.textAlign='left';ctx.fillText(String(i+1),p.x+16,p.y-14)});
+      edgeCenters().forEach(e=>drawHandle(e,e.label));
+      const c=center();ctx.beginPath();ctx.fillStyle='#fff3cd';ctx.arc(c.x,c.y,15,0,Math.PI*2);ctx.fill();ctx.lineWidth=6;ctx.strokeStyle='#f59e0b';ctx.stroke();ctx.fillStyle='#111827';ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.fillText('SIZE',c.x,c.y-22);ctx.restore()
+    }
     function pos(e){const r=canvas.getBoundingClientRect(),t=e.touches?e.touches[0]:e;return{x:(t.clientX-r.left)*canvas.width/r.width,y:(t.clientY-r.top)*canvas.height/r.height}}
-    function nearest(p){const c=center(),cd=(c.x-p.x)**2+(c.y-p.y)**2;if(cd<3600)return 4;let bi=-1,bd=1e9;pts.forEach((q,i)=>{const d=(q.x-p.x)**2+(q.y-p.y)**2;if(d<bd){bd=d;bi=i}});return bd<3000?bi:-1}
-    function down(e){const p=pos(e);active=nearest(p);startP=p;startPts=pts.map(q=>({...q}));if(active===4){dragMode='size';startCenter=center()}else if(active>=0){dragMode='corner'}else if(pointInPolygon(p)){dragMode='box'}else{dragMode=null}if(dragMode)e.preventDefault()}
-    function move(e){if(!dragMode)return;const p=pos(e);if(dragMode==='size'){const dy=startP.y-p.y;const factor=Math.max(.25,Math.min(2.8,1+dy/(canvas.height*.42)));resizeSelection(factor,startPts,startCenter)}else if(dragMode==='corner'&&active>=0&&active<4){pts[active]=clampPt(p)}else if(dragMode==='box'){moveWholeBox(p.x-startP.x,p.y-startP.y)}draw();e.preventDefault()}
-    function up(){active=-1;dragMode=null;startPts=null;startP=null;startCenter=null}
+    function nearestCorner(p){let bi=-1,bd=1e9;pts.forEach((q,i)=>{const d=(q.x-p.x)**2+(q.y-p.y)**2;if(d<bd){bd=d;bi=i}});return bd<3000?bi:-1}
+    function nearestEdge(p){let bi=-1,bd=1e9;edgeCenters().forEach((q,i)=>{const d=(q.x-p.x)**2+(q.y-p.y)**2;if(d<bd){bd=d;bi=i}});return bd<2600?bi:-1}
+    function down(e){
+      const p=pos(e),c=center(),cd=(c.x-p.x)**2+(c.y-p.y)**2;startP=p;startPts=pts.map(q=>({...q}));active=-1;edgeIndex=-1;
+      const corner=nearestCorner(p),edge=nearestEdge(p);
+      if(corner>=0){active=corner;dragMode='corner'}
+      else if(edge>=0){edgeIndex=edge;dragMode='edge'}
+      else if(cd<3600){dragMode='size';startCenter=c}
+      else if(pointInPolygon(p)){dragMode='box'}
+      else dragMode=null;
+      if(dragMode)e.preventDefault()
+    }
+    function move(e){
+      if(!dragMode)return;const p=pos(e);
+      if(dragMode==='size'){
+        const dy=startP.y-p.y;const factor=Math.max(.25,Math.min(2.8,1+dy/(canvas.height*.42)));resizeSelection(factor,startPts,startCenter)
+      }else if(dragMode==='corner'&&active>=0){
+        pts[active]=clampPt(p)
+      }else if(dragMode==='box'){
+        moveWholeBox(p.x-startP.x,p.y-startP.y)
+      }else if(dragMode==='edge'&&edgeIndex>=0){
+        pts=startPts.map(q=>({...q}));
+        if(edgeIndex===0){const y=Math.max(0,Math.min(canvas.height,p.y));pts[0].y=y;pts[1].y=y}
+        if(edgeIndex===1){const x=Math.max(0,Math.min(canvas.width,p.x));pts[1].x=x;pts[2].x=x}
+        if(edgeIndex===2){const y=Math.max(0,Math.min(canvas.height,p.y));pts[2].y=y;pts[3].y=y}
+        if(edgeIndex===3){const x=Math.max(0,Math.min(canvas.width,p.x));pts[3].x=x;pts[0].x=x}
+      }
+      draw();e.preventDefault()
+    }
+    function up(){active=-1;edgeIndex=-1;dragMode=null;startPts=null;startP=null;startCenter=null}
     canvas.addEventListener('mousedown',down);canvas.addEventListener('mousemove',move);window.addEventListener('mouseup',up);canvas.addEventListener('touchstart',down,{passive:false});canvas.addEventListener('touchmove',move,{passive:false});window.addEventListener('touchend',up);
     overlay.querySelector('[data-close]').onclick=()=>overlay.remove();
     overlay.querySelector('[data-reset]').onclick=()=>{defaults();draw()};
@@ -105,23 +145,12 @@
     const side=input.id==='frontInput'?'front':input.id==='backInput'?'back':null;
     if(!side || typeof state==='undefined' || typeof fresh!=='function' || typeof readImage!=='function')return false;
     try{
-      const img=await readImage(file);
-      state[side]=fresh(img);
+      const img=await readImage(file);state[side]=fresh(img);
       const nameEl=document.getElementById(side+'Name');if(nameEl)nameEl.textContent=file.name+' • Straightened';
+      const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;
       state.active=side;if(typeof setTab==='function')setTab();if(typeof syncControls==='function')syncControls();if(typeof drawCrop==='function')drawCrop();if(typeof drawSheet==='function')drawSheet();
-      if(typeof toast==='function')toast((label||side)+' corner correction लागू');
-      return true;
+      if(typeof toast==='function')toast((label||side)+' corner correction लागू');return true;
     }catch(e){alert(e.message||'Correction apply नहीं हुआ');return true}
-  }
-
-  async function snapshotCustomerBack(){
-    try{
-      const main=document.getElementById('files');
-      if(!main||!window.customerPrintEditor?.filesForUpload)return null;
-      const originals=[...main.files];if(!originals.length)return null;
-      const processed=await window.customerPrintEditor.filesForUpload(originals,'id_card');
-      return processed&&processed[1]||originals[1]||originals[0]||null;
-    }catch(e){return null}
   }
 
   function attach(input,container,label){
@@ -135,15 +164,12 @@
     corner.onclick=async e=>{
       e.preventDefault();e.stopPropagation();const f=input.files&&input.files[0];if(!f){alert('पहले '+(label||'document')+' image चुनें');return}
       const isCustomer=!!input.closest('.smart-id-panel');
-      const savedBack=isCustomer&&input.id==='sidFront'?await snapshotCustomerBack():null;
+      const side=input.id==='sidFront'?'front':input.id==='sidBack'?'back':null;
       openCornerEditor(f,async corrected=>{
         if(await applyStandaloneSide(input,corrected,label))return;
-        transferTo(input,corrected);
-        if(isCustomer&&input.id==='sidFront'&&savedBack){
-          const back=input.closest('.smart-id-panel')?.querySelector('#sidBack');
-          if(back)setTimeout(()=>transferTo(back,savedBack),450);
-        }
-      });
+        if(isCustomer&&side&&window.customerPrintEditor?.replaceSide){await window.customerPrintEditor.replaceSide(side,corrected);return}
+        transferTo(input,corrected)
+      })
     };
     actions.append(camera,corner,camInput);(container||input.parentElement).appendChild(actions);
   }
