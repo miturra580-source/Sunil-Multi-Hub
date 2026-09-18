@@ -9,7 +9,7 @@ function msg(t){
 
 function safeNextPage(){
   const next=new URLSearchParams(location.search).get('next')||'';
-  const allowed=['dashboard.html','auto-print.html','wallet.html'];
+  const allowed=['dashboard.html','auto-print.html','wallet.html','pan-aadhaar-test.html'];
   return allowed.includes(next)?next:'dashboard.html';
 }
 
@@ -62,7 +62,7 @@ document.getElementById('registerForm').onsubmit=async e=>{
 
   if(data.session){
     msg('Account created');
-    setTimeout(()=>location.href='dashboard.html',700);
+    setTimeout(()=>location.href=safeNextPage(),700);
   }else{
     msg('Account created — email verify करें');
   }
@@ -138,6 +138,6 @@ document.getElementById('googleLoginBtn').onclick=async()=>{
 
   if(session){
     const {data:profile}=await sb.from('profiles').select('role').eq('id',session.user.id).maybeSingle();
-    location.replace(profile?.role==='admin'?'admin.html':'dashboard.html');
+    location.replace(profile?.role==='admin'?'admin.html':safeNextPage());
   }
 })();
