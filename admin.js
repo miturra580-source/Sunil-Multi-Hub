@@ -51,6 +51,11 @@ const paymentVerificationSummary = $('paymentVerificationSummary');
 
 const walletTopupsWrap = $('walletTopupsWrap');
 const refreshWalletTopups = $('refreshWalletTopups');
+const manualCreditEmail = $('manualCreditEmail');
+const manualCreditAmount = $('manualCreditAmount');
+const manualCreditDescription = $('manualCreditDescription');
+const manualCreditSubmit = $('manualCreditSubmit');
+const manualCreditMessage = $('manualCreditMessage');
 
 const serviceChargesWrap = $('serviceChargesWrap');
 
@@ -2312,6 +2317,72 @@ async function saveWalletPaymentSettings() {
 }
 
 
+async function submitManualWalletCredit() {
+  const email = manualCreditEmail?.value.trim().toLowerCase() || '';
+  const amount = Number(manualCreditAmount?.value || 0);
+  const description = manualCreditDescription?.value.trim() || '';
+
+  if (!email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+    msg('Valid customer email required');
+    manualCreditEmail?.focus();
+    return;
+  }
+
+  if (!Number.isFinite(amount) || amount <= 0 || amount > 100000) {
+    msg('Amount must be between ₹1 and ₹1,00,000');
+    manualCreditAmount?.focus();
+    return;
+  }
+
+  if (!confirm(`Confirm credit of ${money(amount)} to ${email}? This will update the wallet and create a transaction record.`)) {
+    return;
+  }
+
+  if (manualCreditSubmit) {
+    manualCreditSubmit.disabled = true;
+    manualCreditSubmit.textContent = 'Crediting...';
+  }
+  if (manualCreditMessage) {
+    manualCreditMessage.textContent = 'Processing secure wallet credit...';
+  }
+
+  try {
+    const { data, error } = await sb.rpc('admin_manual_credit_wallet', {
+      p_customer_email: email,
+      p_amount: amount,
+      p_description: description || null
+    });
+
+    if (error) throw error;
+    if (!data?.success) throw new Error('Wallet credit was not confirmed by the server.');
+
+    const resultText =
+      `Successfully credited ${money(data.amount)}. New wallet balance: ${money(data.balance_after)}.`;
+
+    if (manualCreditMessage) {
+      manualCreditMessage.textContent = resultText;
+      manualCreditMessage.style.color = '#067647';
+    }
+
+    manualCreditAmount.value = '';
+    manualCreditDescription.value = '';
+    msg(resultText);
+  } catch (error) {
+    console.error('Manual wallet credit:', error);
+    if (manualCreditMessage) {
+      manualCreditMessage.textContent = error.message || 'Wallet credit failed.';
+      manualCreditMessage.style.color = '#b42318';
+    }
+    msg(error.message || 'Wallet credit failed');
+  } finally {
+    if (manualCreditSubmit) {
+      manualCreditSubmit.disabled = false;
+      manualCreditSubmit.textContent = 'Add Money to Customer Wallet';
+    }
+  }
+}
+
+
 async function loadWalletTopups() {
   const { data, error } = await sb
     .from('wallet_topups')
@@ -2637,6 +2708,10 @@ if (refreshWalletTopups) {
       await loadWalletTopups();
       msg('Wallet recharge requests refreshed');
     };
+}
+
+if (manualCreditSubmit) {
+  manualCreditSubmit.onclick = submitManualWalletCredit;
 }
 
 
