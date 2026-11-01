@@ -2322,7 +2322,10 @@ async function submitManualWalletCredit() {
   const amount = Number(manualCreditAmount?.value || 0);
   const description = manualCreditDescription?.value.trim() || '';
 
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  const atIndex = email.indexOf('@');
+  const dotIndex = email.lastIndexOf('.');
+  if (!email || atIndex <= 0 || dotIndex <= atIndex + 1 ||
+      dotIndex >= email.length - 1 || email.includes(' ')) {
     msg('Valid customer email required');
     manualCreditEmail?.focus();
     return;
